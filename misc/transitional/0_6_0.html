@@ -1,0 +1,44 @@
+<html>
+<style>
+.w {background-color:#cccccc}
+.b {background-color:#888888}
+.g {background-color:#dddddd}
+.h {background-color:#eeeecc}
+table { background: #dddddd;}
+a {font-family: monospace; color:#777788}
+#pih {position:absolute;left:500px;top:20px}
+td {text-align:center;font-family:sans-serif;font-weight:bold;font-size:11px}
+textarea {background:#eeeeee; border: 0px; font:smaller; height=400px}
+</style>
+<body bgcolor="#eeeeee" onload="prepare()">
+<form name=fred>
+<center>
+<table border=0><tr><td>
+<script src="0_6_3.js"></script>
+<script src="debug.js"></script>
+</td><td>
+<nobr>
+<textarea name=bib cols=12 rows=30>
+</textarea>
+<textarea name=bug cols=25 rows=30>
+</textarea></nobr>
+</td></tr></table>
+<p>
+<br>
+<a href='#' onclick='refresh(board,8-player);B2();return false;'>swap</a> 
+<a href='#' onclick='goback();return false;'>undo</a><br><br>
+next pawn becomes:
+<select name=hob><option selected>queen<option>bishop<option>knight<option>rook</select>
+computer level:
+<select name=hep><option>1. very stupid<option selected>2. slow, stupid<option>3. very slow</select>
+<br><br>
+<input type=button value=parsetest title=parsetest onclick='parsetest()'>
+<input type=button value=start name=show title=show onclick='going=!going;this.value=going?"stop":"start";if(going)B1(0)'>
+<input type=button value=once name=show title=show onclick='B1(0)'>
+
+</center>
+
+
+
+</form>
+</body>

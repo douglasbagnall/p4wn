@@ -1,0 +1,1170 @@
+
+<meta http-equiv="Context-Type" content="text/html; charset=us-ascii">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0039)http://entries.the5k.org/719/index.html -->
+<HTML>
+<HEAD>
+
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<META content="MSHTML 5.00.3314.2100" name=GENERATOR>
+<title >5k chess</title >
+<STYLE>
+.w
+{
+ BACKGROUND: #ccc
+}
+.b
+{
+ BACKGROUND: #888
+}
+</STYLE>
+
+<script>
+var
+   parse_count = 0,
+   tree_climber_recursion_count = 0,
+   letters = "abcdefgh",
+   version_number = 1.82;
+var
+   color_of_piece,
+   last_piece,
+   P,
+   half_move_count,
+   empty       = 0,
+   a_pawn      = 1,   // 0x0001
+   a_rook      = 2,   // 0x0010
+   a_knight    = 3,   // 0x0011
+   a_bishop    = 4,   // 0x0100
+   a_queen     = 5,   // 0x0101
+   a_king      = 6,   // 0x0110
+   piece_mask  = 7,   // 0x0111
+   white_piece_mask = 0,
+   black_piece_mask = 8,
+   last_clicked_square,
+   a_square_with_what,
+   checkmate_flag_perhaps;
+//var
+//   move_list_array,
+//   move_list_array_length;
+
+color_of_piece = white_piece_mask;
+last_piece = empty;
+last_clicked_square = empty;
+
+P = 0;
+half_move_count = 0;
+en_passent_dest = empty;
+checkmate_flag_perhaps = 0;
+
+g_Beta = 1999;
+g_Alpha = -g_Beta;
+
+board_end_index = 120;
+
+pawn_move_array = new Array( 10, -10 );
+
+current_position_array = []
+
+chess_board = []
+
+castling_array = [ 3, 3 ];
+
+piece_weightings_array =
+    [
+     0, 1,   5,  3,  3,   9,   63, 0,
+     0, 16, 80, 48, 48, 144, 1008, 0
+    ];
+
+allowed_moves_array =
+    [
+     0,
+     0,
+     [ 1, 10, -1, -10 ],                      // rook and king
+     [ 21, 19, 12, 8, -21, -19, -12, -8 ],    // knight motion
+     [ 11, 9, -9, -11 ],                      // bishop and pawn capture
+     [ 1, 10, 11, 9, -1, -10, -11, -9 ],      // queen motion
+     [ 1, 10, 11, 9, -1, -10, -11, -9 ],      // king motion
+     0
+    ];
+
+x = 'g00000000g'
+y = 'gggggggggg'
+
+b = y +
+    y +
+   "g23456432g" +       // white pieces
+   "g11111111g" +
+    x + x + x + x +
+   "g99999999g" +
+   "gABCDECBAg" +       // black pieces
+    y +
+    y;
+
+w = x +
+    x +
+    x +
+    "00011110" + "00001233" + "21000123" + "553210";
+
+a = '000012346900';
+
+knight_array = []
+PY = []
+bY = []
+king_array = []
+pY = [ [], [] ];
+
+for( y = 0; y < 12; y++ )
+   {
+   for( x = 0; x < 10; x++ )
+     {
+     z = ( y * 10 ) + x;         // z in ( 0, 99 )
+     PY[ z ] = parseInt( a.charAt( y ) );
+     bY[ z ] = parseInt( w.charAt(
+                                  ( z < 60 )?
+                                  z:
+                                  board_end_index - 1 - z
+                                 ), 35
+                       ) & piece_mask;
+     chess_board[ z ] = parseInt( b.charAt( z ), 35 );
+     }
+   }
+chess_board[ board_end_index ] = 0;
+
+d = document
+
+cp = new Function( 'a', 'b', 'return b[ 0 ] - a[ 0 ]' );
+
+//_____________________________________________________________________________
+function                        // was treeclimber
+   find_the_best_move(
+                     count,
+                     color_of_piece_arg,
+                     move_rating_arg,
+                     from_square,
+                     to_square,
+                     alpha,
+                     beta,
+                     ep_dest,
+                     df
+                     )
+{
+var
+   z = -1,
+   C = -move_rating_arg,
+   other_color = 8 - color_of_piece_arg,
+
+   move_rating = g_Alpha,
+
+   copy_of_chess_board = chess_board,
+   the_piece,
+   captured_piece_or_empty_square = copy_of_chess_board[ to_square ],
+   castling_king_dest = 0,
+   castling_rook_dest;
+var
+   move_list_array,
+   move_list_array_length,
+   n;
+var
+   best,
+   best_start,
+   best_end,
+   t;
+
+++tree_climber_recursion_count;
+document.FF.rc.value = tree_climber_recursion_count;
+
+if( C < -400 )
+   return [ C, from_square, to_square ];
+
+         // effects the move on the copied board
+the_piece = copy_of_chess_board[ from_square ];
+copy_of_chess_board[ from_square ] = empty;
+copy_of_chess_board[ to_square ] = the_piece;
+
+if( the_piece )
+   current_position_array[ other_color ]
+                         [ current_position_array[ other_color ].length ] =
+      [ the_piece, to_square ];
+// check for strange moves!
+if(
+   ( ( the_piece - color_of_piece_arg ) == a_pawn ) &&      // a pawn
+   ( copy_of_chess_board[ to_square +                       // has queened
+                          pawn_move_array[ color_of_piece_arg >> 3 ] ] > 15 )
+  )
+   {
+   copy_of_chess_board[ to_square ] += 4;                   // 1 + 4 is a_queen
+   }
+
+if(
+   ( the_piece - color_of_piece_arg == a_king ) &&          // trying to castle
+   ( ( ( from_square - to_square ) == 2 ) || ( ( to_square - from_square ) == 2 ) )
+  )
+   {
+   castling_king_dest = from_square - 4 + (from_square < to_square ) * 7;
+   castling_rook_dest = ( from_square + to_square ) >> 1;
+   copy_of_chess_board[ castling_king_dest ] = empty;
+   copy_of_chess_board[ castling_rook_dest ] = color_of_piece_arg + a_rook;
+   }
+// so strange moves taken care of, so
+//var
+move_list_array = build_move_list_array( color_of_piece_arg, ep_dest, C );
+move_list_array_length = move_list_array.length;
+//   n;
+
+if( move_list_array_length )     // there is/are move/s
+   {
+   //if( df && !other_color )
+   //   alert( show_this( move_list_array, "move_list_array" ) );
+   if( count )
+      {
+      move_list_array.sort( cp );      // highest rating to the top
+      count--;                         // how many 1/2 moves, iterations
+
+      //var
+         best = move_list_array[ 0 ];
+         best_start = best[ 1 ];
+         best_end = best[ 2 ];
+      //   t;
+
+      move_rating = -find_the_best_move(
+                                       count,
+                                       other_color,
+                                       best[ 0 ],
+                                       best_start,
+                                       best_end,
+                                       -beta,
+                                       -alpha,
+                                       best[ 3 ],
+                                       false
+                                       )[ 0 ];
+      document.FF.eval.value = move_rating;
+      for( z = 1; z < move_list_array_length; z++ )   // check each move
+         {
+         if( move_rating > alpha )
+            alpha = move_rating;
+         n = move_list_array[ z ];
+         t = -find_the_best_move(
+                                 count,
+                                 other_color,
+                                 n[ 0 ],
+                                 n[ 1 ],
+                                 n[ 2 ],
+                                 -alpha - 1,
+                                 -alpha,
+                                 n[ 3 ],
+                                 false
+                                )[ 0 ];
+         document.FF.eval.value = t;
+         if( ( alpha < t ) && ( t < beta ) )
+            {
+            t = -find_the_best_move(
+                                    count,
+                                    other_color,
+                                    n[ 0 ],
+                                    n[ 1 ],
+                                    n[ 2 ],
+                                    -beta,
+                                    -t,
+                                    n[ 3 ],
+                                    false
+                                   )[ 0 ];
+            document.FF.eval.value = t;
+            }
+         if( t > move_rating )
+            {
+            move_rating = t;
+            best_start = n[ 1 ];
+            best_end = n[ 2 ];
+            if( t > alpha )
+               alpha = t;
+            if( move_rating > beta )
+               break;
+            }
+         }
+      }
+   else
+      {
+      move_rating = g_Alpha;
+      while( --move_list_array_length && ( beta > move_rating ) )
+         {
+         if( move_list_array[ move_list_array_length ][ 0 ] > move_rating )
+            {
+            move_rating = move_list_array[ move_list_array_length ][ 0 ];
+            }
+         }
+      }
+   if( df && !other_color )
+      alert( show_this( move_list_array, "move_list_array" ) );
+   }
+else
+   {
+   checkmate_flag_perhaps = count + 1;
+   }
+if( castling_king_dest )
+   {
+   copy_of_chess_board[ castling_king_dest ] = color_of_piece_arg + a_rook;
+   copy_of_chess_board[ castling_rook_dest ] = empty;
+   }
+copy_of_chess_board[ from_square ] = the_piece;
+copy_of_chess_board[ to_square ] = captured_piece_or_empty_square;
+current_position_array[ other_color ].length--;
+
+--tree_climber_recursion_count;
+document.FF.rc.value = tree_climber_recursion_count;
+
+document.FF.eval.value = move_rating;
+return [ move_rating, best_start, best_end ];
+}
+//_____________________________________________________________________________
+function                        // was 
+   check_or_stalemate( count,
+                       color_of_piece_arg,
+                       start_of_move_square_index,
+                       end_of_move_square_index,
+                       ep_dest
+                     )
+{
+var
+   best_move_array,
+   piece_at_end_square,
+   piece_at_start;
+
+piece_at_start = chess_board[ start_of_move_square_index ];
+piece_at_end_square = chess_board[ end_of_move_square_index ],
+// so, we have saved the move
+
+chess_board[ end_of_move_square_index ] = piece_at_start;
+chess_board[ start_of_move_square_index ] = empty;
+// so we make the move
+
+build_current_position_array( );
+best_move_array = find_the_best_move(
+                                    count,         // 0 or 1 in this case
+                                    color_of_piece_arg,
+                                    0,
+                                    board_end_index,
+                                    board_end_index, 
+                                    g_Alpha,
+                                    g_Beta,
+                                    ep_dest,
+                                    false
+                                    );
+// restore the move
+chess_board[ start_of_move_square_index ] = piece_at_start;
+chess_board[ end_of_move_square_index ] = piece_at_end_square;
+return best_move_array[ 0 ];
+}
+//_____________________________________________________________________________
+function
+   make_this_move( from_square, to_square, promoted_piece )
+{
+var
+   destination_square_or_piece_taken = chess_board[ to_square ],
+   the_piece = chess_board[ from_square ],
+   white_or_black_piece = the_piece & piece_mask,
+   color_of_piece_bool = color_of_piece >> 3,  // 0 or 8
+   check_flag = 0,
+   move_allowed_flag = false,
+   z = 0,
+   move_list_array;
+
+//if( color_of_piece )
+//   alert( "black moves()" );
+//else
+//   alert( "white to move()" );
+
+if( !color_of_piece )      // i.e. white
+   {
+   build_current_position_array( );
+   move_list_array = build_move_list_array( color_of_piece, en_passent_dest, 0 );
+   //alert( show_this( move_list_array, "move_list_array" ) );
+
+   for( ; z < move_list_array.length; z++ )       // z = 0 at start
+      {
+      move_allowed_flag = move_allowed_flag ||
+                         (
+                          ( from_square == move_list_array[ z ][ 1 ] ) &&
+                          ( to_square == move_list_array[ z ][ 2 ] )
+                         );
+      }
+   if( !move_allowed_flag )
+      {
+      alert( "illegal white move?" );
+      return false;
+      }
+
+   if(
+      check_or_stalemate( 0,
+                          8 - color_of_piece,  // other color
+                          from_square,
+                          to_square,
+                          en_passent_dest
+                        ) > 400
+     )
+      {
+      alert( "check, checkmate or stalemate (to white)" );
+      return false;
+      }
+   }
+
+if( check_or_stalemate( 0,
+                        color_of_piece,
+                        from_square,
+                        to_square,
+                        en_passent_dest
+                      ) > 400 )
+   {
+   alert( "check checkmate or stalemate (to black)" );  // yes
+   check_flag = 1
+   }
+
+var
+   from_square_file = from_square % 10,
+   to_square_file = to_square % 10,
+   move_vector_distance = to_square - from_square,
+   copy_of_pawn_move_array = pawn_move_array[ color_of_piece_bool ];
+
+   //t = to_square % 10,
+   //n = 1 + ( half_move_count >> 1 );   // actual move
+
+if(
+   check_or_stalemate( 1,
+                       8 - color_of_piece,
+                       from_square,
+                       to_square,
+                       en_passent_dest
+                     ) < -400 
+  )
+   {
+   alert( "checkmate?" );
+   checkmate_flag_perhaps = check_flag + 1;
+   }               
+
+if(( destination_square_or_piece_taken & piece_mask ) == a_king )
+   {
+   alert( "oops, beyond checkmate!" );
+   checkmate_flag_perhaps = 2;
+   return false;
+   }
+
+//________________________________________________________
+// en passent work
+en_passent_dest = empty;
+if( white_or_black_piece == a_pawn )
+   {
+   if( chess_board[ to_square + copy_of_pawn_move_array ] > 15 )
+      chess_board[ from_square ] += 4 - promoted_piece      // promotion
+   if(
+      ( move_vector_distance == 2 * copy_of_pawn_move_array ) &&
+      (
+       ( chess_board[ to_square - 1 ] & a_pawn ) ||   // enemy pawn to the left
+       ( chess_board[ to_square + 1 ] & a_pawn )      // enemy pawn to the right
+      )
+     )
+      en_passent_dest =
+         from_square + copy_of_pawn_move_array; // where ep capture would be
+
+   if( !destination_square_or_piece_taken &&    // empty dest square and
+       move_vector_distance % 10                // i.e. diagonal capture
+     )                                          // defines an ep capture
+      {                                         // alert( "en passent." );
+      move_piece( to_square, to_square - copy_of_pawn_move_array );
+      }
+   }
+// end of en passent work
+//________________________________________________________
+// castling allowed checks
+if(
+   ( from_square == ( 21 + color_of_piece_bool * 70 ) ) ||  // qr b or w moved
+   ( from_square == ( 28 + color_of_piece_bool * 70 ) )     // kr b or w moved
+  )                                                   // no castling
+   castling_array[ color_of_piece_bool ] &=
+      ( from_square_file < 5 ) + 1;                   // qr -> 2, kr -> 1
+
+if(
+   ( to_square == ( 21 + ( color_of_piece_bool * 70 ) ) ) ||   // qr b or w captured
+   ( to_square == ( 28 + ( color_of_piece_bool * 70 ) ) )      // kr b or w captured
+  )
+   castling_array[ color_of_piece_bool ] &=
+      //( from_square_file < 5 ) + 1;  // bug on castling
+      ( to_square_file < 5 ) + 1;                     // qr -> 2, kr -> 1
+
+if( white_or_black_piece == a_king )                  // k b or w
+   {
+   if( move_vector_distance * move_vector_distance == 4 )   // i.e. +/- 2
+      {                                               // move rook for castling
+      move_piece( from_square - 4 + ( from_square < to_square ) * 7,// qr or kr
+                  from_square + ( move_vector_distance / 2 ) );     // +1 or -1
+      }
+   // or moved king anywhere
+   castling_array[ color_of_piece_bool ] = empty;  // castling done,
+   }                                               // so not allowed again
+// end of castling allowed checks
+//________________________________________________________
+move_piece( from_square, to_square );  // actual move done here
+build_current_position_array( );
+
+half_move_count++;
+//document.FF.mvc.value = Math.floor( half_move_count / 2 );
+document.FF.mvc.value = ( half_move_count >> 1 );
+
+color_of_piece = 8 - color_of_piece; // 0->8->0...ie switches colors
+
+return true;
+}
+//_____________________________________________________________________________
+function                    // was prepare
+   build_current_position_array( )
+{
+var
+   s0,
+   piece_at_square,
+   index_of_square = 99,
+   Q;
+
+//alert( "evaluator() half_move_count = " + half_move_count );
+
+s0 = ( half_move_count < 32 )?      // < 16 moves (the opening) 0x1 1111
+     4 - ( half_move_count >> 3 ):  // 4 - (3-0)                0x0011
+     ( half_move_count > 64 );      // 1 or 0 (end game or middle game)
+                                    // s0 is 0,1,2,3,4 only
+current_position_array[ white_piece_mask ] = [] // why slower if global?
+current_position_array[ black_piece_mask ] = [] // why slower if global?
+//king_array = []   // version 1.37, made global
+//pY = [ [], [] ];   version 1.39 made global
+
+for( ; index_of_square > 20; index_of_square-- )   // check black first
+   {                                               // for each square
+   piece_at_square = chess_board[ index_of_square ];  //piece at that square
+   if( piece_at_square & piece_mask )     // there is a piece at this square
+      current_position_array[ piece_at_square & black_piece_mask ]
+                            [ current_position_array[
+                                  piece_at_square & black_piece_mask
+                                                    ].length ] =
+             [ piece_at_square, index_of_square ];
+
+   knight_array[ index_of_square ] = bY[ index_of_square ] * s0;
+   king_array[ index_of_square ] =
+         ( half_move_count > 40 ) || ( 10 - 2 * bY[ index_of_square ] ) * s0;
+   Q =                     // 99 ... 20 becomes
+    pY[ 1 ][ board_end_index - 1 - index_of_square ] =   // 20 ... 99
+    pY[ 0 ][ index_of_square ] =
+    PY[ index_of_square ];
+   if(
+      ( half_move_count < 7 ) &&          // opening 3 1/2 moves
+      ( index_of_square > 40 )            // 4th rank for white
+     )
+      {
+      pY[ 0 ][ index_of_square ] =
+       pY[ 1 ][ board_end_index - 1 - index_of_square ] =
+       Q + ( Math.random() * knight_array[ index_of_square ] ) | 1;
+      knight_array[ 24 ] = 29;      // white queen square
+      knight_array[ 94 ] = 29;      // black queen square
+      }
+   }
+}
+//_____________________________________________________________________________
+function                      // new
+   not_attacked_at( this_square,
+                    other_color
+                  )
+{
+var
+   i,
+   this_color_bool = other_color ^ black_piece_mask,
+   other_color_bool = other_color >> 3,
+   this_pawn_move_array = pawn_move_array[ this_color_bool ],
+   knight_allowed_moves_array = allowed_moves_array[ a_knight ],
+   moves_vector = allowed_moves_array[ a_queen ]
+
+var
+   X,
+   E,
+   x,
+   m,
+   z,
+   a = this_pawn_move_array + 2,
+   knight_allowed_moves_array = allowed_moves_array[ a_knight ],
+   copy_of_chess_board = chess_board
+
+         // 10 - 1, 10, 10 + 1,
+for( m = this_pawn_move_array - 2; ++m < a; )
+   {
+   E = copy_of_chess_board[ this_square + m ]
+   if(
+      E &&                                            // not empty and
+      ( ( E & black_piece_mask ) == other_color ) &&  // enemy piece is a
+      ( ( E & black_piece_mask ) == a_pawn )         // pawn
+     )
+      {
+      return false;                                   // thru check
+      }
+   }
+for( i = 0; i < 8; ++i )
+   {
+   m = moves_vector[ i ];  // -1, 9, 10, 11, 1, -11, -10, -9
+   E = copy_of_chess_board[ this_square + m ]
+   if(
+      E &&                                            // not empty and
+      ( ( E & black_piece_mask ) == other_color ) &&  // enemy piece is a
+      ( ( E & piece_mask ) == a_king )                // king
+     )
+      {
+      return false;                                   // thru check
+      }
+   E = empty;
+   X = this_square
+   while( !E )          // empty
+      {
+      X += m            // -1, 9, 10, 11, 1, -11, -10, -9
+      E = copy_of_chess_board[ X ]                       // what's there
+      if(                                                // an enemy
+         ( E == ( other_color + a_rook +                 // rook or
+                 ( ( ( m * m ) != ( 1 || 100 ) ) * 2 ) 
+                ) 
+         ) ||                                            // bishop or
+         ( E == ( other_color + a_queen ) )              // queen
+        )
+         {
+         return false;
+         }
+      }
+   }
+for( z = 0; z < 8; )
+   if(
+      (
+       copy_of_chess_board[ this_square +
+                            knight_allowed_moves_array[ z++ ] ] -
+       other_color
+      ) == a_knight        // enemy knight
+     )
+      {
+      return false;
+      }
+return true;
+}
+//_____________________________________________________________________________
+function                         // was parse
+   build_move_list_array( color_of_piece_arg, ep_arg, move_rating_arg )
+{
+var
+   possible_start_move,
+   X,
+   h,
+   E,
+   a_piece,
+   v,
+   allowed_moves_of_piece,
+   k = -1,  // preset
+   color_of_piece_bool = color_of_piece_arg >> 3,
+   other_color = color_of_piece_arg ^ black_piece_mask,
+   copy_of_pawn_move_array = pawn_move_array[ color_of_piece_bool ],
+   move_list_array = [],
+   m,
+   T,
+   p = pY[ color_of_piece_bool ],
+   knight_or_king_array,
+   castling_value_of_color = castling_array[ color_of_piece_bool ],
+   z,
+   is_a_king_flag,
+   g,
+   current_position_array_of_color = current_position_array[ color_of_piece_arg ],
+   f = current_position_array_of_color.length,
+   copy_of_chess_board = chess_board,
+   copy_of_piece_weightings_array = piece_weightings_array
+
+++parse_count;
+document.FF.pzc.value = parse_count;
+
+for( z = 0; z < f; z++ )         // for every black (or white) piece 
+   {
+   possible_start_move = current_position_array_of_color[ z ][ 1 ]   // is a piece
+   a_piece = copy_of_chess_board[ possible_start_move ]
+   if( current_position_array_of_color[ z ][ 0 ] == a_piece )
+      {
+      a_piece &= piece_mask;     // strip off the color
+      if( a_piece > a_pawn )     // can be rook, knight, bishop, queen or king
+         {
+         is_a_king_flag = ( a_piece == a_king );
+         knight_or_king_array = is_a_king_flag? king_array: knight_array
+
+         T = move_rating_arg - knight_or_king_array[ possible_start_move ]
+
+         allowed_moves_of_piece = allowed_moves_array[ a_piece ]
+         if( ( a_piece == a_knight ) || is_a_king_flag ) // knight or king
+            {
+            for( v = 0; v < 8; )    // max allowed directions of any piece
+               {
+               X = possible_start_move + allowed_moves_of_piece[ v++ ]; //dest direction
+               E = copy_of_chess_board[ X ]     // what is at that square
+               if(
+                  !E ||                         // empty square or
+                  (                             // edge 16 never is either color
+                   ( E & ( 16 + 8 ) ) ==        // so a piece and
+                   other_color                  // of other color
+                  )
+                 )
+                  {                             // king can't take a protected piece
+                                                // can't be sure of this move!
+                  if( a_piece == a_knight )
+                     move_list_array[ ++k ] =      // store knight move
+                         [ T + copy_of_piece_weightings_array[ E ] +
+                              knight_or_king_array[ X ], // rating
+                           possible_start_move,    // start square
+                           X                       // end square
+                         ];
+                  else  // a king
+                     {
+                     //if( no other enemy piece attacks (can move to) X )
+                     //   then
+                     if( not_attacked_at( X, other_color ) )
+                        move_list_array[ ++k ] =      // store king move
+                         [ T + copy_of_piece_weightings_array[ E ] +
+                              knight_or_king_array[ X ], // rating
+                           possible_start_move,    // start square
+                           X                       // end square
+                         ];
+                     }
+                  }
+               }
+            if( is_a_king_flag && castling_value_of_color ) // castling allowed?
+               {
+               if(
+                  ( castling_value_of_color & 1 ) &&         // qr or k not moved?
+                  !(
+                    copy_of_chess_board[ possible_start_move - 1 ] +  // empty
+                    copy_of_chess_board[ possible_start_move - 2 ] +
+                    copy_of_chess_board[ possible_start_move - 3 ]
+                   ) &&
+                  not_castle_thru_check(
+                                       possible_start_move - 2,    // no attacks?
+                                       other_color,
+                                       copy_of_pawn_move_array,
+                                       -1                   // left one square?
+                                       )
+                 )
+                  move_list_array[ ++k ] = [ T + 11,        // value
+                               possible_start_move,
+                               possible_start_move - 2 ];   // queenside 0-0-0
+               if(
+                  ( castling_value_of_color & 2 ) &&        // kr or k not moved?
+                  !( copy_of_chess_board[ possible_start_move + 1 ] +
+                     copy_of_chess_board[ possible_start_move + 2 ]
+                   ) &&
+                  not_castle_thru_check(
+                                       possible_start_move,
+                                       other_color,
+                                       copy_of_pawn_move_array,
+                                       1                    // right one square?
+                                       )
+                 )
+                  move_list_array[ ++k ] = [ T + 12,        // value
+                               possible_start_move,
+                               possible_start_move + 2 ]    // kingside 0-0
+               }
+            }
+         else     // the piece is a rook, bishop or queen
+            {
+            g = allowed_moves_of_piece.length   // actually directions, 4 or 8
+            for( v = 0; v < g; )
+               {
+               E = empty
+               m = allowed_moves_of_piece[ v++ ]   // direction unit vector
+               X = possible_start_move
+               while( !E )                         // square is empty
+                  {
+                  X += m                           // nth square away
+                  E = copy_of_chess_board[ X ]     // what's there
+                  if(
+                     !E ||                         // empty or
+                     ( E & ( 16 + 8 ) ) ==         // piece not edge
+                     other_color                   // of other color
+                    )
+                     {
+                     move_list_array[ ++k ] =
+                                [
+                                 T + copy_of_piece_weightings_array[ E ] +
+                                 knight_or_king_array[ X ], // rating
+                                 possible_start_move, // start
+                                 X                    // end
+                                ];
+                     }
+                  }
+               }
+            }
+         }
+      else           // the piece is a pawn
+         {
+         T = move_rating_arg - p[ possible_start_move ]
+         X = possible_start_move + copy_of_pawn_move_array  // the pawn move
+         if( !copy_of_chess_board[ X ] )                    // empty square
+            {
+            move_list_array[ ++k ] = [ T + p[ X ], possible_start_move, X ]
+            if(
+               !p[ possible_start_move ] &&
+               ( !copy_of_chess_board[ X + copy_of_pawn_move_array ] )  // empty
+              )
+               {
+               move_list_array[ ++k ] = [ T + p[ X + copy_of_pawn_move_array ],
+                            possible_start_move,
+                            X + copy_of_pawn_move_array,
+                            X
+                          ];
+               }
+            }
+         if( ep_arg &&
+             ( ( ep_arg == X + 1 ) || ( ep_arg == X - 1 ) )
+           )
+            move_list_array[ ++k ] = [ T + p[ X ], possible_start_move, ep_arg ]
+         for( h = X - 1; h < X + 2; h += 2 )
+            {
+            E = copy_of_chess_board[ h ] + color_of_piece_arg
+            if( ( E & piece_mask ) && ( E & black_piece_mask ) )
+               {                                         // E is a white piece
+               move_list_array[ ++k ] =
+                      [ T + copy_of_piece_weightings_array[ E ] + p[ h ],
+                        possible_start_move,
+                        h ];
+               }
+            }
+         }
+      }
+   }
+return move_list_array
+}
+//_____________________________________________________________________________
+function                        // was check
+   not_castle_thru_check( start_sq_arg,
+                          other_color,
+                          pawn_move_array_arg,
+                          square_offset_arg )
+{
+var
+   X,
+   E,
+   x,
+   m,
+   S = start_sq_arg + 3,            // king's last square + 1 (to the right)
+   a = pawn_move_array_arg + 2,     // 10 + 2, looks like a knight move?
+   knight_allowed_moves_array = allowed_moves_array[ a_knight ],
+   copy_of_chess_board = chess_board
+
+for( ; start_sq_arg < S; ++start_sq_arg ) // test all king squares
+   {                                      // starting +1 (to the right)
+   // for 0-0-0  qb1,q1,k1 for 0-0 k1, kb1, kn1
+            // 10 - 1, 10, 10 + 1,
+   for( m = pawn_move_array_arg - 2; ++m < a; )
+      {
+      E = copy_of_chess_board[ start_sq_arg + m ]  // eg q2, k2, kb1 for k1
+      if(
+         E &&                                            // not empty and
+         ( ( E & black_piece_mask ) == other_color ) &&  // enemy piece is a
+         (
+          ( ( E & black_piece_mask ) == a_pawn ) ||      // pawn or king
+          ( ( E & piece_mask ) == a_king )
+         )
+        )
+         {
+         return false;                                   // thru check
+         }
+      E = empty;
+      X = start_sq_arg     // for 0-0-0  qb1,q1,k1 for 0-0 k1, kb1, kn1
+      while( !E )          // empty
+         {
+         X += m            // 10 - 1, 10, 10 + 1
+         E = copy_of_chess_board[ X ]                       // what's there
+         if(                                                // an enemy
+            ( E == ( other_color + a_rook +                 // rook or
+                     ( m != pawn_move_array_arg ) * 2 ) ) ||// bishop or
+            ( E == ( other_color + a_queen ) )              // queen
+           )
+            {
+            return false;
+            }
+         }
+      }
+   for( z = 0; z < 8; )
+      if(
+         (
+          copy_of_chess_board[ start_sq_arg +
+                               knight_allowed_moves_array[ z++ ] ] -
+          other_color
+         ) == a_knight        // enemy knight
+        )
+         {
+         return false;
+         }
+   }
+E = empty
+start_sq_arg -= 3  // for 0-0-0  q1(should be kb1!) for 0-0 q1
+if( -1 == square_offset_arg )
+   start_sq_arg += 2
+while( !E )        // while empty
+   {
+   start_sq_arg -= square_offset_arg         // -1(0-0-0) or +1(0-0) increment
+   // o-o-o q1, k1, kb1, kn1... o-o q1, qb1, qn1...
+   E = copy_of_chess_board[ start_sq_arg ]   // what's there?
+   if(
+      ( E == ( other_color + a_rook ) ) ||   // enemy rook or
+      ( E == ( other_color + a_queen ) )     // queen
+     )
+      {
+      return false;
+      }
+   }
+return true;
+}
+//_____________________________________________________________________________
+function
+   clicked_square( clicked_square )
+{
+var
+   a_piece = chess_board[ clicked_square ]
+
+if( checkmate_flag_perhaps )
+   {
+   return;
+   }
+
+if( ( last_clicked_square == clicked_square ) && last_piece )
+   {
+   draw_a_piece( last_clicked_square, last_piece, true );//redrew touched piece
+   last_piece = empty;
+   return;
+   }
+
+if(
+   a_piece &&                          // clicked something
+   ( color_of_piece ==
+    ( a_piece & black_piece_mask )     // color mask
+   )
+  )                                    // white or black
+   {
+   if( last_piece )
+      {
+      draw_a_piece( last_clicked_square, last_piece, true );
+      alert( "what is this for?????" );
+      }
+
+   last_piece = a_piece
+   last_clicked_square = clicked_square
+   draw_a_piece( last_clicked_square, empty, true );  //blank source square
+   return;
+   }
+
+if( last_piece )
+   {
+   if( make_this_move( last_clicked_square,
+                       clicked_square,
+                       d.FF.h.selectedIndex )
+     )                               // makes white's move  
+      {
+      document.FF.pzc.value = parse_count;
+      parse_count = 0;
+
+      last_piece = 0
+      if( !checkmate_flag_perhaps )
+         {
+         tree_climber_recursion_count = 0;
+         var
+            t = find_the_best_move(
+                             2,
+                             color_of_piece,
+                             0,
+                             board_end_index,
+                             board_end_index,
+                             g_Alpha,
+                             g_Beta,
+                             en_passent_dest,
+                             //true
+                             false
+                            );            // for black
+         //alert( show_this( move_list_array, "move_list_array" ) );
+
+         document.FF.eva.value = t[ 0 ];
+         if( ( t[ 0 ] * t[ 0 ] ) > ( ( 100 * 100 ) - 1 ) )
+            {
+            alert( "++" );
+            }
+         if( checkmate_flag_perhaps )
+            alert( "is black really mated?" );
+
+         if( make_this_move( t[ 1 ], t[ 2 ], 0 ) )  //makes black's move
+            {
+            document.FF.pzc.value = parse_count;
+            parse_count = 0;
+            if( checkmate_flag_perhaps )
+                {
+                alert( "is black checkmated???" );
+                }
+            }
+         else
+            alert( "no moves for black?" );
+         }
+      else
+         {
+         alert( "black is mated!" );
+         }
+      }
+   else
+      alert( "illegal white move!" );
+   }
+}
+//_____________________________________________________________________________
+function
+   move_piece( from_square, to_square )
+{
+var
+   the_piece = chess_board[ from_square ];
+
+chess_board[ to_square ] = the_piece;
+chess_board[ from_square ] = 0;
+draw_a_piece( from_square, empty, true );
+draw_a_piece( to_square, the_piece, true );
+}
+//_____________________________________________________________________________
+function
+   draw_the_whole_board( a )
+{
+P = a
+
+for( var square_index = 0; square_index < board_end_index; ++square_index )
+   if( chess_board[ square_index ] < 16 )
+      draw_a_piece( square_index, chess_board[ square_index ], true );
+}
+//_____________________________________________________________________________
+function
+   draw_a_piece( square_index, piece_filename, i_flag )
+{
+if( i_flag )
+   square_index = "i" + ( square_index );
+//else
+   //alert( "i_flag is false!" );
+d.images[ square_index ].src = piece_filename + '.gif';
+}
+//_____________________________________________________________________________
+function
+   show_this( this_array, name )
+{
+var
+   ai,
+   i,
+   s = "";
+
+s +=  "" + name + " = " + this_array.length + "\n";
+if( "move_list_array" == name )
+   {
+   for( ai = 0; ai < this_array.length; ++ai )
+      {
+      s +=  "" + eval( ai + 1 ) + "  ";
+      for( i = 0; i < this_array[ ai ].length; ++i )
+         {
+         switch( i )
+            {
+            case 0:
+               s +=  "" + this_array[ ai ][ 0 ] + ", ";
+               break;
+            case 1:
+               s +=  "" +
+                     letters.charAt( ( this_array[ ai ][ i ] % 10 ) - 1 ) +
+                     ( parseInt( this_array[ ai ][ i ] / 10 ) - 1 ) +
+                     "";
+               break;
+            case 2:
+               s +=  "-";
+               s +=  "" +
+                     letters.charAt( ( this_array[ ai ][ i ] % 10 ) - 1 ) +
+                     ( parseInt( this_array[ ai ][ i ] / 10 ) - 1 ) +
+                     "";
+               break;
+            default:
+               s +=  ", ";
+               s +=  "" + this_array[ ai ][ i ];
+               break;
+            }
+         }
+      s +=  "\n";
+      }
+   }
+else
+   {
+   for( ai = 0; ai < this_array.length; ++ai )
+      s +=  "" + this_array[ ai ] + "\n";
+   }
+return s;
+}
+//_____________________________________________________________________________
+</script>
+
+</HEAD>
+<BODY
+ bgColor=#eeeeee
+ onload = "build_current_position_array( );"
+ onResize = "draw_the_whole_board( 0 );"
+>
+<FORM
+ name=FF
+>
+<CENTER>
+<script>
+//alert( show_this( PY, "PY array" ) );
+//alert( show_this( bY, "bY array" ) );
+h = "version " + version_number + "<br >";
+
+h += '<table border = 1 cellpadding = 4 >';
+for( y = 90; y > 10; y -= 10 )
+   {
+   h += "<tr >";
+   for( x = 0; x < 10; x++ )
+      {
+      z = y + x;
+      if( x && ( x < 9 ) )
+         {
+         h += (
+            '<td class = ' + ( x + ( y / 10 ) & 1? 'b': 'w' ) +
+            '><a href = "#" onClick = "clicked_square( ' +
+                       'P? 119 - ' + z + ' :' + z + ' );return false" >' +
+            '<img src = 0.gif width = 7 height = 40 border = 0 >' +
+            '<img src = 0.gif width = 25 height = 40 name = i' + z +
+            ' border = 0 >' +
+            '<img src = 0.gif width = 7 height = 40 border = 0 ></a ></td >\n'
+            )
+         }
+      }
+   h += '</tr >\n';
+   }
+h += '</table >';
+d.write( h );
+draw_the_whole_board(0);
+</SCRIPT>
+
+<SELECT
+ name=h
+ >
+ <OPTION selected>Q
+ <OPTION>B
+ <OPTION>kn
+ <OPTION>R
+</SELECT>
+<br >
+<table
+ border = "1"
+>
+<tr >
+<td align = "right" >recursion count</td >
+<td ><input type = "text" name = "rc" size = "6" value = "" ></td >
+<td align = "right" >move</td >
+<td ><input type = "text" name = "mvc" size = "3" value = "" ></td >
+<td align = "right" >black eval</td >
+<td ><input type = "text" name = "eva" size = "4" value = "" ></td >
+<td align = "right" >parse count</td >
+<td ><input type = "text" name = "pzc" size = "6" value = "" ></td >
+<td align = "right" >white eval</td >
+<td ><input type = "text" name = "eval" size = "4" value = "" ></td >
+</tr >
+</table >
+
+</CENTER>
+</FORM>
+</BODY>
+</HTML>

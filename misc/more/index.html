@@ -1,0 +1,41 @@
+<html>
+<style>
+.w {background-color:#cccccc}
+.b {background-color:#888888}
+.g {background-color:#dddddd}
+.h {background-color:#eeeecc}
+table {float:left; background: #dddddd;}
+#pih {position:absolute;left:500px;top:20px}
+td {text-align:center;font-family:sans-serif;font-weight:bold;font-size:11px}
+textarea {background:#eeeeee;border: 1px #dddddd solid; font:smaller}
+</style>
+<body bgcolor="#eeeeee" onload="prepare()">
+
+<script src="0_6_3.js"></script>
+<script src="parse.js"></script>
+<script src="debug.js"></script>
+<script src="display.js"></script>
+
+<form name=fred>
+<nobr>
+<textarea name=bib cols=20 rows=30>
+</textarea>
+<textarea name=bug cols=25 rows=30>
+</textarea></nobr>
+<input name=bub size=30>
+<input name=ep size=12>
+<input name=check size=10>
+
+<input type=button value=start name=show title=show onclick='going=!going;this.value=going?"stop":"start";if(going)B1(0)'>
+<input type=button value=once name=show title=show onclick='B1(0)'>
+<input type=button value=swap title=swap onclick='refresh(board,8-bmove)'>
+<input type=button value=parsetest title=parsetest onclick='parsetest()'>
+back <input size=3 name=gob> moves
+<input type=button value=go title=go onclick='goback(parseInt(d.fred.gob.value))'><br>
+next pawn becomes:
+<select name=hob><option selected>queen<option>bishop<option>knight<option>rook</select>
+computer level:
+<select name=hep><option>1. very stupid<option selected>2. slow, stupid<option>3. very slow</select>
+
+</form>
+</body>
