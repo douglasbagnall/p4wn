@@ -1,0 +1,12 @@
+6k version with tad fancier graphics and few additional notes.
+Total size 15,8KB. Cleaned up CSS and HTML a bit, didn't change
+original Javascript more than necessary for new pieces
+(changed image dimensions).
+
+Texts can be customised in index.html.
+
+changes copyright Sven Vehar.
+
+The piece images are in kept under images/sven in CVS.  You need to 
+copy them (or another set) to the same directory as 
+this stuff for it to work. 
