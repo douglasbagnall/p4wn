@@ -20,8 +20,6 @@
  * perhaps improve the HTML.
  */
 
-
-var GAMEOVER=false;
 var bmove=0;    // the moving player 0=white 8=black
 var player=0;   // human colour (0=white, 8=black)
 var moveno=0;   // no of moves
@@ -237,8 +235,8 @@ function move(s,e,queener){
         fin=(ch?'checkmate':'stalemate');
         ret = 2;
     }
-    if(E&7==6){
-        finish('checkmate - got thru checks');
+    if(E&7==6){// king has just been taken; should have been seen earlier!
+        trace('checkmate - got thru checks');
         return 2;
     }
 
@@ -268,13 +266,6 @@ function move(s,e,queener){
     bmove=8-bmove;
     return ret;
 }
-
-function finish(ch){
-    trace(ch);
-    GAMEOVER=true;
-}
-
-
 
 
 ////////////////////////////////////parse

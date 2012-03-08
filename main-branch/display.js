@@ -12,6 +12,7 @@
 
 /* The routines here draw a board and handle user interaction */
 
+var GAMEOVER = false;
 var d=document;
 var lttrs="abcdefgh";    // for display
 
@@ -53,7 +54,8 @@ function B(it){ //it is clicked square
         return;
     }
     if (inhand){
-        if(move(ss,it,d.fred.hob.selectedIndex,y) == 1){
+        var move_result = move(ss,it,d.fred.hob.selectedIndex,y);
+        if(move_result == 1){
             Bim(p,0); //blank moving
             d.onmousemove=null;         //and switch off mousemove.
             if(A) itch.top=itch.left='0px';
@@ -62,6 +64,8 @@ function B(it){ //it is clicked square
         }
         else {
             going= 0;
+            if (move_result == 2)
+                GAMEOVER = true;
         }
     }
 }
