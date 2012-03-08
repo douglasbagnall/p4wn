@@ -6,22 +6,22 @@ debug=1;
 function trace(){
     if (debug){
 	for (var z=0;z<arguments.length;z++){
-            var az=arguments[z]
-	    d.fred.bug.value+=az+"  "
+            var az=arguments[z];
+	    document.fred.bug.value+=az+"  ";
 	}
-	d.fred.bug.value+="\n"
+	document.fred.bug.value+="\n";
     }
 }
 
 
 function parsetest(){
-    var z,x,y=500
-    x=new Date()
+    var z,x,y=500;
+    x=new Date();
     for (z=0;z<y;z++){
-        parse(bmove,ep,0)
+        parse(bmove,ep,0);
     }
-    x-=new Date()
-    trace ('parse took '+ -x/y +' milliseconds')
+    x-=new Date();
+    trace ('parse took '+ -x/y +' milliseconds');
 }
 
 function loadposition(){
