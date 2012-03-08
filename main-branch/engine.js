@@ -1,69 +1,63 @@
-/*
- * 5k chess - by Douglas Bagnall <douglas ~ paradise.net.nz>
- * placed in public domain ['just do it' license]
+/* p4wn, AKA 5k chess - by Douglas Bagnall <douglas@paradise.net.nz>
+ *
+ * This code is in the public domain, or as close to it as various
+ * laws allow. No warranty; no restrictions.
+ *
  * lives at http://p4wn.sf.net/
  *
- * With some work done by Chris Lear
+ * Additional work by: [add yourself if you wish]
  *
- * Key:
- *
- * DEV -denotes debugging or development use only.
- * MVL -used in move list only. can be scrapped if necessary.
- *
+ *  Chris Lear
  */
 
 /* TODO
+ * Drop Netscape 3 support
  * clarify variable names
- * fix checkmate problem [hopefully fixed]
  * generalise player state, (perhaps tick boxes for b and w computer control)
  * change colour bit to bit 0
  * sensibly rearrange piece numbers [allowing bitwise parsing]
- * get rid of saftywrapper [appears not to be used]
  * test
  * perhaps improve the HTML.
  */
 
 
-GAMEOVER=false;
-bmove=0;    // the moving player 0=white 8=black
-inhand=0;   // piece in hand (ie, during move)
-going=0;    // DEV: denotes auto play, or not.
-player=0;   // human colour (0=white, 8=black)
-moveno=0;   // no of moves
-ep=0;       //en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
-Bt=9999;    // extremes of evaluation range
-Al=-Bt;
-ss=0;       // start click - used in display.js
+var GAMEOVER=false;
+var bmove=0;    // the moving player 0=white 8=black
+var player=0;   // human colour (0=white, 8=black)
+var moveno=0;   // no of moves
+var ep=0;       //en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
+var Bt=9999;    // extremes of evaluation range
+var Al=-Bt;
 
-dirs=[10,-10];
-off_board=120;
+var dirs=[10,-10];
+var off_board=120;
 
-boardheap=[];  // history of board state, for undo.
-pieces=[];
-board=[];
-castle=[3,3];
+var boardheap=[];  // history of board state, for undo.
+var pieces=[];
+var board=[];
+var castle=[3,3];
 
-debug=0;
+var debug=0;
 
-q=[1,10,11,9,-1,-10,-11,-9]; //queen moves -used in moves array
-moves=[0,0,[1,10,-1,-10],[21,19,12,8,-21,-19,-12,-8],[11,9,-11,-9],q,q];   //in order _,p,r,n,b,q,k
-pv=[0,16,80,48,48,144,999,0,0,16,80,48,48,144,999]  //piece values
+var q=[1,10,11,9,-1,-10,-11,-9]; //queen moves -used in moves array
+var moves=[0,0,[1,10,-1,-10],[21,19,12,8,-21,-19,-12,-8],[11,9,-11,-9],q,q];   //in order _,p,r,n,b,q,k
+var pv=[0,16,80,48,48,144,999,0,0,16,80,48,48,144,999];  //piece values
 
 // this next bit fills the board
 // the text compression is for the short version
-x='g00000000g';
-y='gggggggggg';
-bstring=y+y+"g23456432gg11111111g"+x+x+x+x+"g99999999ggABCDECBAg"+y+y;
-wstring=x+x+x+"000111100000123321000123553210";
+var x='g00000000g';
+var y='gggggggggg';
+var bstring=y+y+"g23456432gg11111111g"+x+x+x+x+"g99999999ggABCDECBAg"+y+y;
+var wstring=x+x+x+"000111100000123321000123553210";
 
-pw='000012346900';  //pawn weighting - reward for advancement.
+var pw='000012346900';  //pawn weighting - reward for advancement.
 
-weights=[];
-b_pweights=[];   //base pawn weights
-b_weights=[];    //base weights  central weighting for ordinary pieces.
+var weights=[];
+var b_pweights=[];   //base pawn weights
+var b_weights=[];    //base weights  central weighting for ordinary pieces.
 for(y=0;y<12;y++){
     for(x=0;x<10;x++){
-        z=(y*10)+x;
+        var z=(y*10)+x;
         b_pweights[z]=parseInt(pw.charAt(y));    //also need to add main weight set at start.
         b_weights[z]=parseInt(wstring.charAt((z<60)?z:119-z),35)&7; // for all the ordinary pieces
         board[z]=parseInt(bstring.charAt(z),35);
@@ -79,17 +73,6 @@ var comp=new Function('a','b','return b[0]-a[0]'); //comparison function for tre
 
 
 /****treeclimber */
-//function safetywrapper(count,bm,s,e,ep){
-//  var E=board[e];
-//  var S=board[e]=board[s];
-//  board[s]=0;
-//  prepare();
-//  bm=treeclimber(count,bm,0,off_board,off_board,Al,Bt,ep);
-//  board[s]=S;
-//  board[e]=E;
-//  return bm[0];
-//}
-
 function treeclimber(count, bm, sc, s, e, alpha, beta, EP){
     var z=-1;
     var nbm=8-bm;
@@ -127,7 +110,7 @@ function treeclimber(count, bm, sc, s, e, alpha, beta, EP){
             var cmp=comp;
             movelist.sort(cmp); //descending order
             count--;
-            best=movelist[0];
+            var best=movelist[0];
             var bs=best[1];
             var be=best[2];
             b=-treeclimber(count, nbm, best[0], bs, be, -beta, -alpha, best[3])[0];
@@ -158,7 +141,7 @@ function treeclimber(count, bm, sc, s, e, alpha, beta, EP){
                 }
             }
         }
-    }else{trace('no movelist')};
+    }else{trace('no movelist');};
     if(rs){
         board[rs]=bm+2;
         board[re]=0;
@@ -247,7 +230,7 @@ function move(s,e,queener){
         fin=(ch?'checkmate':'stalemate');
         finish(fin);
     }
-    if(E&7==6){finish('checkmate - got thru checks')}
+    if(E&7==6){finish('checkmate - got thru checks');}
 
     //put board on heap.
     boardheap[moveno]=[board.toString(),castle.toString(),ep];
@@ -285,17 +268,17 @@ function finish(ch){
 
 
 ////////////////////////////////////parse
+var pweights=[[],[]];
+var kweights=[];
 
 function prepare(){
     var z=99,Q;
     //    alert('in prepare');
-    earliness=(moveno<32)?4-(moveno>>3):(moveno>64); // indicates low move number
+    var earliness=(moveno<32)?4-(moveno>>3):(moveno>64); // indicates low move number
     pieces[0]=[];
     pieces[8]=[];
-    kweights=[];
-    pweights=[[],[]];
     for(;z>20;z--){
-        a=board[z];
+        var a=board[z];
         if(a&7){
             pieces[a&8][pieces[a&8].length]=[a,z];
         }
@@ -434,7 +417,7 @@ function check(yx,nbm,dir,side){         //dir is direction
                 if((E==nbm+2+(m!=dir)*2)||E==nbm+5)return 0;
             }
         }
-        for (z=0;z<8;){
+        for (var z=0;z<8;){
             if(B[yx+k[z++]]-nbm==3)return 0;      //knights
         }
     }

@@ -1,14 +1,30 @@
+/* p4wn, AKA 5k chess - by Douglas Bagnall <douglas@paradise.net.nz>
+ *
+ * This code is in the public domain, or as close to it as various
+ * laws allow. No warranty; no restrictions.
+ *
+ * lives at http://p4wn.sf.net/
+ *
+ * Additional work by: [add yourself if you wish]
+ *
+ *  Chris Lear
+ */
 
-//////////////////////display
+/* The routines here draw a board and handle user interaction */
 
-d=document;
-lttrs="abcdefgh";    // for display
+var d=document;
+var lttrs="abcdefgh";    // for display
 
 //**************some display stuff.
 
+var inhand=0;   // piece in hand (ie, during move)
+var A, E, itch;
+var ss=0;       // start click - used in display.js
+var going=0;    // DEV: denotes auto play, or not.
+
 A=E=d.all;
-if (!E)event=0; //else errors in onmouseover.
-DOM=d.getElementsByTagName || null;
+if (!E)var event=0; //else errors in onmouseover.
+var DOM=d.getElementsByTagName || null;
 if (DOM||E){
     d.write("<img src='0.gif' id='pih' name='pih' width='20' height='32' alt='' />");
     A= (E||d.getElementsByTagName("img"));
@@ -51,14 +67,14 @@ function B(it){ //it is clicked square
 //////////////////////////////to go:
 
 //B1 is auto
-Btime=0;
+var Btime=0;
 function B1(){
     if (GAMEOVER) return;
     var level=d.fred.hep.selectedIndex+1;
     if(findmove(level)){          //do other colour
-        Btime=setTimeout("B2()",500)
+        Btime=setTimeout("B2()",500);
     }
-    else{ going=0}
+    else{ going=0;}
 }
 function B2(){
     if (going || player!=bmove){
@@ -82,7 +98,7 @@ function shift(s,e){
 
 function display2(s,e,b,c){
     var x=s%10,tx=e%10,mn=1+(moveno>>1);
-    C=" ";
+    var C=" ";
     if (c=="check") {
         C="+";
     }
@@ -148,21 +164,26 @@ function Bim(img,src,swap){
 //*********************************************final write,etc
 // can be merged with weighters;
 
-
-
-html='<table cellpadding=4>'
-for (y=90;y>10;y-=10){
-    html+="<tr>"
-        for(x=0;x<10;x++){
-            z=y+x
-                if(x&&x<9){
-                    html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B(player?119-'+z+':'+z+');return false"><img src=0.gif width=7 height=40 border=0><img src=0.gif width=25 height=40 name=i'+z+' border=0><img src=0.gif width=7 height=40 border></a></td>\n')
+function write_board_html(){
+    var html='<table cellpadding=4>';
+    for (var y=90;y>10;y-=10){
+        html+="<tr>";
+        for(var x=0;x<10;x++){
+            var z=y+x;
+            if(x&&x<9){
+                    html+=('<td class=' +
+                           ((x + (y/10)) & 1 ? 'b':'w') +
+                           '><a href="#" onclick="B(player?119-'+ z + ':' + z +
+                           ');return false"><img src=0.gif width=7 height=40 border=0>' +
+                           '<img src=0.gif width=25 height=40 name=i'+z +
+                           ' border=0><img src=0.gif width=7 height=40 border></a></td>\n');
                 }
         }
-    html+='</tr>\n'
+        html+='</tr>\n';
+    }
+    html+='</table>';
+    d.write(html);
 }
-html+='</table>'
+write_board_html();
 
-
-d.write(html);
 refresh(0);
