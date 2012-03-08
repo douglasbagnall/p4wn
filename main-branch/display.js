@@ -13,7 +13,6 @@
 /* The routines here draw a board and handle user interaction */
 
 var GAMEOVER = false;
-var d=document;
 var lttrs="abcdefgh";    // for display
 
 //**************some display stuff.
@@ -23,12 +22,12 @@ var all_images, MSIE, held_piece_style;
 var start_pos = 0;       // start click - used in display.js
 var going=0;    // DEV: denotes auto play, or not.
 
-MSIE=d.all;
+MSIE=document.all;
 if (!MSIE)var event=0; //else errors in onmouseover.
-var DOM=d.getElementsByTagName || null;
+var DOM=document.getElementsByTagName || null;
 if (DOM||MSIE){
-    d.write("<img src='0.gif' id='pih' name='pih' width='20' height='32' alt='' />");
-    all_images = (MSIE||d.getElementsByTagName("img"));
+    document.write("<img src='0.gif' id='pih' name='pih' width='20' height='32' alt='' />");
+    all_images = (MSIE||document.getElementsByTagName("img"));
     held_piece_style=all_images["pih"].style;
 }
 
@@ -50,14 +49,14 @@ function B(it){ //it is clicked square
         Bim(start_pos,0,1);     //not real shift, but blank start
         Bim(p,a);     //dragging piece
         if(MSIE)drag();      //puts in right place
-        d.onmousemove=drag;  //link in hand image to mouse
+        document.onmousemove=drag;  //link in hand image to mouse
         return;
     }
     if (inhand){
-        var move_result = move(start_pos,it,d.fred.hob.selectedIndex,y);
+        var move_result = move(start_pos,it,document.fred.hob.selectedIndex,y);
         if(move_result == 1){
             Bim(p,0); //blank moving
-            d.onmousemove=null;         //and switch off mousemove.
+            document.onmousemove=null;         //and switch off mousemove.
             if(all_images) held_piece_style.top=held_piece_style.left='0px';
             inhand=0;
             B2();
@@ -77,7 +76,7 @@ function B(it){ //it is clicked square
 var Btime=0;
 function B1(){
     if (GAMEOVER) return;
-    var level=d.fred.hep.selectedIndex+1;
+    var level=document.fred.hep.selectedIndex+1;
     if(findmove(level) == 1){          //do other colour
         Btime=setTimeout("B2()",500);
     }
@@ -117,7 +116,7 @@ function display2(s,e,b,c){
     if (c=="stalemate") {
         C=" 1/2-1/2";
     }
-    d.fred.bib.value+="\n"
+    document.fred.bib.value+="\n"
         +(bmove?'     ':(mn<10?" ":"")+mn+".  ")
         +lttrs.charAt(x-1)
         +((s-x)/10-1)
@@ -145,7 +144,7 @@ function goback(){
     var b=boardheap[moveno];
     board=eval("["+b[0]+"]");
     castle=eval("["+b[1]+"]");
-    d.fred.bib.value+='\n  --undo--';
+    document.fred.bib.value+='\n  --undo--';
     ep=b[2];
     bmove=moveno%2;
     refresh(bmove);
@@ -165,7 +164,7 @@ function Bim(img,src,swap){
         if (swap){
             img="i"+(player?119-img:img);
         }
-        d.images[img].src=src+'.gif';
+        document.images[img].src=src+'.gif';
     }
 }
 
@@ -191,7 +190,7 @@ function write_board_html(){
         html+='</tr>\n';
     }
     html+='</table>';
-    d.write(html);
+    document.write(html);
 }
 write_board_html();
 
