@@ -53,12 +53,15 @@ function B(it){ //it is clicked square
         return;
     }
     if (inhand){
-        if(move(ss,it,d.fred.hob.selectedIndex,y)){
+        if(move(ss,it,d.fred.hob.selectedIndex,y) == 1){
             Bim(p,0); //blank moving
             d.onmousemove=null;         //and switch off mousemove.
             if(A) itch.top=itch.left='0px';
             inhand=0;
             B2();
+        }
+        else {
+            going= 0;
         }
     }
 }
@@ -71,10 +74,12 @@ var Btime=0;
 function B1(){
     if (GAMEOVER) return;
     var level=d.fred.hep.selectedIndex+1;
-    if(findmove(level)){          //do other colour
+    if(findmove(level) == 1){          //do other colour
         Btime=setTimeout("B2()",500);
     }
-    else{ going=0;}
+    else{
+        going=0;
+    }
 }
 function B2(){
     if (going || player!=bmove){

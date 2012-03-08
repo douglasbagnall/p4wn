@@ -172,15 +172,26 @@ function findmove(level){
 
 
 
-//**************************************** move();
-function move(s,e,queener){
+/* move(s, e, queener)
+ * s, e are start and end positions
+ *
+ * queener is the desired pawn promotion if the move gets a pawn to
+  the other end.
 
+ return:
+ 0 if the move is illegal.
+ 1 if the move is OK
+ 2 if the move is OK and it ends the game.
+ */
+
+function move(s,e,queener){
     var E=board[e];
     var S=board[s];
     var a=S&7;
     var bmx=bmove>>3;
     var ch=0;
     var fin="";
+    var ret = 1;
 
     //test if this move is legal
     var t=0;
@@ -192,7 +203,6 @@ function move(s,e,queener){
             t=t||(s==p[z][1]&&e==p[z][2]);
         }
         if (!t) {
-            going=0;
             trace ('no such move!',p,'\ns e',s,e,'\n',S,E);
             return 0;
         }
@@ -215,7 +225,6 @@ function move(s,e,queener){
     // Then put the pieces back
     board[s]=S;
     board[e]=E;
-    //    t=safetywrapper(0,bmove,s,e,ep);
     if (t[0]>400){ // ...if you can take the king, it's check
         trace('check!',t);
         ch=1;
@@ -223,14 +232,15 @@ function move(s,e,queener){
     }
     // and if it isn't check before opposition's best move, it's stalemate. *** this comment is odd
     t=treeclimber(1,8-bmove,0,s,e,Al,Bt,ep);
-    //t=safetywrapper(1,8-bmove,s,e,ep);
     if(t[0]<-400){
-        going=0;
         trace(ch?'checkmate':'stalemate',t);
         fin=(ch?'checkmate':'stalemate');
-        finish(fin);
+        ret = 2;
     }
-    if(E&7==6){finish('checkmate - got thru checks');}
+    if(E&7==6){
+        finish('checkmate - got thru checks');
+        return 2;
+    }
 
     //put board on heap.
     boardheap[moveno]=[board.toString(),castle.toString(),ep];
@@ -256,7 +266,7 @@ function move(s,e,queener){
     prepare();   // get stuff ready for next move
     moveno++;
     bmove=8-bmove;
-    return 1;
+    return ret;
 }
 
 function finish(ch){
