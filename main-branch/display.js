@@ -19,17 +19,17 @@ var lttrs="abcdefgh";    // for display
 //**************some display stuff.
 
 var inhand=0;   // piece in hand (ie, during move)
-var A, E, itch;
-var ss=0;       // start click - used in display.js
+var all_images, MSIE, held_piece_style;
+var start_pos = 0;       // start click - used in display.js
 var going=0;    // DEV: denotes auto play, or not.
 
-A=E=d.all;
-if (!E)var event=0; //else errors in onmouseover.
+MSIE=d.all;
+if (!MSIE)var event=0; //else errors in onmouseover.
 var DOM=d.getElementsByTagName || null;
-if (DOM||E){
+if (DOM||MSIE){
     d.write("<img src='0.gif' id='pih' name='pih' width='20' height='32' alt='' />");
-    A= (E||d.getElementsByTagName("img"));
-    itch=A["pih"].style;
+    all_images = (MSIE||d.getElementsByTagName("img"));
+    held_piece_style=all_images["pih"].style;
 }
 
 //*************************************** macro-control
@@ -37,28 +37,28 @@ if (DOM||E){
 function B(it){ //it is clicked square
     if (GAMEOVER) return;
     var a=board[it],p='pih';
-    if (ss==it && inhand){   //ss is global, for starting place of moving piece.
+    if (start_pos==it && inhand){   //start_pos is global, for starting place of moving piece.
         Bim(p,0);         //this bit replaces a piece if you click on the square it came from.
-        Bim(ss,inhand,1);
+        Bim(start_pos,inhand,1);
         inhand=0;
         return;
     }
     if (a&&(bmove==(a&8))){     //ie, if one picked up of right colour, it becomes start
-        if (inhand) Bim(ss,inhand,1); //put back old piece, if any
+        if (inhand) Bim(start_pos,inhand,1); //put back old piece, if any
         inhand=a;
-        ss=it;
-        Bim(ss,0,1);     //not real shift, but blank start
+        start_pos=it;
+        Bim(start_pos,0,1);     //not real shift, but blank start
         Bim(p,a);     //dragging piece
-        if(E)drag();      //puts in right place
+        if(MSIE)drag();      //puts in right place
         d.onmousemove=drag;  //link in hand image to mouse
         return;
     }
     if (inhand){
-        var move_result = move(ss,it,d.fred.hob.selectedIndex,y);
+        var move_result = move(start_pos,it,d.fred.hob.selectedIndex,y);
         if(move_result == 1){
             Bim(p,0); //blank moving
             d.onmousemove=null;         //and switch off mousemove.
-            if(A) itch.top=itch.left='0px';
+            if(all_images) held_piece_style.top=held_piece_style.left='0px';
             inhand=0;
             B2();
         }
@@ -156,12 +156,12 @@ function goback(){
 var px="px";
 function drag(e) {
     e=e||event;
-    itch.left=(e.clientX+1)+px;
-    itch.top=(e.clientY-4)+px;
+    held_piece_style.left=(e.clientX+1)+px;
+    held_piece_style.top=(e.clientY-4)+px;
 }
 
 function Bim(img,src,swap){
-    if (A || img!='pih'){
+    if (all_images || img!='pih'){
         if (swap){
             img="i"+(player?119-img:img);
         }
