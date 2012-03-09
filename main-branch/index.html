@@ -2,33 +2,23 @@
 <head>
 <link rel="stylesheet" href="main.css" />
 </head>
-<body bgcolor="#eeeeee">
-<form name=fred>
-<center>
-<table border=0><tr><td>
-<script src="engine.js"></script>
-<script src="display.js"></script>
-</td><td>
-<nobr>
-<textarea name=bib cols=12 rows=30>
-</textarea>
-</nobr>
-</td></tr></table>
-<p>
-<br>
-<a href='#' onclick='refresh(board,8-player);computer_move();return false;'>swap</a>
-<a href='#' onclick='goback();return false;'>undo</a><br><br>
+<body>
+<div id="board"></div>
+<div id="log"></div>
+<div id="messages"></div>
+
+<div id="controls">
+<span onclick='refresh(board,1-player);computer_move();return false;'>swap</span>
 next pawn becomes:
 <select name=hob><option selected>queen<option>bishop<option>knight<option>rook</select>
 computer level:
 <select name=hep><option>1. very stupid<option selected>2. slow, stupid<option>3. very slow</select>
-<br><br>
-<input type=button value=start name=show title=show onclick='going=!going;this.value=going?\"stop\":\"start\";if(going)auto_play(0)'>
-<input type=button value=once name=show title=show onclick='computer_move(0)'>
-
-</center>
+</div>
 
 
 <img src='images/0.gif' id='pih' name='pih' width='20' height='32' alt='' />
-</form>
+
+
+<script src="engine.js"></script>
+<script src="display.js"></script>
 </body>

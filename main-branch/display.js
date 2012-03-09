@@ -25,8 +25,9 @@ var input = {
 
 function square_clicked(square){
     if (GAMEOVER) return;
-    var board = input.board_state.board;
-    var mover = input.board_state.to_play;
+    var state = input.board_state;
+    var board = state.board;
+    var mover = state.to_play;
     var piece = board[square];
     if (input.start == square){
         //clicked back on previously chosen piece -- putting it down again
@@ -47,17 +48,17 @@ function square_clicked(square){
     else if (input.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
-        var move_result = move(input.board_state, input.start, square);
-        display_move_text(input.board_state,
-                          input.start, square, input.board_state.taken_piece, '');
+        var move_result = move(state, input.start, square);
+        display_move_text(state.moveno, input.start, square);
 
-        alert(move_result);
         if(move_result == 1){
             show_image(square, input.inhand);
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
-            computer_move();
+            move_result = findmove(state, 2);
+            display_move_text(state.moveno, input.start, square);
+
         }
         else { // failed to move. is it actually checkmate?
             if (move_result == 2)
@@ -92,28 +93,30 @@ function computer_move(){
 
 //*******************************shift & display
 
-function display_move_text(moveno, s, e, b, c){
-    var x=s%10,tx=e%10;
-    var mn = 1 + (moveno >> 1);
-    var C=" ";
-    if (c=="check") {
-        C="+";
+function stringify_point(p){
+    var letters = " abcdefgh";
+    var x = p % 10;
+    var y = (p - x) / 10 - 1;
+    return letters.charAt(x) + y;
+}
+
+
+function display_move_text(moveno, s, e){
+    var mn;
+    console.log(moveno);
+    if (moveno & 1 == 0){
+        mn = '    ';
     }
-    if (c=="checkmate") {
-        C="++";
+    else{
+        mn = (moveno >> 1) + ' ';
+        while(mn.length < 4)
+            mn = ' ' + mn;
     }
-    if (c=="stalemate") {
-        C=" 1/2-1/2";
-    }
-    var lttrs="abcdefgh";
-    document.fred.bib.value+="\n"
-        +(input.to_play?'     ':(mn<10?" ":"")+mn+".  ")
-        +lttrs.charAt(x-1)
-        +((s-x)/10-1)
-        +(b?'x':'-')
-        +lttrs.charAt(tx-1)
-        +((e-tx)/10-1)
-        +(C);
+
+    var msg = mn + stringify_point(s) + '-' + stringify_point(e) + "\n";
+
+    var div = document.getElementById("log");
+    div.innerHTML += msg;
 }
 
 
@@ -149,7 +152,6 @@ function show_piece_in_hand(piece){
     else {
         im.style.visibility = 'visible';
         document.onmousemove = function (e){
-            //e = e || event;
             im.style.left = (e.clientX + 1) + "px";
             im.style.top = (e.clientY - 4) + "px";
         };
@@ -157,29 +159,37 @@ function show_piece_in_hand(piece){
 }
 
 
-//*********************************************final write,etc
-// can be merged with weighters;
+function click_closure(n){
+    return function(e){
+        square_clicked(input.player ? 119 - n : n);
+    };
+}
 
 function write_board_html(){
-    var html='<table cellpadding=4>';
-    for (var y=90;y>10;y-=10){
-        html+="<tr>";
-        for(var x=0;x<10;x++){
-            var z=y+x;
-            if(x&&x<9){
-                    html+=('<td class=' +
-                           ((x + (y/10)) & 1 ? 'b':'w') +
-                           '><a href="#" onclick="square_clicked(input.player?119-'+ z + ':' + z +
-                           ');return false"><img src=images/0.gif width=7 height=40 border=0>' +
-                           '<img src=images/0.gif width=25 height=40 id=i'+z+' name=i'+z +
-                           ' border=0><img src=images/0.gif width=7 height=40 border></a></td>\n');
-                }
+    var div = document.getElementById("board");
+    var table = document.createElement("table");
+    div.appendChild(table);
+    for (var y = 90; y > 10; y-=10){
+        var tr = document.createElement("tr");
+        table.appendChild(tr);
+        for(var x = 1;  x < 9; x++){
+            var z = y + x;
+            var td = document.createElement("td");
+            tr.appendChild(td);
+            td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
+            var img = document.createElement("img");
+            td.appendChild(img);
+            img.id = "i" + z;
+            img.addEventListener("click",
+                                 click_closure(z),
+                                 true);
+            img.src = "images/0.gif";
+            img.width= "30";
+            img.height= "30";
         }
-        html+='</tr>\n';
     }
-    html+='</table>';
-    document.write(html);
 }
+
 write_board_html();
 
 

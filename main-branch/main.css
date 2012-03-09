@@ -2,8 +2,23 @@
 .b {background-color:#888888}
 .g {background-color:#dddddd}
 .h {background-color:#eeeecc}
-table { background: #dddddd;}
+/*table { background: #dddddd;}*/
 a {font-family: monospace; color:#777788}
 #pih {position:absolute;left:500px;top:20px}
 td {text-align:center;font-family:sans-serif;font-weight:bold;font-size:11px}
-textarea {background:#eeeeee; border: 0px; font-size:smaller; height: 400px}
+
+#board {
+  float:left;
+
+}
+
+#log {
+  font-family: monospace;
+  white-space: pre;
+  font-size: smaller;
+  float: left;
+}
+
+#controls{
+  clear: both;
+}
