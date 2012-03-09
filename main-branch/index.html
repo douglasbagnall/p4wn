@@ -6,18 +6,9 @@
 <div id="board"></div>
 <div id="log"></div>
 <div id="messages"></div>
+<div id="controls"></div>
 
-<div id="controls">
-<span onclick='refresh(board,1-player);computer_move();return false;'>swap</span>
-next pawn becomes:
-<select name=hob><option selected>queen<option>bishop<option>knight<option>rook</select>
-computer level:
-<select name=hep><option>1. very stupid<option selected>2. slow, stupid<option>3. very slow</select>
-</div>
-
-
-<img src='images/0.gif' id='pih' name='pih' width='20' height='32' alt='' />
-
+<img src="images/0.gif" id="pih" width="20" height="32" alt="" />
 
 <script src="engine.js"></script>
 <script src="display.js"></script>

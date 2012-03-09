@@ -73,7 +73,7 @@ function square_clicked(square){
 var auto_play_timeout_ID;
 function auto_play(){
     if (GAMEOVER) return;
-    var level = document.fred.hep.selectedIndex + 1;
+    var level = 2;
     if(findmove(input.board_state, level) == 1){          //do other colour
         auto_play_timeout_ID = window.setTimeout(computer_move, 500);
     }
@@ -141,7 +141,7 @@ function show_image(img, src){
 }
 
 function show_piece_in_hand(piece){
-    var im = document.images['pih'];
+    var im = document.getElementById('pih');
     im.src = 'images/' + piece + '.gif';
     if (piece == 0){
         document.onmousemove = null;         //and switch off mousemove.
