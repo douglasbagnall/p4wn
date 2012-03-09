@@ -69,6 +69,8 @@ function board_state(){
     var weight_string=x+x+x+"000111100000123321000123553210";
     var pawn_weights='000012346900';  //per row - reward advancement.
     var pweights = [[], []];
+    var kweights = [];
+    var weights = [];
 
     for(y=0;y<12;y++){
         for(x=0;x<10;x++){
@@ -78,6 +80,8 @@ function board_state(){
             board[z]=parseInt(board_string.charAt(z), 35);
             pweights[0][z] = 0;
             pweights[1][z] = 0;
+            kweights[z] = 0;
+            weights[z] = 0;
         }
     }
     board[OFF_BOARD] = 0;
@@ -86,11 +90,11 @@ function board_state(){
         enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
         castles: [3, 3],
         pawn_promotion: [10, 10],
-        to_play: 0, //0: white, 8: black
+        to_play: 0, //0: white, 1: black
         taken_piece: 0,
-        weights: [],
         pweights: pweights,
-        kweights: [],
+        kweights: kweights,
+        weights: weights,
         pieces: [],
         moveno: 0
     };
@@ -207,11 +211,12 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
 //************************************* findmove();
 
 function findmove(state, level){
+    prepare(state);
     var t=treeclimber(state, level, state.to_play, 0,
                       OFF_BOARD, OFF_BOARD,
                       MIN_SCORE, MAX_SCORE,
                       state.enpassant);
-    return move(state, t[1], t[2]);
+    return [t[1], t[2]];
 }
 
 
@@ -241,7 +246,7 @@ function move(state, s, e){
     var t=0;
     if (1){
         prepare(state);
-        var p = parse(state, colour, 0);
+        var p = parse(state, colour, state.enpassant, 0);
         for (var z = 0; z < p.length; z++){
             t = t || (s == p[z][1] && e == p[z][2]);
         }
@@ -311,7 +316,6 @@ function move(state, s, e){
     }
     board[e] = board[s];
     board[s] = 0;
-    prepare(state);   // get stuff ready for next move
     state.moveno++;
     state.to_play = 1 - colour;
     return ret;
@@ -349,7 +353,8 @@ function prepare(state){
 
         //pawns weighted toward centre for first 8 moves, then forwards only.
         //pawn weights are also slightly randomised.
-        var w = (z > 40 && moveno < 8) * ((DEBUG ? 0.5 : Math.random()) * weights[z]) * 0.5;
+        var w = parseInt((z > 40 && moveno < 8) * ((DEBUG ? 0.5 : Math.random())
+                                                   * weights[z]) * 0.5);
         wp_weights[z] = bp_weights[119 - z] = base_pawn_weights[z] + w;
     }
     if (moveno < 5){
