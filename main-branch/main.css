@@ -1,15 +1,16 @@
-.w {background-color:#cccccc}
-.b {background-color:#888888}
-.g {background-color:#dddddd}
-.h {background-color:#eeeecc}
-/*table { background: #dddddd;}*/
-a {font-family: monospace; color:#777788}
-#pih {position:absolute;left:500px;top:20px}
-td {text-align:center;font-family:sans-serif;font-weight:bold;font-size:11px}
+.w {
+  background-color: #ccc;
+}
+.b {
+  background-color:#888;
+}
+
+#pih {
+  position:absolute;
+}
 
 #board {
   float:left;
-
 }
 
 #log {
