@@ -235,7 +235,7 @@ function move(state, s, e){
     var S=board[s];
     var check = 0;
     var ret = 1;
-
+    var piece = E & 14;
     //test if this move is legal
     var t=0;
     if (1){
@@ -277,7 +277,7 @@ function move(state, s, e){
         console.log((check == 3) ?'checkmate':'stalemate', t);
         ret = 2;
     }
-    if((E & 14) == KING){// king has just been taken; should have been seen earlier!
+    if(piece == KING){// king has just been taken; should have been seen earlier!
         console.log('checkmate - got thru checks');
         return 2;
     }
@@ -286,7 +286,7 @@ function move(state, s, e){
     var x = s % 10;
     var gap = e - s;
     var dir = DIRS[colour];
-    if ((E & 14) == 2){ // pawns
+    if (piece == 2){ // pawns
         if(board[e + dir] > 15)
             board[s] = state.pawn_promotion[colour] + colour;
 
@@ -305,7 +305,7 @@ function move(state, s, e){
     //or on any move *to* opposition corners
     if(e == 21 + colour * 70 || e == 28 + colour * 70)
         castles[!colour] &= (x < 5) + 1;
-    if(a == 6){
+    if(piece == KING){
         if(gap * gap == 4){  //castling - move rook too
             board[s - 4 + (s < e) * 7] = board[s + gap / 2];
             board[s + gap / 2] = 0;
