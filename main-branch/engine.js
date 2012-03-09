@@ -181,7 +181,7 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
                 }
             }
         }
-    }else{trace('no movelist');};
+    }else{console.log('no movelist');};
     if(rs){
         board[rs]=colour + 4;
         board[re]=0;
@@ -245,14 +245,14 @@ function move(state, s, e){
             t = t || (s == p[z][1] && e == p[z][2]);
         }
         if (!t) {
-            trace('no such move!',p,'\ns e',s,e,'\n',S,E);
+            console.log('no such move!',p,'\ns e',s,e,'\n',S,E);
             return 0;
         }
         // get best other player's move
         // if it's check, squawk
         t=treeclimber(state, 0, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
         if (t[0] > 400){
-            trace('in check',t);
+            console.log('in check',t);
             return 0;
         }
     }
@@ -267,18 +267,18 @@ function move(state, s, e){
     board[s] = S;
     board[e] = E;
     if (t[0] > 400){ // ...if you can take the king, it's check
-        trace('check!', t);
+        console.log('check!', t);
         check |= 1;
     }
     // now see the best thing the opposition can do.
     t = treeclimber(state, 1, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
     if(t[0] < -400){
         check |= 2;
-        trace((check == 3) ?'checkmate':'stalemate', t);
+        console.log((check == 3) ?'checkmate':'stalemate', t);
         ret = 2;
     }
     if((E & 14) == KING){// king has just been taken; should have been seen earlier!
-        trace('checkmate - got thru checks');
+        console.log('checkmate - got thru checks');
         return 2;
     }
 

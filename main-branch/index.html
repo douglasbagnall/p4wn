@@ -8,16 +8,10 @@
 <table border=0><tr><td>
 <script src="engine.js"></script>
 <script src="display.js"></script>
-<script src="debug.js"></script>
 </td><td>
 <nobr>
 <textarea name=bib cols=12 rows=30>
 </textarea>
-<script>
-if (DEBUG){
-document.write('<textarea name=bug cols=25 rows=30></textarea>')
-}
-</script>
 </nobr>
 </td></tr></table>
 <p>
@@ -29,13 +23,8 @@ next pawn becomes:
 computer level:
 <select name=hep><option>1. very stupid<option selected>2. slow, stupid<option>3. very slow</select>
 <br><br>
-
-<script>
-if (DEBUG){
-document.write("<input type=button value=start name=show title=show onclick='going=!going;this.value=going?\"stop\":\"start\";if(going)auto_play(0)'>");
-document.write("<input type=button value=once name=show title=show onclick='computer_move(0)'>");
-}
-</script>
+<input type=button value=start name=show title=show onclick='going=!going;this.value=going?\"stop\":\"start\";if(going)auto_play(0)'>
+<input type=button value=once name=show title=show onclick='computer_move(0)'>
 
 </center>
 
