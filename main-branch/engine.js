@@ -124,15 +124,16 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
 
     //now some stuff to handle queening, castling
     var piece = S & 14;
-    var rs,re;
+    var rs, re, rook;
     if(piece == 2 && board[e + DIRS[colour]] > 15){
         board[e] = state.pawn_promotion[colour] + colour;
     }
-    else if (piece == 12 && (s-e==2||e-s==2)){  //castling - move rook too
+    else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs=s-4+(s<e)*7;
         re=(s+e)>>1; //avg of s,e=rook's spot
+        rook = (S&1)+4; //not necessarily colour + 4
         board[rs]=0;
-        board[re]=colour+4;
+        board[re]=rook;
     }
 
     var movelist = parse(state, colour, ep, sc);
@@ -183,7 +184,7 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
         }
     }else{console.log('no movelist');};
     if(rs){
-        board[rs]=colour + 4;
+        board[rs]=rook;
         board[re]=0;
     }
     board[s]=S;
@@ -257,15 +258,11 @@ function move(state, s, e){
         }
     }
     // move the pieces on the board, temporarily
-    board[e] = board[s];
-    board[s] = 0;
     // then see whether the next move will take the king...
     // (see what happens if you're allowed another move straight away)
     prepare(state);
-    t = treeclimber(state, 0, colour, 0, OFF_BOARD, OFF_BOARD, MIN_SCORE, MAX_SCORE, state.enpassant);
-    // Then put the pieces back
-    board[s] = S;
-    board[e] = E;
+    t = treeclimber(state, 0, colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
+
     if (t[0] > 400){ // ...if you can take the king, it's check
         console.log('check!', t);
         check |= 1;
