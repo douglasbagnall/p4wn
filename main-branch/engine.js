@@ -50,7 +50,7 @@ var VALUES=[0, 0,    //Piece values
 var BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var BASE_PAWN_WEIGHTS;
 var PAWN = 2, ROOK = 4, KNIGHT = 6, BISHOP = 8, QUEEN = 10, KING = 12;
-
+var EDGE = 16;
 
 // fills the board and initialises some look up tables
 function board_state(){
@@ -129,7 +129,7 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
     //now some stuff to handle queening, castling
     var piece = S & 14;
     var rs, re, rook;
-    if(piece == 2 && board[e + DIRS[colour]] > 15){
+    if(piece == PAWN && board[e + DIRS[colour]] == EDGE){
         board[e] = state.pawn_promotion[colour] + colour;
     }
     else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
@@ -241,7 +241,7 @@ function move(state, s, e){
     var S=board[s];
     var check = 0;
     var ret = 1;
-    var piece = E & 14;
+    var piece = S & 14;
     //test if this move is legal
     var t=0;
     if (1){
@@ -279,7 +279,7 @@ function move(state, s, e){
         console.log((check == 3) ?'checkmate':'stalemate', t);
         ret = 2;
     }
-    if(piece == KING){// king has just been taken; should have been seen earlier!
+    if((E&14) == KING){// king has just been taken; should have been seen earlier!
         console.log('checkmate - got thru checks');
         return 2;
     }
@@ -287,9 +287,10 @@ function move(state, s, e){
     var ep = 0;
     var x = s % 10;
     var gap = e - s;
+    console.log('gap', gap, 'piece', piece);
     var dir = DIRS[colour];
-    if (piece == 2){ // pawns
-        if(board[e + dir] > 15)
+    if (piece == PAWN){
+        if(board[e + dir] == EDGE)
             board[s] = state.pawn_promotion[colour] + colour;
 
         if(gap == 2 * dir && ((board[e - 1] & 14) == 2 || (board[e + 1] & 14) == 2))
@@ -309,8 +310,11 @@ function move(state, s, e){
         castles[!colour] &= (x < 5) + 1;
     if(piece == KING){
         if(gap * gap == 4){  //castling - move rook too
-            board[s - 4 + (s < e) * 7] = board[s + gap / 2];
-            board[s + gap / 2] = 0;
+            var rs = s - 4 + (s < e) * 7;
+            var re = s + gap / 2;
+            board[re] = board[rs];
+            board[rs] = 0;
+            console.log("castling", s, e, gap, s + gap / 2);
         }
         castles[colour] = 0;
     }
@@ -410,10 +414,6 @@ function parse(state, colour, EP, score) {
                         }
                     }
                     if(ak && castle_flags){
-                        if (s > 100){
-                            console.log(s);
-                        }
-
                         if((castle_flags & 1) &&
                             (board[s-1] + board[s-2] + board[s-3] == 0) &&
                             check_castling(board, s - 2,other_colour,dir,-1)){//Q side
