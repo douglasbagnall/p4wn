@@ -12,14 +12,3 @@ function trace(){
 	document.fred.bug.value+="\n";
     }
 }
-
-
-function parsetest(){
-    var z,x,y=500;
-    x=new Date();
-    for (z=0;z<y;z++){
-        parse(board, bmove,ep,0);
-    }
-    x-=new Date();
-    trace ('parse took '+ -x/y +' milliseconds');
-}
