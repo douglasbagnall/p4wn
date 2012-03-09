@@ -36,7 +36,16 @@ var MOVES = [0, 0,
              [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9]
             ]; // in order, doubled _,p,r,n,b,q,k
 
-var VALUES=[0,16,80,48,48,144,999,0,0,16,80,48,48,144,999];  //piece values
+var VALUES=[0, 0,    //Piece values
+            16, 16,  //pawns
+            80, 80,  //rooks
+            48, 48,  //knights
+            48, 48,  //bishops
+            144, 144,//queens
+            999, 999,//kings
+            0];
+
+
 
 var BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var BASE_PAWN_WEIGHTS;
@@ -268,7 +277,7 @@ function move(state, s, e){
         trace((check == 3) ?'checkmate':'stalemate', t);
         ret = 2;
     }
-    if(E & 14 == KING){// king has just been taken; should have been seen earlier!
+    if((E & 14) == KING){// king has just been taken; should have been seen earlier!
         trace('checkmate - got thru checks');
         return 2;
     }
@@ -277,7 +286,7 @@ function move(state, s, e){
     var x = s % 10;
     var gap = e - s;
     var dir = DIRS[colour];
-    if (a == 1){ // pawns
+    if ((E & 14) == 2){ // pawns
         if(board[e + dir] > 15)
             board[s] = state.pawn_promotion[colour] + colour;
 
