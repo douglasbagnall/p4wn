@@ -10,59 +10,56 @@
  *  Chris Lear
  */
 
-/* The routines here draw a board and handle user interaction */
+/* The routines here draw the screen and handle user interaction */
 
 var GAMEOVER = false;
-var lttrs="abcdefgh";    // for display
-
-//**************some display stuff.
-
-var inhand=0;   // piece in hand (ie, during move)
-var all_images, MSIE, held_piece_style;
-var start_pos = 0;       // start click - used in display.js
 var going=0;    // DEV: denotes auto play, or not.
 
-MSIE=document.all;
-if (!MSIE)var event=0; //else errors in onmouseover.
-var DOM=document.getElementsByTagName || null;
-if (DOM||MSIE){
-    document.write("<img src='0.gif' id='pih' name='pih' width='20' height='32' alt='' />");
-    all_images = (MSIE||document.getElementsByTagName("img"));
-    held_piece_style=all_images["pih"].style;
-}
+var input = {
+    start: 0,     // start click - used in display.js
+    inhand: 0,     // piece in hand (ie, during move)
+    board_state: board_state(),
+    player: 0  //0 for white, 8 for black
+};
 
-//*************************************** macro-control
 
-function B(it){ //it is clicked square
+function square_clicked(square){
     if (GAMEOVER) return;
-    var a=board[it],p='pih';
-    if (start_pos==it && inhand){   //start_pos is global, for starting place of moving piece.
-        Bim(p,0);         //this bit replaces a piece if you click on the square it came from.
-        Bim(start_pos,inhand,1);
-        inhand=0;
-        return;
+    var board = input.board_state.board;
+    var mover = input.board_state.to_play;
+    var piece = board[square];
+    if (input.start == square){
+        //clicked back on previously chosen piece -- putting it down again
+        show_piece_in_hand(0);
+        show_image(input.start, input.inhand);
+        input.inhand = 0;
+        input.start = 0;
     }
-    if (a&&(bmove==(a&8))){     //ie, if one picked up of right colour, it becomes start
-        if (inhand) Bim(start_pos,inhand,1); //put back old piece, if any
-        inhand=a;
-        start_pos=it;
-        Bim(start_pos,0,1);     //not real shift, but blank start
-        Bim(p,a);     //dragging piece
-        if(MSIE)drag();      //puts in right place
-        document.onmousemove=drag;  //link in hand image to mouse
-        return;
+    else if (piece && (mover == (piece & 8))){
+        //clicked on player's colour, so it becomes start
+        if (input.inhand)
+            show_image(input.start, input.inhand); //put back old piece, if any
+        input.inhand = piece;
+        input.start = square;
+        show_image(square, 0);
+        show_piece_in_hand(piece);     //dragging piece
     }
-    if (inhand){
-        var move_result = move(start_pos,it,document.fred.hob.selectedIndex,y);
+    else if (input.inhand){
+        // there is one in hand, so this is an attempted move
+        //but is it valid?
+        var move_result = move(input.board_state, input.start, square);
+        display_move_text(input.board_state,
+                          input.start, square, input.board_state.taken_piece, '');
+
+        alert(move_result);
         if(move_result == 1){
-            Bim(p,0); //blank moving
-            document.onmousemove=null;         //and switch off mousemove.
-            if(all_images) held_piece_style.top=held_piece_style.left='0px';
-            inhand=0;
-            B2();
+            show_image(square, input.inhand);
+            show_piece_in_hand(0); //blank moving
+            input.inhand = 0;
+            input.start = 0;
+            computer_move();
         }
-        else {
-            going= 0;
+        else { // failed to move. is it actually checkmate?
             if (move_result == 2)
                 GAMEOVER = true;
         }
@@ -72,22 +69,21 @@ function B(it){ //it is clicked square
 
 //////////////////////////////to go:
 
-//B1 is auto
-var Btime=0;
-function B1(){
+var auto_play_timeout_ID;
+function auto_play(){
     if (GAMEOVER) return;
-    var level=document.fred.hep.selectedIndex+1;
-    if(findmove(level) == 1){          //do other colour
-        Btime=setTimeout("B2()",500);
+    var level = document.fred.hep.selectedIndex + 1;
+    if(findmove(input.board_state, level) == 1){          //do other colour
+        auto_play_timeout_ID = window.setTimeout(computer_move, 500);
     }
     else{
-        going=0;
+        going = 0;
     }
 }
-function B2(){
-    if (going || player!=bmove){
-        clearTimeout(Btime);
-        B1();
+function computer_move(){
+    if (going || input.player != input.to_play){
+        clearTimeout(auto_play_timeout_ID);
+        auto_play();
     }
 }
 
@@ -96,16 +92,9 @@ function B2(){
 
 //*******************************shift & display
 
-function shift(s,e){
-    var z=0,a=board[s];
-    board[e]=a;
-    board[s]=0;
-    Bim(s,0,1);
-    Bim(e,a,1);
-}
-
-function display2(s,e,b,c){
-    var x=s%10,tx=e%10,mn=1+(moveno>>1);
+function display_move_text(moveno, s, e, b, c){
+    var x=s%10,tx=e%10;
+    var mn = 1 + (moveno >> 1);
     var C=" ";
     if (c=="check") {
         C="+";
@@ -116,8 +105,9 @@ function display2(s,e,b,c){
     if (c=="stalemate") {
         C=" 1/2-1/2";
     }
+    var lttrs="abcdefgh";
     document.fred.bib.value+="\n"
-        +(bmove?'     ':(mn<10?" ":"")+mn+".  ")
+        +(input.to_play?'     ':(mn<10?" ":"")+mn+".  ")
         +lttrs.charAt(x-1)
         +((s-x)/10-1)
         +(b?'x':'-')
@@ -130,41 +120,39 @@ function display2(s,e,b,c){
 //*******************************************redraw screen from board
 
 function refresh(bw){
-    player=bw;
-    for (var z=0;z<off_board;z++){
-        if(board[z]<16)Bim(z,board[z],1);
+    input.player=bw;
+    for (var z=0;z<OFF_BOARD;z++){
+        if(input.board_state.board[z]<16)show_image(z,input.board_state.board[z]);
     }
-    //    if (player!=bmove)B2();
 }
 
-
-function goback(){
-    if (!moveno)return;
-    moveno-=2;
-    var b=boardheap[moveno];
-    board=eval("["+b[0]+"]");
-    castle=eval("["+b[1]+"]");
-    document.fred.bib.value+='\n  --undo--';
-    ep=b[2];
-    bmove=moveno%2;
-    refresh(bmove);
-    prepare();
-}
 
 //*********************************************drag piece
-var px="px";
-function drag(e) {
-    e=e||event;
-    held_piece_style.left=(e.clientX+1)+px;
-    held_piece_style.top=(e.clientY-4)+px;
+
+
+function show_image(img, src){
+    var id = "i" + (input.player?119-img : img);
+    var e = document.getElementById(id);
+    if (e)
+        e.src='images/' + src + '.gif';
 }
 
-function Bim(img,src,swap){
-    if (all_images || img!='pih'){
-        if (swap){
-            img="i"+(player?119-img:img);
-        }
-        document.images[img].src=src+'.gif';
+function show_piece_in_hand(piece){
+    var im = document.images['pih'];
+    im.src = 'images/' + piece + '.gif';
+    if (piece == 0){
+        document.onmousemove = null;         //and switch off mousemove.
+        im.style.top = '0px';
+        im.style.left = '0px';
+        im.style.visibility = 'hidden';
+    }
+    else {
+        im.style.visibility = 'visible';
+        document.onmousemove = function (e){
+            //e = e || event;
+            im.style.left = (e.clientX + 1) + "px";
+            im.style.top = (e.clientY - 4) + "px";
+        };
     }
 }
 
@@ -181,10 +169,10 @@ function write_board_html(){
             if(x&&x<9){
                     html+=('<td class=' +
                            ((x + (y/10)) & 1 ? 'b':'w') +
-                           '><a href="#" onclick="B(player?119-'+ z + ':' + z +
-                           ');return false"><img src=0.gif width=7 height=40 border=0>' +
-                           '<img src=0.gif width=25 height=40 name=i'+z +
-                           ' border=0><img src=0.gif width=7 height=40 border></a></td>\n');
+                           '><a href="#" onclick="square_clicked(input.player?119-'+ z + ':' + z +
+                           ');return false"><img src=images/0.gif width=7 height=40 border=0>' +
+                           '<img src=images/0.gif width=25 height=40 id=i'+z+' name=i'+z +
+                           ' border=0><img src=images/0.gif width=7 height=40 border></a></td>\n');
                 }
         }
         html+='</tr>\n';
@@ -193,5 +181,6 @@ function write_board_html(){
     document.write(html);
 }
 write_board_html();
+
 
 refresh(0);

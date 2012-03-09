@@ -2,7 +2,7 @@
 <head>
 <link rel="stylesheet" href="main.css" />
 </head>
-<body bgcolor="#eeeeee" onload="prepare()">
+<body bgcolor="#eeeeee">
 <form name=fred>
 <center>
 <table border=0><tr><td>
@@ -14,7 +14,7 @@
 <textarea name=bib cols=12 rows=30>
 </textarea>
 <script>
-if (debug){
+if (DEBUG){
 document.write('<textarea name=bug cols=25 rows=30></textarea>')
 }
 </script>
@@ -22,7 +22,7 @@ document.write('<textarea name=bug cols=25 rows=30></textarea>')
 </td></tr></table>
 <p>
 <br>
-<a href='#' onclick='refresh(board,8-player);B2();return false;'>swap</a>
+<a href='#' onclick='refresh(board,8-player);computer_move();return false;'>swap</a>
 <a href='#' onclick='goback();return false;'>undo</a><br><br>
 next pawn becomes:
 <select name=hob><option selected>queen<option>bishop<option>knight<option>rook</select>
@@ -31,17 +31,15 @@ computer level:
 <br><br>
 
 <script>
-if (debug){
-document.write("<input type=button value=parsetest title=parsetest onclick='parsetest()'>");
-document.write("<input type=button value=mate title=mate onclick='loadposition()'>");
-document.write("<input type=button value=start name=show title=show onclick='going=!going;this.value=going?\"stop\":\"start\";if(going)B1(0)'>");
-document.write("<input type=button value=once name=show title=show onclick='B1(0)'>");
+if (DEBUG){
+document.write("<input type=button value=start name=show title=show onclick='going=!going;this.value=going?\"stop\":\"start\";if(going)auto_play(0)'>");
+document.write("<input type=button value=once name=show title=show onclick='computer_move(0)'>");
 }
 </script>
 
 </center>
 
 
-
+<img src='images/0.gif' id='pih' name='pih' width='20' height='32' alt='' />
 </form>
 </body>
