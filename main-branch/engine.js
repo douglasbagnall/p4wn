@@ -87,7 +87,7 @@ function board_state(){
     return {
         board: board,
         enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
-        castles: [3, 3],
+        castles: 15,
         pawn_promotion: [10, 10],
         to_play: 0, //0: white, 1: black
         taken_piece: 0,
@@ -106,7 +106,8 @@ var comp=new Function('a','b','return b[0]-a[0]'); //comparison function for tre
 
 
 /****treeclimber */
-function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
+function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
+                     castle_state){
     var board = state.board;
 
     var z = -1;
@@ -127,19 +128,19 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
 
     //now some stuff to handle queening, castling
     var piece = S & 14;
-    var rs, re, rook;
+    var rs = 0, re, rook;
     if(piece == PAWN && board[e + DIRS[colour]] == EDGE){
         board[e] = state.pawn_promotion[colour] + colour;
     }
     else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
-        rs=s-4+(s<e)*7;
-        re=(s+e)>>1; //avg of s,e=rook's spot
-        rook = (S&1)+4; //not necessarily colour + 4
+        rs = s - 4 + (s < e) * 7;
+        re = (s + e) >> 1; //avg of s,e=rook's spot
+        rook = (S & 1) + 4; //not necessarily colour + 4
         board[rs]=0;
         board[re]=rook;
     }
 
-    var movelist = parse(state, colour, ep, sc);
+    var movelist = parse(state, colour, ep, sc, castle_state);
     var movecount = movelist.length;
     var mv;
     if (movecount) {
@@ -155,15 +156,15 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep){
             var be=best[2];
             var bep = best[3];
             b=-treeclimber(state, count, ncolour, bscore, bs, be,
-                           -beta, -alpha, bep)[0];
+                           -beta, -alpha, bep, castle_state)[0];
             for(z=1;z<movecount;z++){
                 if (b>alpha)alpha=b;  //b is best
                 mv = movelist[z];
                 t = -treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
-                                 -alpha-1, -alpha, mv[3])[0];
+                                 -alpha-1, -alpha, mv[3], castle_state)[0];
                 if ((t > alpha) && (t < beta)){
                     t = -treeclimber(state, count, ncolour,
-                                     mv[0],mv[1],mv[2],-beta,-t, mv[3])[0];
+                                     mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
                 }
                 if (t>b){
                     b=t;
@@ -242,7 +243,7 @@ function prepare(state){
 }
 
 
-function parse(state, colour, EP, score) {
+function parse(state, colour, EP, score, castle_state) {
     var board = state.board;
     var s, e;    //start and end position
     var h;         //for pawn taking moves
@@ -260,13 +261,13 @@ function parse(state, colour, EP, score) {
     var kweights = state.kweights;
     var weights = state.weights;
     var weight_lut;       //=weight_lut localised weight
-    var castle_flags = state.castles[colour];    // flags whether this side can castle
-    //var pv=PV[colour==colourove];
     var z;//loop counter.
     var ak;              //flags piece moving is king.
     var mlen;            //mv length in inner loop
     var pieces = state.pieces[colour];  //array of pieces of correct colour with starting positions eg [1,32] means pawn at square 32
     var pbl = pieces.length;   //marginal time saving
+
+    var castle_flags = (castle_state >> (colour * 2)) & 3;
     for (z=0;z<pbl;z++){
         s=pieces[z][1]; // board position
         a=board[s]; //piece number
@@ -410,7 +411,7 @@ function findmove(state, level){
     var t=treeclimber(state, level, state.to_play, 0,
                       OFF_BOARD, OFF_BOARD,
                       MIN_SCORE, MAX_SCORE,
-                      state.enpassant);
+                      state.enpassant, state.castles);
     return [t[1], t[2]];
 }
 
@@ -430,7 +431,6 @@ function findmove(state, level){
 
 function move(state, s, e){
     var board = state.board;
-    var castles = state.castles;
     var colour = state.to_play;
     var E=board[e];
     var S=board[s];
@@ -439,36 +439,37 @@ function move(state, s, e){
     var piece = S & 14;
     //test if this move is legal
     var t=0;
-    if (1){
-        prepare(state);
-        var p = parse(state, colour, state.enpassant, 0);
-        for (var z = 0; z < p.length; z++){
-            t = t || (s == p[z][1] && e == p[z][2]);
-        }
-        if (!t) {
-            console.log('no such move!',p,'\ns e',s,e,'\n',S,E);
-            return 0;
-        }
-        // get best other player's move
-        // if it's check, squawk
-        t=treeclimber(state, 0, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
-        if (t[0] > 400){
-            console.log('in check',t);
-            return 0;
-        }
+    prepare(state);
+    var p = parse(state, colour, state.enpassant, 0, state.castles);
+    for (var z = 0; z < p.length; z++){
+        t = t || (s == p[z][1] && e == p[z][2]);
+    }
+    if (!t) {
+        console.log('no such move!',p,'\ns e',s,e,'\n',S,E);
+        return 0;
+    }
+    // get best other player's move
+    // if it's check, squawk
+    t=treeclimber(state, 0, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE,
+                  state.enpassant, state.castles);
+    if (t[0] > 400){
+        console.log('in check', t);
+        return 0;
     }
     // move the pieces on the board, temporarily
     // then see whether the next move will take the king...
     // (see what happens if you're allowed another move straight away)
     prepare(state);
-    t = treeclimber(state, 0, colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
+    t = treeclimber(state, 0, colour, 0, s, e, MIN_SCORE, MAX_SCORE,
+                    state.enpassant, state.castles);
 
     if (t[0] > 400){ // ...if you can take the king, it's check
         console.log('check!', t);
         check |= 1;
     }
     // now see the best thing the opposition can do.
-    t = treeclimber(state, 1, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE, state.enpassant);
+    t = treeclimber(state, 1, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE,
+                    state.enpassant, state.castles);
     if(t[0] < -400){
         check |= 2;
         console.log((check == 3) ?'checkmate':'stalemate', t);
@@ -497,22 +498,30 @@ function move(state, s, e){
         }
     }
     state.enpassant = ep;
+    var castles_mask = 0;
     //wipe castle flags on any move from rook points
-    if (s == 21 + colour * 70 || s == 28 + colour * 70)
-        castles[colour] &= (x < 5) + 1;
+    if (s == 21 + colour * 70 || s == 28 + colour * 70){
+        castles_mask |= ((x < 5) + 1) << (colour * 2);
+    }
     //or on any move *to* opposition corners
     if(e == 21 + colour * 70 || e == 28 + colour * 70)
-        castles[!colour] &= (x < 5) + 1;
+        castles_mask |= ((x < 5) + 1) << (2 - colour * 2);
     if(piece == KING){
         if(gap * gap == 4){  //castling - move rook too
             var rs = s - 4 + (s < e) * 7;
-            var re = s + gap / 2;
+            var re = (s + e) >> 1;
             board[re] = board[rs];
             board[rs] = 0;
-            console.log("castling", s, e, gap, s + gap / 2);
+            console.log("castling", s, e, gap, s + gap / 2, re);
         }
-        castles[colour] = 0;
+        castles_mask |= 3 << (colour * 2);
     }
+    if (castles_mask)
+        console.log("state.castles", state.castles,
+                    "mask", castles_mask);
+
+    state.castles &= (15 ^ castles_mask);
+
     board[e] = board[s];
     board[s] = 0;
     state.moveno++;
