@@ -100,6 +100,34 @@ function board_state(){
 }
 
 
+function get_castles_mask(s, e, colour){
+    var mask = 0;
+    var shift = colour * 2;
+    var side = colour * 70;
+
+    //wipe both our sides if king moves
+    if (s == 25 + side)
+        mask |= 3 << shift;
+    //wipe one side on any move from rook points
+    else if (s == 21 + side)
+        mask |= 2 << shift;
+    else if (s == 28 + side)
+        mask |= 1 << shift;
+
+    //or on any move *to* opposition corners
+    if (e == 91 - side)
+        mask |= 8 >> shift;
+    else if (e == 98 - side)
+        mask |= 4 >> shift;
+
+    if (mask)
+        console.log("mask", mask,
+                    "colour", colour,
+                    "s,e", s, e);
+
+    return 15 ^ mask;
+}
+
 ///////////////////////////treeclimb begins
 
 var comp=new Function('a','b','return b[0]-a[0]'); //comparison function for treeclimb integer sort (descending)
@@ -139,6 +167,8 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
         board[rs]=0;
         board[re]=rook;
     }
+    if (castle_state)
+        castle_state &= get_castles_mask(s, e, colour);
 
     var movelist = parse(state, colour, ep, sc, castle_state);
     var movecount = movelist.length;
@@ -498,29 +528,17 @@ function move(state, s, e){
         }
     }
     state.enpassant = ep;
-    var castles_mask = 0;
-    //wipe castle flags on any move from rook points
-    if (s == 21 + colour * 70 || s == 28 + colour * 70){
-        castles_mask |= ((x < 5) + 1) << (colour * 2);
-    }
-    //or on any move *to* opposition corners
-    if(e == 21 + colour * 70 || e == 28 + colour * 70)
-        castles_mask |= ((x < 5) + 1) << (2 - colour * 2);
-    if(piece == KING){
-        if(gap * gap == 4){  //castling - move rook too
-            var rs = s - 4 + (s < e) * 7;
-            var re = (s + e) >> 1;
-            board[re] = board[rs];
-            board[rs] = 0;
-            console.log("castling", s, e, gap, s + gap / 2, re);
-        }
-        castles_mask |= 3 << (colour * 2);
-    }
-    if (castles_mask)
-        console.log("state.castles", state.castles,
-                    "mask", castles_mask);
 
-    state.castles &= (15 ^ castles_mask);
+    if(piece == KING && gap * gap == 4){  //castling - move rook too
+        var rs = s - 4 + (s < e) * 7;
+        var re = (s + e) >> 1;
+        board[re] = board[rs];
+        board[rs] = 0;
+        console.log("castling", s, e, gap, s + gap / 2, re);
+    }
+
+    if (state.castles)
+        state.castles &= get_castles_mask(s, e, colour);
 
     board[e] = board[s];
     board[s] = 0;
