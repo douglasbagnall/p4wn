@@ -19,7 +19,7 @@ var input = {
     start: 0,     // start click - used in display.js
     inhand: 0,     // piece in hand (ie, during move)
     board_state: board_state(),
-    players: ['player', 'computer'] //[white, black] controllers
+    players: ['human', 'computer'] //[white, black] controllers
 };
 
 
@@ -60,7 +60,7 @@ function square_clicked(square){
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
-            other_move();
+            next_move();
         }
         else { // failed to move. is it actually checkmate?
             if (move_result == 2)
@@ -72,7 +72,7 @@ function square_clicked(square){
 
 var auto_play_timeout_ID;
 
-function other_move(){
+function next_move(){
     if (GAMEOVER){
         return;
     }
@@ -87,7 +87,7 @@ function other_move(){
 function computer_move(){
     var state = input.board_state;
     var s, e, mv;
-    mv = findmove(state, 2);
+    mv = findmove(state, 3);
     s = mv[0], e = mv[1];
     console.log(s, e);
     var move_result = move(state, s, e);
@@ -99,7 +99,7 @@ function computer_move(){
 
     if (move_result == 2)
         GAMEOVER = 1;
-    other_move();
+    next_move();
 }
 
 
@@ -180,20 +180,22 @@ function click_closure(n){
     };
 }
 
+function new_child(element, childtag){
+    var child = document.createElement(childtag);
+    element.appendChild(child);
+    return child;
+}
+
 function write_board_html(){
     var div = document.getElementById("board");
-    var table = document.createElement("table");
-    div.appendChild(table);
+    var table = new_child(div, "table");
     for (var y = 90; y > 10; y-=10){
-        var tr = document.createElement("tr");
-        table.appendChild(tr);
+        var tr = new_child(table, "tr");
         for(var x = 1;  x < 9; x++){
             var z = y + x;
-            var td = document.createElement("td");
-            tr.appendChild(td);
+            var td = new_child(tr, "td");
             td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
-            var img = document.createElement("img");
-            td.appendChild(img);
+            var img = new_child(td, "img");
             img.id = "i" + z;
             img.addEventListener("click",
                                  click_closure(z),
@@ -205,7 +207,69 @@ function write_board_html(){
     }
 }
 
+var CONTROLS = [
+    {
+        label: 'swap sides',
+        id: 'swap_button',
+        onclick: function(e){
+            console.log('clicked');
+            var p = input.players;
+            var tmp = p[0];
+            p[0] = p[1];
+            p[1] = tmp;
+            next_move();
+        }
+    },
+    {
+        label: 'computer vs computer',
+        id: 'cvc_button',
+        onclick: function(e){
+            input.players = ['computer', 'computer'];
+            next_move();
+        }
+    },
+    {
+        label: 'human vs computer',
+        id: 'hvc_button',
+        onclick: function(e){
+            var p = input.players;
+            if (p[0] == p[1]){
+                p[0] = 'human';
+                p[1] = 'computer';
+            }
+            next_move();
+        }
+    },
+    {
+        label: 'human vs human',
+        id: 'hvh_button',
+        onclick: function(e){
+            input.players = ['human', 'human'];
+            next_move();
+        }
+    }
+];
+
+
+function write_controls_html(){
+    var div = document.getElementById("controls");
+    for (var i = 0; i < CONTROLS.length; i++){
+        var o = CONTROLS[i];
+        var span = new_child(div, "span");
+        span.className = 'control-button';
+        span.id = o.id;
+        span.innerHTML = o.label;
+        span.addEventListener("click",
+                              o.onclick,
+                              true);
+
+    }
+}
+
 write_board_html();
+write_controls_html();
+
+
 
 refresh(0);
-other_move();
+next_move();

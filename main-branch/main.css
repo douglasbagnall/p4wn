@@ -23,3 +23,8 @@
 #controls{
   clear: both;
 }
+
+.control-button {
+  padding: 0px 7px;
+
+}
