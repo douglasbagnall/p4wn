@@ -110,21 +110,15 @@ function get_castles_mask(s, e, colour){
         mask |= 3 << shift;
     //wipe one side on any move from rook points
     else if (s == 21 + side)
-        mask |= 2 << shift;
-    else if (s == 28 + side)
         mask |= 1 << shift;
+    else if (s == 28 + side)
+        mask |= 2 << shift;
 
     //or on any move *to* opposition corners
     if (e == 91 - side)
-        mask |= 8 >> shift;
-    else if (e == 98 - side)
         mask |= 4 >> shift;
-
-    if (mask)
-        console.log("mask", mask,
-                    "colour", colour,
-                    "s,e", s, e);
-
+    else if (e == 98 - side)
+        mask |= 8 >> shift;
     return 15 ^ mask;
 }
 
@@ -537,9 +531,10 @@ function move(state, s, e){
         console.log("castling", s, e, gap, s + gap / 2, re);
     }
 
-    if (state.castles)
+    if (state.castles){
         state.castles &= get_castles_mask(s, e, colour);
-
+        console.debug("castle state", state.castles);
+    }
     board[e] = board[s];
     board[s] = 0;
     state.moveno++;
