@@ -160,6 +160,9 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
         rook = (S & 1) + 4; //not necessarily colour + 4
         board[rs]=0;
         board[re]=rook;
+        if (s != 25 + moved_colour * 70){
+            var _conditional_break_point = s;
+        }
     }
     if (castle_state)
         castle_state &= get_castles_mask(s, e, colour);
