@@ -21,10 +21,10 @@
 }
 
 #controls{
-  clear: both;
+  /*clear: both;*/
 }
 
 .control-button {
   padding: 0px 7px;
-
+  cursor: pointer;
 }
