@@ -143,21 +143,23 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
     board[e]=S;
     board[s]=0;
     var pieces = state.pieces;
+    var piece = S & 14;
+    var moved_colour = S & 1;
+
     if(S) {
-        pieces[ncolour].push([S,e]);
+        pieces[moved_colour].push([S,e]);
         removeLater=true;
     }
 
     //now some stuff to handle queening, castling
-    var piece = S & 14;
     var rs = 0, re, rook;
-    if(piece == PAWN && board[e + DIRS[colour]] == EDGE){
-        board[e] = state.pawn_promotion[colour] + colour;
+    if(piece == PAWN && board[e + DIRS[moved_colour]] == EDGE){
+        board[e] = state.pawn_promotion[moved_colour] + moved_colour;
     }
     else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs = s - 4 + (s < e) * 7;
         re = (s + e) >> 1; //avg of s,e=rook's spot
-        rook = (S & 1) + 4; //not necessarily colour + 4
+        rook = moved_colour + 4;
         board[rs]=0;
         board[re]=rook;
         if (s != 25 + moved_colour * 70){
@@ -165,9 +167,9 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
         }
     }
     if (castle_state)
-        castle_state &= get_castles_mask(s, e, colour);
+        castle_state &= get_castles_mask(s, e, moved_colour);
 
-    var movelist = parse(state, colour, ep, sc, castle_state);
+    var movelist = parse(state, colour, ep, castle_state, sc);
     var movecount = movelist.length;
     var mv;
     if (movecount) {
