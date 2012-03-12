@@ -184,26 +184,33 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
             var bs=best[1];
             var be=best[2];
             var bep = best[3];
-            b=-treeclimber(state, count, ncolour, bscore, bs, be,
-                           -beta, -alpha, bep, castle_state)[0];
-            for(z=1;z<movecount;z++){
-                if (b>alpha)alpha=b;  //b is best
-                mv = movelist[z];
-                t = -treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
-                                 -alpha-1, -alpha, mv[3], castle_state)[0];
-                if ((t > alpha) && (t < beta)){
-                    t = -treeclimber(state, count, ncolour,
-                                     mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
-                }
-                if (t>b){
-                    b=t;
-                    bs=mv[1];
-                    be=mv[2];
-                    if(t>alpha)alpha=t;
-                    if (b>beta){
-                        break;
+            if (bscore < 400){
+                b=-treeclimber(state, count, ncolour, bscore, bs, be,
+                               -beta, -alpha, bep, castle_state)[0];
+                for(z=1;z<movecount;z++){
+                    if (b>alpha)alpha=b;  //b is best
+                    mv = movelist[z];
+                    t = -treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
+                                     -alpha-1, -alpha, mv[3], castle_state)[0];
+                    if ((t > alpha) && (t < beta)){
+                        t = -treeclimber(state, count, ncolour,
+                                         mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
+                    }
+                    if (t>b){
+                        b=t;
+                        bs=mv[1];
+                        be=mv[2];
+                        if(t>alpha)alpha=t;
+                        if (b>beta){
+                            break;
+                        }
                     }
                 }
+            }
+            else {
+                /* score suggest king taken.
+                 Don't search further.*/
+                b = bscore;
             }
         }
         else{
@@ -215,7 +222,11 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
                 }
             }
         }
-    }else{console.log('no movelist');};
+    }
+    else{
+        /*XXX signal stalemate or something? */
+        console.log('no movelist');
+    };
     if(rs){
         board[rs]=rook;
         board[re]=0;
