@@ -125,8 +125,10 @@ function get_castles_mask(s, e, colour){
 
 ///////////////////////////treeclimb begins
 
-var comp=new Function('a','b','return b[0]-a[0]'); //comparison function for treeclimb integer sort (descending)
-
+//comparison function for treeclimb integer sort (descending)
+function comp(a, b){
+    return b[0] - a[0];
+}
 
 /****treeclimber */
 function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
