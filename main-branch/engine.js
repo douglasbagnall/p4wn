@@ -470,10 +470,10 @@ function findmove(state, level){
  */
 
 function move(state, s, e){
+    var board = state.board;
     var colour = state.to_play;
     var E=board[e];
     var S=board[s];
-    var ret = 1;
 
     // king has just been taken; should have been seen earlier!
     if((E&14) == KING){
@@ -484,7 +484,7 @@ function move(state, s, e){
     /*see if this move is even slightly legal, disregarding check.*/
     var legal = false;
     prepare(state);
-    var p = parse(state, colour, state.enpassant, 0, state.castles);
+    var p = parse(state, colour, state.enpassant, state.castles, 0);
     for (var z = 0; z < p.length; z++){
         if (s == p[z][1] && e == p[z][2]){
             legal = true;
@@ -524,6 +524,7 @@ function move(state, s, e){
                     0, state.castles);
     var is_check = t[0] > 400;
 
+    modify_state_for_move(state, s, e);
     if (is_check && is_mate){
         console.log('checkmate');
         return 2;
@@ -536,9 +537,7 @@ function move(state, s, e){
         console.log('stalemate');
         return 2;
     }
-
-    modify_state_for_move(state, s, e);
-    return ret;
+    return 1;
 }
 
 function modify_state_for_move(state, s, e){
