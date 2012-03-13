@@ -129,15 +129,14 @@ var comp=new Function('a','b','return b[0]-a[0]'); //comparison function for tre
 
 
 /****treeclimber */
-function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
+function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                      castle_state){
     var board = state.board;
 
     var z = -1;
     var ncolour = 1 - colour;
-    var removeLater=false;
-    sc = -sc;
-    if (sc <-400) return [sc, s, e];  //if king taken, no deepening.
+    score = -score;
+    if (score <-400) return [score, s, e];  //if king taken, no deepening.
     var b = MIN_SCORE;     //best move starts at -infinity
     var S = board[s];
     var E = board[e];
@@ -147,9 +146,8 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
     var piece = S & 14;
     var moved_colour = S & 1;
 
-    if(S) {
-        pieces[moved_colour].push([S,e]);
-        removeLater=true;
+    if (S){
+        pieces[moved_colour].push([S, e]);
     }
 
     //now some stuff to handle queening, castling
@@ -170,7 +168,7 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
     if (castle_state)
         castle_state &= get_castles_mask(s, e, moved_colour);
 
-    var movelist = parse(state, colour, ep, castle_state, sc);
+    var movelist = parse(state, colour, ep, castle_state, score);
     var movecount = movelist.length;
     var mv;
     if (movecount) {
@@ -234,8 +232,8 @@ function treeclimber(state, count, colour, sc, s, e, alpha, beta, ep,
     }
     board[s]=S;
     board[e]=E;
-    if (removeLater) {
-        pieces[ncolour].length--;
+    if (S){
+        pieces[moved_colour].length--;
     }
 
     return [b, bs, be];
