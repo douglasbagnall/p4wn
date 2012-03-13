@@ -11,13 +11,9 @@
  */
 
 /* TODO
- * Drop Netscape 3 support
  * clarify variable names
  * generalise player state, (perhaps tick boxes for b and w computer control)
- * change colour bit to bit 0
  * sensibly rearrange piece numbers [allowing bitwise parsing]
- * test
- * perhaps improve the HTML.
  */
 
 var MAX_SCORE = 9999;    // extremes of evaluation range
@@ -52,35 +48,40 @@ var PAWN = 2, ROOK = 4, KNIGHT = 6, BISHOP = 8, QUEEN = 10, KING = 12;
 var EDGE = 16;
 
 // fills the board and initialises some look up tables
-function board_state(){
+function new_game(){
     var board = [];
     BASE_WEIGHTS = [];
     BASE_PAWN_WEIGHTS = [];
     /* Encoding is base-35
      * g is 16, meaning off board
-     * pieces are valued 2, 4, 6, etc
-     * + 1 for black
+     * pieces are valued 2, 4, 6, etc,  + 0/1 for white/black
      */
-    var x = 'g00000000g';
-    var y ='gggggggggg';
-    //var board_string=y+y+"g23456432gg11111111g"+x+x+x+x+"g99999999ggABCDECBAg"+y+y;
-    var board_string=y+y+"g468ac864gg22222222g"+x+x+x+x+"g33333333gg579bd975g"+y+y;
-    var weight_string=x+x+x+"000111100000123321000123553210";
+    var board_string= ('gggggggggg' + 'gggggggggg' +
+                       'g468ac864g' +
+                       'g22222222g' +
+                       'g00000000g' + 'g00000000g' + 'g00000000g' + 'g00000000g' +
+                       "g33333333g" +
+                       "g579bd975g" +
+                       'gggggggggg' + 'gggggggggg');
+    var weight_string = "000000000000000000000000000000000111100000123321000123553210";
+    console.debug(weight_string.length, board_string.length);
     var pawn_weights='000012346900';  //per row - reward advancement.
     var pweights = [[], []];
     var kweights = [];
     var weights = [];
-
+    var x, y;
     for(y=0;y<12;y++){
+        var pawn_weight = parseInt(pawn_weights.charAt(y), 35);
         for(x=0;x<10;x++){
-            var z=(y*10)+x;
-            BASE_PAWN_WEIGHTS[z] = parseInt(pawn_weights.charAt(y));
-            BASE_WEIGHTS[z] = parseInt(weight_string.charAt((z < 60) ? z : 119 - z), 35) & 15;
-            board[z]=parseInt(board_string.charAt(z), 35);
-            pweights[0][z] = 0;
-            pweights[1][z] = 0;
-            kweights[z] = 0;
-            weights[z] = 0;
+            var i = (y * 10) + x;
+            BASE_PAWN_WEIGHTS[i] = pawn_weight;
+            BASE_WEIGHTS[i] = parseInt(weight_string.charAt((i < 60) ? i : 119 - i),
+                                       35) & 15;
+            board[i]=parseInt(board_string.charAt(i), 35);
+            pweights[0][i] = 0;
+            pweights[1][i] = 0;
+            kweights[i] = 0;
+            weights[i] = 0;
         }
     }
     board[OFF_BOARD] = 0;

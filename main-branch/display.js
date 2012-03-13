@@ -18,7 +18,7 @@ var going=0;    // DEV: denotes auto play, or not.
 var input = {
     start: 0,     // start click - used in display.js
     inhand: 0,     // piece in hand (ie, during move)
-    board_state: board_state(),
+    board_state: new_game(),
     players: ['human', 'computer'] //[white, black] controllers
 };
 
@@ -138,9 +138,9 @@ function display_move_text(moveno, s, e){
 
 function refresh(bw){
     input.player = bw;
-    for (var z=0;z<OFF_BOARD;z++){
-        if(input.board_state.board[z]<16)
-            show_image(z,input.board_state.board[z]);
+    for (var i = 20; i < 100; i++){
+        if(input.board_state.board[i] != EDGE)
+            show_image(i, input.board_state.board[i]);
     }
 }
 
@@ -149,7 +149,7 @@ function refresh(bw){
 
 
 function show_image(img, src){
-    var id = "i" + (input.player?119-img : img);
+    var id = "i" + (input.player ? 119 - img : img);
     var e = document.getElementById(id);
     if (e)
         e.src='images/' + src + '.gif';
