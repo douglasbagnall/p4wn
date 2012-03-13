@@ -282,72 +282,68 @@ function prepare(state){
 }
 
 
-function parse(state, colour, EP, castle_state, score) {
+function parse(state, colour, ep, castle_state, score) {
     var board = state.board;
     var s, e;    //start and end position
-    var h;         //for pawn taking moves
     var E,a;       //E=piece at end place, a= piece moving
-    var cx;     // loop for move direction
-    var mv;     // list of move direction
-    var k=-1;   // length of movelist (mvl)
-    var other_colour = 1 - colour;  //not colour (colour is the players colour)
+    var i, z;
+    var other_colour = 1 - colour;
     var dir=DIRS[colour]; //dir= 10 for white, -10 for black
-    var mvl=[];        // movelist (built up with found moves
-    var m;             // current value in mv[cx]
-    var weight;          // initial weighting of piece's position
-    var pweight=state.pweights[colour];//=pweights[colour]
-    //var pv=pv;            //localised pv
+    var k=-1;
+    var movelist=[];
+    var weight;
+    var pweight = state.pweights[colour];
     var kweights = state.kweights;
     var weights = state.weights;
-    var weight_lut;       //=weight_lut localised weight
-    var z;//loop counter.
-    var ak;              //flags piece moving is king.
-    var mlen;            //mv length in inner loop
-    var pieces = state.pieces[colour];  //array of pieces of correct colour with starting positions eg [1,32] means pawn at square 32
-    var pbl = pieces.length;   //marginal time saving
+    var pieces = state.pieces[colour];
+    var plen = pieces.length;
 
     var castle_flags = (castle_state >> (colour * 2)) & 3;
-    for (z=0;z<pbl;z++){
+    for (z = 0; z < plen; z++){
         s=pieces[z][1]; // board position
         a=board[s]; //piece number
-        if (pieces[z][0]==a){	//the piece can have moved
+        /* the pieces list is only a convenient short cut.
+         * pieces that have moved/been taken will still be listed at their
+         * old place. So check.
+         */
+        if (pieces[z][0]==a){
             a &= 14;
             if(a > 2){    //non-pawns
-                ak=a==12;
-                weight_lut=ak?kweights:weights; //different weight tables for king/knight
-                weight=score-weight_lut[s];
-                mv=MOVES[a];
-                if(a==6||ak){
-                    for(cx=0;cx<8;){     //knights,kings - have precisely 8 possible moves
-                        e= s + mv[cx++];
-                        E=board[e];
+                var is_king = a == 12;
+                var weight_lut = is_king ? kweights : weights;
+                weight = score - weight_lut[s];
+                var moves = MOVES[a];
+                if(a == KNIGHT || is_king){
+                    for(i = 0; i < 8; i++){
+                        e = s + moves[i];
+                        E = board[e];
                         if(!E||(E&17)==other_colour){
-                            mvl[++k]=[weight+VALUES[E]+weight_lut[e],s,e,0];
+                            movelist[++k]=[weight + VALUES[E] + weight_lut[e], s, e, 0];
                         }
                     }
-                    if(ak && castle_flags){
+                    if(is_king && castle_flags){
                         if((castle_flags & 1) &&
                             (board[s-1] + board[s-2] + board[s-3] == 0) &&
                             check_castling(board, s - 2,other_colour,dir,-1)){//Q side
-                                mvl[++k]=[weight+11, s, s-2, 0];     //no analysis, just encouragement
+                                movelist[++k]=[weight+11, s, s-2, 0];     //no analysis, just encouragement
                         }
                         if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
                            check_castling(board, s, other_colour, dir, 1)){//K side
-                                mvl[++k]=[weight+12,s,s+2, 0];
+                                movelist[++k]=[weight+12,s,s+2, 0];
                         }
                     }
                 }
                 else{//rook, bishop, queen
-                    mlen=mv.length;
-                    for(cx=0;cx<mlen;){     //goeth thru list of moves
+                    var mlen = moves.length;
+                    for(i=0;i<mlen;){     //goeth thru list of moves
                         E=0;
-                        m=mv[cx++];
+                        var m = moves[i++];
                         e=s;
                         while(!E){   //while on board && no piece
                             e+=m;
                             E=board[e];
                             if(!E||(E&17)==other_colour){
-                                mvl[++k]=[weight+VALUES[E]+weight_lut[e],s,e,0];
+                                movelist[++k]=[weight+VALUES[E]+weight_lut[e],s,e,0];
                             }
                         }
                     }
@@ -357,24 +353,25 @@ function parse(state, colour, EP, castle_state, score) {
                 weight=score-pweight[s];
                 e=s+dir;
                 if(!board[e]){
-                    mvl[++k]=[weight+pweight[e],s,e];
-                    if(! pweight[s] && (!board[e+dir])){  //2 squares at start - start flagged by 0 pweights weighting
-                        mvl[++k]=[weight+pweight[e+dir],s,e+dir,e];
+                    movelist[++k]=[weight+pweight[e],s,e];
+                    /*2 square moves at start are flagged by 0 pweights weighting*/
+                    if(! pweight[s] && (!board[e+dir])){
+                        movelist[++k]=[weight+pweight[e+dir],s,e+dir,e];
                     }
                 }
-                if(EP&&(EP==e+1||EP==e-1)){
-                    mvl[++k]=[weight+pweight[e],s,EP];
+                if(ep&&(ep==e+1||ep==e-1)){
+                    movelist[++k]=[weight+pweight[e],s,ep];
                 }
-                for(h=e-1;h<e+2;h+=2){                        //h=-1,1 --for pawn capturing
+                for(var h=e-1;h<e+2;h+=2){ //h=-1,1 --for pawn capturing
                     E=board[h] & 15;
                     if(E && (E&1) != colour){
-                        mvl[++k]=[weight+VALUES[E]+pweight[h],s,h,0];
+                        movelist[++k]=[weight+VALUES[E]+pweight[h],s,h,0];
                     }
                 }
             }
         }
     }
-    return mvl;
+    return movelist;
 }
 
 
