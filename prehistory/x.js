@@ -11,7 +11,7 @@ bstring=y+y+"g23456432gg11111111g"+x+x+x+x+"g99999999ggABCDECBAg"+y+y  //in base
 wstring=x+x+x+"000111100000123321000123553210"
 moves=[0,0,[1,10],[21,19,12,8],[11,9],[1,10,11,9],[1,10,9,11],0]
 //pawn=[8,48]
-castle=[3,3]
+castle=[3,3]//castle[0] &1 is white's left, castle[0]&2 is right castle
 ky=[20,90]
 kx=[5,5]
 kp=[25,95]
@@ -25,22 +25,28 @@ M3=1    // line up with king weight
 beta=[0,0,0,0,0,0]
 parsees=prunees=evaluees=0
 
-for(z=0;z<8;z++){
-    pv[z+8]=pv[z]=10*pv[z]  //same piece values for black and white
+for(z=0;z<8;){
+    pv[++z+8]=pv[z]=10*pv[z]  //same piece values for black and white
     if(moves[z]){
         s=moves[z].length           //probably some better way
         for(x=0;x<s;x++){
             moves[z][s+x]=-moves[z][x]
         }
+        moves[z][2*s]=0
     }
     moves[z+8]=moves[z]          //both refer to same array
 }
-closeness=[]
+closeness=[0,0,[],[],[],[],[]]
 
 z=0;
 for(x=-2;x<3;x++){
 	for(y=-2;y<3;y++){
-		closeness[40+y*10+x]=3-Math.abs(y)+3-Math.abs(x)
+		p=40+y*10+x
+		closeness[6][p]=3-Math.abs(y)+3-Math.abs(x)
+		closeness[3][p]=closeness[6][p]+2*(x==2*y||y==2*x)
+		closeness[2][p]=closeness[6][p]+3*(x==0||y==0)
+		closeness[4][p]=closeness[6][p]+2*(x==y)
+		closeness[5][p]=closeness[6][p]+3*(x==0||y==0||y==6)
 	}
 }
 
@@ -84,38 +90,36 @@ function parse(bm,EP,tpn,b){
             wate=weight[yx]*M2
             a&=7
             if(a>1){    //non-pawns
-            	ic=(closeness[40+kp[nx]-yx]||0)//initial closeness
+            	ic=(closeness[a][40+kp[nx]-yx]||0)//initial closeness
                 ak=a==6
                 mv=moves[a]
-                mvlength=mv.length
                 if(a==3||ak){
-                   for(cx=0;cx<mvlength;cx++){     //knights,kings
-                        tyx=yx+mv[cx]
+                   for(cx=0;cx<8;tyx=yx+mv[cx++]){     //knights,kings
                         aa=board[tyx]
                         if(!aa||(aa&24)==nbm){
-                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate+(ak&&moveno<35?(closeness[40+kp[nx]-tyx]||0)*M3-ic:0),yx,tyx] //rating,start,end,-- enpassant left undefined
+                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate+(ak&&moveno<35?(closeness[a][40+kp[nx]-tyx]||0)*M3-ic:0),yx,tyx] //rating,start,end,-- enpassant left undefined
                             //if ((aa&7)==6)return 0
                         }
                     }
                     if(ak&&castle[bmx]){
-                        if(castle[bmx]&1&&!board[yx-1]&&!board[yx-2]&&!board[yx-3]&&check(yx-2,bm,dir)){
+                        if(castle[bmx]&1&&!(board[yx-1]+board[yx-2]+board[yx-3])&&check(yx-2,nbm,dir,-1)){//Q side
                             mvl[++k]=[tpn+11,yx,yx-2]                                //no analysis, just encouragement
                         }
-                        if(castle[bmx]&2&&!board[yx+1]&&!board[yx+2]&&check(yx,bm,dir)){
+                        if(castle[bmx]&2&&!(board[yx+1]+board[yx+2])&&check(yx,nbm,dir,+1)){//K side
                             mvl[++k]=[tpn+12,yx,yx+2]                                //no analysis, just encouragement
                         }
                     }
                 }
                 else{//rook, bishop, queen
-                    for(cx=0;cx<mvlength;cx++){     //goeth thru list of moves
-                        m=mv[cx]
+	                mvlength=mv.length
+                    for(cx=0;cx<mvlength;m=mv[cx++]){     //goeth thru list of moves
                         tyx=yx
                         aa=0
                         while(!aa){   //while on board && no piece
                             tyx+=m
                             aa=board[tyx]
                             if(!aa||(aa&24)==nbm){
-                                mvl[++k]=[tpn+pv[aa]+(weight[tyx]*M1)-wate+(closeness[40+kp[nx]-tyx]||0)*M3-ic,yx,tyx]
+                                mvl[++k]=[tpn+pv[aa]+(weight[tyx]*M1)-wate+(closeness[a][40+kp[nx]-tyx]||0)*M3-ic,yx,tyx]
                                 //if ((aa&7)==6)return 0
                             }
                         }
@@ -210,24 +214,30 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
 
 //************************************CHECK
 
-function check(yx,bm,dir){         //dir is dir
-    var tyx,aa,aa7,sx=yx%10
+function check(yx,nbm,dir,side){         //dir is dir
+    var tyx,aa,aa7,sx=yx%10,x,m
     for(x=sx;x<sx+3;x++){
         for(m=dir-1;m<dir+2;m++){
             aa=board[yx+m]
-            if(aa&&(aa&8)==bm&&((aa&7)==1||(aa&7)==6))return 0        //don't need to check for pawn position --cannot arrive at centre without passing thru check
+            if(aa&&(aa&8)==nbm&&((aa&7)==1||(aa&7)==6))return 0        //don't need to check for pawn position --cannot arrive at centre without passing thru check
             aa=0
             tyx=yx
             while(!aa){   //while on board && no piece
                 tyx+=m
                 aa=board[tyx]
                 if (aa&16)break
-                if((aa==bm+2+(m==dir)*2)||aa==bm+5)return 0
+                if((aa==nbm+2+(m==dir)*2)||aa==nbm+5)return 0
             }
         }
         for (z=0;z<8;z++){
-            if(board[yx+moves[3][z]]-bm==3)return 0      //knights
+            if(board[yx+moves[3][z]]-nbm==3)return 0      //knights
         }
+        aa=0
+        while (!aa){   //queen or rook out on other side
+			yx-=side
+			aa=board[yx]
+			if(aa==nbm+2||aa==nbm+5)return 0
+	    }
         return 1
     }
 }
@@ -269,7 +279,7 @@ function move(s,e,queener,score){
         if(e==s+2*dir)ep=s+dir       //set up ep  - perhaps do pawn test (save time in loop)
         if(!aa&&x!=tx)shift(e,e+dir)// blank ep pawn
     }
-    if(s==21+bmx*70||s==28+bmx*70)castle[bmx]&=(x>5)+1        //castle flags
+    if(s==21+bmx*70||s==28+bmx*70)castle[bmx]&=(x<5)+1        //castle flags
     if(a==6){
         if(gap*gap==4){  //castling - move rook too
             shift(s-4+(s<e)*7,s+gap/2)
@@ -286,12 +296,15 @@ function move(s,e,queener,score){
     if(!(moveno%3)){   //alter strategy multipliers
         M1=(M1-1||1)
         M2=(M2-1||1)
-        M3=M3>4?5:(moveno/8)&3
+        M3=M3>3?4:(moveno/9)
     }
     bmove=8-bmove
 	beta[1]=999
 	themove=treeclimber(1,bmove,0,120,120,ep,0)
 	if (themove[0]>200){going=0;debug('checkmate',themove)}
+
+	d.fred.check.value=castle
+
 }
 
 //*************************************** macro-control
@@ -309,16 +322,10 @@ function B(it){
     }
     if (inhand){
         p=parse(bmove,ep,0,0)
-//        debug (p)
         for (z=0;z<p.length;z++){
             if(p[z][1]==ss &&p[z][2]==it){
 				bubbit('trying '+ss+' '+it)
-                //y=treeclimber(1,8-bmove,500,ss,it,ep,0)[0]
                 move(ss,it,d.fred.hob.selectedIndex,y)
-                //else{
-                //    alert('check! '+y)
-                //    d.images['i'+ss].src=inhand+'.gif'
-                //}
                 inhand=0
             }
         }
