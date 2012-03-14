@@ -166,7 +166,7 @@ var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treec
 function treeclimber(count,bm,tpn,s,e,EP,pruner){
     var z,mvl,pl,mvt,mv,b,cmp=comp
 //    var cmp=comp
-    var a=board[s],aa=board[e],mz=[-999]
+    var a=board[s],aa=board[e],best=[-999]
     board[e]=a
     board[s]=0
     mvl=parse(bm,EP,tpn)
@@ -176,10 +176,10 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
         if(!count){
 			b=beta[0] //localise for extra speed
 			for(z=0;z<pl;z++){
-				if(mvl[z][0]>mz[0]){
-					mz=mvl[z]
+				if(mvl[z][0]>best[0]){
+					best=mvl[z]
 					evaluees++
-					if (mz[0]>b){
+					if (best[0]>b){
 						break
 					}
 				}
@@ -192,15 +192,15 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
             for(z=0;z<pl;z++){
                 mv=mvl[z]
                 if (!pruner || mv[0]>-beta[count]){
-					mvt=(mv[0]<400) ? mvt=treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
-					if(mvt>mz[0]){
+					mvt=(mv[0]>-400) ? -treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
+					if(mvt>best[0]){
 						evaluees++
-						mz=[mvt,mv[1],mv[2]]  //
-						if (mz[0]>beta[count]||beta[count]>998){
-							beta[count]=-mz[0]
+						best=[mvt,mv[1],mv[2]]  //
+						if (best[0]>beta[count]||beta[count]>998){
+							beta[count]=-best[0]
 			//				break
 						}
-						if (mz[0]>b)break
+						if (best[0]>b)break
 					}
 				}
 				else{
@@ -208,13 +208,11 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
 				}
             }
         }
-        mz[0]=-mz[0]
     }
-    else mz=[-600]
-//    beta[count]=-1000
+    else best=[600]
     board[s]=a
     board[e]=aa
-    return mz
+    return best
 }
 
 
@@ -265,7 +263,7 @@ function findmove(){
 	    themove=treeclimber(level,bmove,0,120,120,ep,0)
 	}
     millisecs2=new Date()
-    d.fred.ep.value=millisecs2-millisecs1+ 'ms'
+    //d.fred.ep.value=millisecs2-millisecs1+ 'ms'
     bubbit("prs:"+parsees+ "eval:"+evaluees+" prune:"+prunees)
     pn=-themove[0]
 	s=themove[1]
@@ -281,7 +279,7 @@ function findmove(){
 
 function move(s,e,queener,score){
     var a=board[s]&7,bmx=bmove>>3,dir=10-bmx*20,aa=board[e],x=s%10,tx=e%10,ty=e-tx,gap=e-s;
-
+	var c
 	//test if this move is legal
 	p=parse(bmove,ep,0,0)
 	test=0;
@@ -325,11 +323,18 @@ function move(s,e,queener,score){
     }
     // from here there is no turning back
     shift(s,e)
-    display2(s,e,score,aa)
-
+    //attempt to find if checked
+	p=parse(8-bmove,ep,0,0)
+	test=0;
+	for (z=0;z<p.length;z++){
+		test=test||(p[z][0]>400);
+	}
+	if (test)c=1;
 	themove=treeclimber(1,bmove,0,120,120,ep,0)
-	//debug(themove)
-	if (themove[0]<-400){going=0;debug('checkmate',themove)}
+	if (themove[0]<-400){going=0;debug('checkmate',themove);c=1}
+
+    display2(s,e,score,aa,c)
+
 
     if(!(++moveno%7)){   //alter strategy multipliers
         M1=(M1-1||1)
@@ -347,19 +352,22 @@ function move(s,e,queener,score){
 //*************************************** macro-control
 
 function B(it){ //it is clicked square
-    var a=board[it],z,p
+    var a,z,p
+ //   it=player?119-it:it
+    a=board[it]
+    //alert(player)
     //if(!a&&!inhand) return
 	if (ss==it && inhand){   //ss is global, for starting place of moving piece.
 		Bim('pih',0)         //this bit replaces a piece if you click on the square it came from.
-		Bim('i'+ss,inhand)
+		Bim(ss,inhand,1)
 		inhand=0;
 		return
 	}
     if (a&&(bmove==(a&8))){     //ie, if one picked up of right colour, it becomes start
-        if (inhand) Bim('i'+ss,inhand) //put back old piece, if any
+        if (inhand) Bim(ss,inhand,1) //put back old piece, if any
         inhand=a
         ss=it
-        Bim('i'+ss,0)     //not real shift, but blank start
+        Bim(ss,0,1)     //not real shift, but blank start
         Bim('pih',a)     //dragging piece
         if(E)drag()      //puts in right place
         d.onmousemove=drag;  //link in hand image to mouse
@@ -399,13 +407,13 @@ function shift(s,e){
     var a=board[s]
     board[e]=a
     board[s]=0
-    Bim('i'+s,0)
-    Bim('i'+e,a)
+    Bim(s,0,1)
+    Bim(e,a,1)
 }
 
-function display2(s,e,a,b){
+function display2(s,e,a,b,c){
     var z,x=s%10,y=(s-x)/10,tx=e%10,ty=(e-tx)/10,mn=1+(moveno>>1)
-    d.fred.bib.value+="\n"+(bmove?'    ':(mn<10?" ":"")+mn+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'   '+a+prunees
+    d.fred.bib.value+="\n"+(bmove?'    ':(mn<10?" ":"")+mn+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+(c?'+':' ')+'  '+a+prunees
 }
 
 function bubbit(s){
@@ -413,20 +421,23 @@ function bubbit(s){
 }
 
 function debug(){
-
-	return
+	for (var z=0;z<arguments.length;z++){
+		var az=arguments[z]
+		d.fred.bug.value+=az+"  "
+	}
+	d.fred.bug.value+="\n"
 }
 
 //*******************************************redraw screen from board
 
 function refresh(bd,bw){
-//	bw*=120
+	player=bw
 	for (var z=0;z<120;z++){
-		screenboard[z]=(bw?119-z:z)
-		if(bd[z]<16)Bim('i'+screenboard[z],bd[z])
+		screenboard[z]=(z)
+		if(bd[z]<16)Bim(screenboard[z],bd[z],1)
 	}
 //	alert (bd)
-
+// in real game, if bmove!=player, give computer the turn
 }
 
 
@@ -453,8 +464,9 @@ function drag(e) {
 	itch.top=(e.clientY-4)+"px";
 }
 
-function Bim(img,src){
+function Bim(img,src,swap){
 	if (A || img!='pih'){
+		if (swap){img="i"+(player?119-img:img)}
 	    d.images[img].src=src+'.gif'
 	}
 }
@@ -472,7 +484,7 @@ for (y=90;y>10;y-=10){
     for(x=0;x<10;x++){
         z=y+x
         if(x&&x<9){
-            html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B('+z+');return false"><img src=0.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
+            html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B(player?119-'+z+':'+z+');return false"><img src=0.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
         }
     }
     html+='</tr>\n'
