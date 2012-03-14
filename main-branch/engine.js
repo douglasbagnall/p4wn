@@ -268,21 +268,21 @@ function prepare(state){
     // high earliness indicates a low move number
     var earliness = (moveno < 32) ? 4 - (moveno >> 3) : (moveno > 64);
 
-    for(var z = 99;z > 20; z--){
-        var a = board[z];
+    for(var i = 20; i  < 100; i++){
+        var a = board[i];
         if(a&14){
-            pieces[a&1].push([a,z]);
+            pieces[a&1].push([a,i]);
         }
-        weights[z] = base_weights[z] * earliness;
+        weights[i] = base_weights[i] * earliness;
 
         //king weighted toward edge while moveno <= 40
-        kweights[z] = (moveno > 40) || (10 - 2 * base_weights[z]) * earliness;
+        kweights[i] = (moveno > 40) || (10 - 2 * base_weights[i]) * earliness;
 
         //pawns weighted toward centre for first 8 moves, then forwards only.
         //pawn weights are also slightly randomised.
-        var w = parseInt((z > 40 && moveno < 8) * ((DEBUG ? 0.5 : Math.random())
-                                                   * weights[z]) * 0.5);
-        wp_weights[z] = bp_weights[119 - z] = base_pawn_weights[z] + w;
+        var w = parseInt((i > 40 && moveno < 8) * ((DEBUG ? 0.5 : Math.random())
+                                                   * weights[i]) * 1);
+        wp_weights[i] = bp_weights[119 - i] = base_pawn_weights[i] + w;
     }
     if (moveno < 5){
         // go for the king early? XXX
