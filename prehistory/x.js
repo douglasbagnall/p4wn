@@ -14,6 +14,7 @@ moves=[0,0,[1,10],[21,19,12,8],[11,9],[1,10,11,9],[1,10,9,11],0]
 castle=[3,3]
 ky=[20,90]
 kx=[5,5]
+kp=[25,95]
 pv=[0,1,5,3,3,9,31,0]
 pn=[]
 weight=[]
@@ -22,7 +23,7 @@ M1=4    //centre weighting
 M2=3    //centre weigting of departure point
 M3=1    // line up with king weight
 beta=[0,0,0,0,0,0]
-
+parsees=prunees=evaluees=0
 
 for(z=0;z<8;z++){
     pv[z+8]=pv[z]=10*pv[z]  //same piece values for black and white
@@ -34,6 +35,15 @@ for(z=0;z<8;z++){
     }
     moves[z+8]=moves[z]          //both refer to same array
 }
+closeness=[]
+
+z=0;
+for(x=-2;x<3;x++){
+	for(y=-2;y<3;y++){
+		closeness[40+y*10+x]=3-Math.abs(y)+3-Math.abs(x)
+	}
+}
+
 
 // draw screen, and construct weighting tables
 for (y=110;y>=0;y-=10){
@@ -67,13 +77,14 @@ html+='</tr></table>'
 //b is threshold for move addition - could be end of parsing (beta snip)?
 
 function parse(bm,EP,tpn,b){
-    var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,dir=10-bmx*20,mvl=[],mvlength,wate
+    var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,nx=nbm>>3,dir=10-bmx*20,mvl=[],mvlength,wate
     for(yx=21;yx<99;yx++){
         a=board[yx]
         if(a&15&&bm==(a&8)){
             wate=weight[yx]*M2
             a&=7
             if(a>1){    //non-pawns
+            	ic=(closeness[40+kp[nx]-yx]||0)//initial closeness
                 ak=a==6
                 mv=moves[a]
                 mvlength=mv.length
@@ -82,7 +93,7 @@ function parse(bm,EP,tpn,b){
                         tyx=yx+mv[cx]
                         aa=board[tyx]
                         if(!aa||(aa&24)==nbm){
-                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate,yx,tyx] //rating,start,end,-- enpassant left undefined
+                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate+(ak&&moveno<35?(closeness[40+kp[nx]-tyx]||0)*M3-ic:0),yx,tyx] //rating,start,end,-- enpassant left undefined
                             //if ((aa&7)==6)return 0
                         }
                     }
@@ -104,7 +115,7 @@ function parse(bm,EP,tpn,b){
                             tyx+=m
                             aa=board[tyx]
                             if(!aa||(aa&24)==nbm){
-                                mvl[++k]=[tpn+pv[aa]+(weight[tyx]*M1)-wate,yx,tyx]
+                                mvl[++k]=[tpn+pv[aa]+(weight[tyx]*M1)-wate+(closeness[40+kp[nx]-tyx]||0)*M3-ic,yx,tyx]
                                 //if ((aa&7)==6)return 0
                             }
                         }
@@ -266,14 +277,16 @@ function move(s,e,queener,score){
         castle[bmx]=0
         kx[bmx]=tx
         ky[bmx]=ty
+        kp[bmx]=e
     }
+
     shift(s,e)
     display2(s,e,score,aa)
     moveno+=bmx
     if(!(moveno%3)){   //alter strategy multipliers
         M1=(M1-1||1)
         M2=(M2-1||1)
-        M3+=1
+        M3=M3>4?5:(moveno/8)&3
     }
     bmove=8-bmove
 	beta[1]=999
