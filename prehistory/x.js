@@ -15,7 +15,7 @@ castle=[3,3]//castle[0] &1 is white's left, castle[0]&2 is right castle
 ky=[20,90]
 kx=[5,5]
 kp=[25,95]
-pv=[0,1,5,3,3,9,31,0]
+pv=[0,1,5,3,3,9,63,0]
 pn=[]
 weight=[]
 ep=0  //en passant state off
@@ -26,27 +26,27 @@ beta=[0,0,0,0,0,0]
 parsees=prunees=evaluees=0
 
 for(z=0;z<8;){
-    pv[++z+8]=pv[z]=10*pv[z]  //same piece values for black and white
+    pv[z+8]=pv[z]=10*pv[z]  //same piece values for black and white
     if(moves[z]){
         s=moves[z].length           //probably some better way
-        for(x=0;x<s;x++){
-            moves[z][s+x]=-moves[z][x]
+        for(x=0;x<s;){
+            moves[z][s+x]=-moves[z][x++]
         }
-        moves[z][2*s]=0
     }
-    moves[z+8]=moves[z]          //both refer to same array
+    moves[z+8]=moves[z++]          //both refer to same array
 }
+
 closeness=[0,0,[],[],[],[],[]]
 
 z=0;
 for(x=-2;x<3;x++){
 	for(y=-2;y<3;y++){
 		p=40+y*10+x
-		closeness[6][p]=3-Math.abs(y)+3-Math.abs(x)
+		closeness[6][p]=4-Math.abs(y)-Math.abs(x)
 		closeness[3][p]=closeness[6][p]+2*(x==2*y||y==2*x)
-		closeness[2][p]=closeness[6][p]+3*(x==0||y==0)
+		closeness[2][p]=closeness[6][p]+2*(x==0||y==0)
 		closeness[4][p]=closeness[6][p]+2*(x==y)
-		closeness[5][p]=closeness[6][p]+3*(x==0||y==0||y==6)
+		closeness[5][p]=closeness[6][p]+2*(x==0||y==0||y==6)
 	}
 }
 
@@ -56,22 +56,28 @@ for (y=110;y>=0;y-=10){
     for(x=0;x<10;x++){
         z=y+x
         weight[z]=parseInt(wstring.charAt(((z<60)?z:119-z)),26)
-        board[z]=parseInt(bstring.charAt(z),26)
-        if(y>10 && y<100){
-            if(x &&x<9){
-                html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B('+z+')"><img src='+board[z]+'.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
-            }
-            else html+='<td class=h>'+(y-10)/10+'</td>'
+        w=board[z]=parseInt(bstring.charAt(z),26)
+        if(w<16){
+            html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B('+z+')"><img src='+board[z]+'.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
         }
-        else{
-            if(y%90==10) html+=('<td class=h>'+lttrs.charAt(x-1)+'</td>')
-            else  html+=('<td class=g><img src='+((z%6)+1+8*(y>50))+'.gif></td>')
-        }
+		else{
+			if(y%110) html+=('<td class=h>&nbsp;</td>')
+//            else{ if(x%9==0 &&y%110)html+='<td class=h>'+(y-10)/10+'</td>'
+//                  else html+=('<td class=g><img src='+((z%6)+1+8*(y>50))+'.gif></td>')
+//            }
+    	}
+//		else{
+//			if(y%90==10) html+=('<td class=h>'+lttrs.charAt(x-1)+'</td>')
+//            else{ if(x%9==0 &&y%110)html+='<td class=h>'+(y-10)/10+'</td>'
+//                  else html+=('<td class=g><img src='+((z%6)+1+8*(y>50))+'.gif></td>')
+//            }
+//    	}
     }
     html+='</tr><tr>\n'
 }
 board[120]=0
 html+='</tr></table>'
+
 
 
 //**************************************************functions
@@ -80,12 +86,11 @@ html+='</tr></table>'
 // k
 // yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,dir=bmx*10-20,mvl=[],mvlength,wate
 
-//b is threshold for move addition - could be end of parsing (beta snip)?
-
-function parse(bm,EP,tpn,b){
-    var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,nx=nbm>>3,dir=10-bmx*20,mvl=[],mvlength,wate
+function parse(bm,EP,tpn){
+//	var bord=board
+    var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,nx=nbm>>3,dir=10-bmx*20,mvl=[],m,wate,cbmx=castle[bmx]
     for(yx=21;yx<99;yx++){
-        a=board[yx]
+		a=board[yx]
         if(a&15&&bm==(a&8)){
             wate=weight[yx]*M2
             a&=7
@@ -94,27 +99,29 @@ function parse(bm,EP,tpn,b){
                 ak=a==6
                 mv=moves[a]
                 if(a==3||ak){
-                   for(cx=0;cx<8;tyx=yx+mv[cx++]){     //knights,kings
+                   for(cx=0;cx<8;){     //knights,kings
+                   		tyx=yx+mv[cx++]
                         aa=board[tyx]
                         if(!aa||(aa&24)==nbm){
-                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate+(ak&&moveno<35?(closeness[a][40+kp[nx]-tyx]||0)*M3-ic:0),yx,tyx] //rating,start,end,-- enpassant left undefined
+                            mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate+(ak&&moveno<30?(closeness[a][40+kp[nx]-tyx]||0)*M3-ic:0),yx,tyx] //rating,start,end,-- enpassant left undefined
                             //if ((aa&7)==6)return 0
                         }
                     }
-                    if(ak&&castle[bmx]){
-                        if(castle[bmx]&1&&!(board[yx-1]+board[yx-2]+board[yx-3])&&check(yx-2,nbm,dir,-1)){//Q side
+                    if(ak&&cbmx){
+                        if(cbmx&1&&!(board[yx-1]+board[yx-2]+board[yx-3])&&check(yx-2,nbm,dir,-1)){//Q side
                             mvl[++k]=[tpn+11,yx,yx-2]                                //no analysis, just encouragement
                         }
-                        if(castle[bmx]&2&&!(board[yx+1]+board[yx+2])&&check(yx,nbm,dir,+1)){//K side
+                        if(cbmx&2&&!(board[yx+1]+board[yx+2])&&check(yx,nbm,dir,1)){//K side
                             mvl[++k]=[tpn+12,yx,yx+2]                                //no analysis, just encouragement
                         }
                     }
                 }
                 else{//rook, bishop, queen
-	                mvlength=mv.length
-                    for(cx=0;cx<mvlength;m=mv[cx++]){     //goeth thru list of moves
+        			var mlen=mv.length
+                    for(cx=0;cx<mlen;){     //goeth thru list of moves
+                    	aa=0
+                    	m=mv[cx++]
                         tyx=yx
-                        aa=0
                         while(!aa){   //while on board && no piece
                             tyx+=m
                             aa=board[tyx]
@@ -161,20 +168,22 @@ function parse(bm,EP,tpn,b){
 var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treeclimb integer sort (descending)
 
 function treeclimber(count,bm,tpn,s,e,EP,pruner){
-    var z,mvl,pl,mvt,mv
+    var z,mvl,pl,mvt,mv,b
+//    var cmp=comp
     var a=board[s],aa=board[e],mz=[-999]
     board[e]=a
     board[s]=0
-    mvl=parse(bm,EP,tpn,beta[count])
+    mvl=parse(bm,EP,tpn)
     if(mvl){
         pl=mvl.length
         parsees+=pl
         if(!count){
+			b=beta[0] //localise for extra speed
 			for(z=0;z<pl;z++){
 				if(mvl[z][0]>mz[0]){
 					mz=mvl[z]
 					evaluees++
-					if (mz[0]>beta[0]){
+					if (mz[0]>b){
 						break
 					}
 				}
@@ -182,11 +191,12 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
         }
         else{
             mvl.sort(comp)//descending order
+            b=beta[count]
 			beta[--count]=999
             for(z=0;z<pl;z++){
                 mv=mvl[z]
                 if (!pruner || mv[0]>-beta[count]){
-					mvt=(mv[0]<200) ? mvt=treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
+					mvt=(mv[0]<400) ? mvt=treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
 					if(mvt>mz[0]){
 						evaluees++
 						mz=[mvt,mv[1],mv[2]]  //
@@ -194,7 +204,7 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
 							beta[count]=-mz[0]
 			//				break
 						}
-						if (mz[0]>beta[count+1])break
+						if (mz[0]>b)break
 					}
 				}
 				else{
@@ -204,7 +214,7 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
         }
         mz[0]=-mz[0]
     }
-    else mz=[-300]
+    else mz=[-600]
 //    beta[count]=-1000
     board[s]=a
     board[e]=aa
@@ -215,10 +225,10 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
 //************************************CHECK
 
 function check(yx,nbm,dir,side){         //dir is dir
-    var tyx,aa,aa7,sx=yx%10,x,m
-    for(x=sx;x<sx+3;x++){
-        for(m=dir-1;m<dir+2;m++){
-            aa=board[yx+m]
+    var tyx,aa,aa7,sx=yx%10,x,m,ex=yx+3,md=dir+2
+    for(;yx<ex;yx++){ //go thru 3positions, checking for check in each
+        for(m=dir-2;++m<md;){
+			aa=board[yx+m]
             if(aa&&(aa&8)==nbm&&((aa&7)==1||(aa&7)==6))return 0        //don't need to check for pawn position --cannot arrive at centre without passing thru check
             aa=0
             tyx=yx
@@ -229,17 +239,18 @@ function check(yx,nbm,dir,side){         //dir is dir
                 if((aa==nbm+2+(m==dir)*2)||aa==nbm+5)return 0
             }
         }
-        for (z=0;z<8;z++){
-            if(board[yx+moves[3][z]]-nbm==3)return 0      //knights
+        for (z=0;z<8;){
+            if(board[yx+moves[3][z++]]-nbm==3)return 0      //knights
         }
-        aa=0
-        while (!aa){   //queen or rook out on other side
-			yx-=side
-			aa=board[yx]
-			if(aa==nbm+2||aa==nbm+5)return 0
-	    }
-        return 1
     }
+    aa=0
+    yx-=3
+	while (!aa){   //queen or rook out on other side
+		yx-=side
+		aa=board[yx]
+		if(aa==nbm+2||aa==nbm+5)return 0
+	}
+	return 1
 }
 
 
@@ -253,7 +264,7 @@ function findmove(){
     evaluees=parsees=prunees=0
 	beta[level]=999
     themove=treeclimber(level,bmove,0,120,120,ep,1)
-    if (themove[0] >40){
+    if (themove[0] >60){
 		debug ("retrying",themove)
 		beta[level]=999
 	    themove=treeclimber(level,bmove,0,120,120,ep,0)
@@ -296,7 +307,7 @@ function move(s,e,queener,score){
     if(!(moveno%3)){   //alter strategy multipliers
         M1=(M1-1||1)
         M2=(M2-1||1)
-        M3=M3>3?4:(moveno/9)
+        M3=M3>3?4:(moveno>>3)
     }
     bmove=8-bmove
 	beta[1]=999
@@ -365,6 +376,19 @@ function debug(){
 	}
 	d.fred.bug.value+="\n"
 }
+
+//*******************************************redraw screen from board
+
+function refresh(bd,bw){
+//	bw*=120
+	for (var z=0;z<110;z++){
+		if(bd[z]<16)d.images['i'+z].src=bd[z]+'.gif'
+	}
+}
+
+
+
+
 
 //*********************************************final write,etc
 
