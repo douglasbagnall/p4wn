@@ -13,7 +13,6 @@
 /* TODO
  * clarify variable names
  * generalise player state, (perhaps tick boxes for b and w computer control)
- * sensibly rearrange piece numbers [allowing bitwise parsing]
  */
 
 var MAX_SCORE = 9999;    // extremes of evaluation range
@@ -23,6 +22,7 @@ var DIRS=[10,-10];
 var OFF_BOARD=120;
 var DEBUG=0;
 
+/* in order, doubled: <nothing>, pawn, rook, knight, bishop, king, queen */
 var MOVES = [0, 0,
              0, 0,
              [1,10,-1,-10], [1,10,-1,-10],
@@ -30,21 +30,28 @@ var MOVES = [0, 0,
              [11,9,-11,-9], [11,9,-11,-9],
              [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9],
              [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9]
-            ]; // in order, doubled _,p,r,n,b,q,k
+            ];
 
 var VALUES=[0, 0,    //Piece values
             16, 16,  //pawns
             80, 80,  //rooks
             48, 48,  //knights
             48, 48,  //bishops
-            144, 144,//queens
             999, 999,//kings
+            144, 144,//queens
             0];
 
 
 var BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var BASE_PAWN_WEIGHTS;
-var PAWN = 2, ROOK = 4, KNIGHT = 6, BISHOP = 8, QUEEN = 10, KING = 12;
+
+/*piece codes:
+ *  piece & 2  -> single move piece (including pawn)
+ *  if (piece & 2) == 0:
+ *     piece & 4  -> row and column moves
+ *     piece & 8  -> diagonal moves
+ */
+var PAWN = 2, ROOK = 4, KNIGHT = 6, BISHOP = 8, QUEEN = 12, KING = 10;
 var EDGE = 16;
 
 // fills the board and initialises some look up tables
@@ -57,11 +64,11 @@ function new_game(){
      * pieces are valued 2, 4, 6, etc,  + 0/1 for white/black
      */
     var board_string= ('gggggggggg' + 'gggggggggg' +
-                       'g468ac864g' +
+                       'g468ca864g' +
                        'g22222222g' +
                        'g00000000g' + 'g00000000g' + 'g00000000g' + 'g00000000g' +
                        "g33333333g" +
-                       "g579bd975g" +
+                       "g579db975g" +
                        'gggggggggg' + 'gggggggggg');
     var weight_string = "000000000000000000000000000000000111100000123321000123553210";
     console.debug(weight_string.length, board_string.length);
@@ -89,7 +96,7 @@ function new_game(){
         board: board,
         enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
         castles: 15,
-        pawn_promotion: [10, 10],
+        pawn_promotion: [QUEEN, QUEEN],
         to_play: 0, //0: white, 1: black
         taken_piece: 0,
         pweights: pweights,
@@ -311,15 +318,15 @@ function parse(state, colour, ep, castle_state, score) {
         if (pieces[z][0]==a){
             a &= 14;
             if(a > 2){    //non-pawns
-                var is_king = a == 12;
+                var is_king = a == KING;
                 var weight_lut = is_king ? kweights : weights;
                 weight = score - weight_lut[s];
                 var moves = MOVES[a];
-                if(a == KNIGHT || is_king){
+                if(a & 2){
                     for(i = 0; i < 8; i++){
                         e = s + moves[i];
                         E = board[e];
-                        if(!E||(E&17)==other_colour){
+                        if(!E || (E&17)==other_colour){
                             movelist[++k]=[weight + VALUES[E] + weight_lut[e], s, e, 0];
                         }
                     }
@@ -393,8 +400,8 @@ function check_castling(board, s, colour, dir, side){
     var rook = colour + 4;
     var knight = colour + 6;
     var bishop = colour + 8;
-    var queen = colour + 10;
-    var king = colour + 12;
+    var queen = colour + QUEEN;
+    var king = colour + KING;
 
     /* go through 3 positions, checking for check in each
      */
@@ -402,10 +409,11 @@ function check_castling(board, s, colour, dir, side){
         //bishops, rooks, queens
         for(m = dir - 1; m < dir + 2; m++){
             e = p + m;
+            var end = (m == dir) ? 8: 4;
             while(1){
                 E=board[e];
                 if (E){
-                    if((E == colour + 4 + (m != dir) * 4) || E == queen)
+                    if((E & end) && (E & 1 == colour))
                         return 0;
                     break;
                 }
@@ -420,7 +428,7 @@ function check_castling(board, s, colour, dir, side){
             return 0;
     }
 
-    /* a pawn or king in any of 5 positions on row 7 blocks.
+    /* a pawn or king in any of 5 positions on row 7.
      *(though some of those involve impossible king-king contact) */
     for(p = s + dir - 1; p < s + dir + 4; p++){
         E = board[p];
