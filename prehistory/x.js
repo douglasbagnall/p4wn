@@ -25,6 +25,17 @@ M2=3    //centre weigting of departure point
 M3=1    // line up with king weight
 beta=[0,0,0,0,0,0]
 parsees=prunees=evaluees=0
+ss=0
+
+
+A=E=d.all;
+if (!E)event=0; //else errors in onmouseover.
+DOM=d.getElementsByTagName || null;
+if (DOM||E){
+	d.write("<img src=0.gif id=pih name=pih width=33 height=33>");
+	A= (E||d.getElementsByTagName("img"));
+	itch=A["pih"].style
+}
 
 boardheap=[]
 
@@ -210,7 +221,7 @@ function treeclimber(count,bm,tpn,s,e,EP,pruner){
 //************************************CHECK
 
 function check(yx,nbm,dir,side){         //dir is dir
-    var tyx,aa,aa7,sx=yx%10,x,m,ex=yx+3,md=dir+2
+    var tyx,aa,aa7,sx=yx%10,x,m,ex=yx+3,md=dir+2,k=moves[3]
     for(;yx<ex;yx++){ //go thru 3positions, checking for check in each
         for(m=dir-2;++m<md;){
 			aa=board[yx+m]
@@ -220,12 +231,12 @@ function check(yx,nbm,dir,side){         //dir is dir
             while(!aa){   //while on board && no piece
                 tyx+=m
                 aa=board[tyx]
-                if (aa&16)break
-                if((aa==nbm+2+(m==dir)*2)||aa==nbm+5)return 0
+//                if (aa&16)break
+                if((aa==nbm+2+(m!=dir)*2)||aa==nbm+5)return 0
             }
         }
         for (z=0;z<8;){
-            if(board[yx+moves[3][z++]]-nbm==3)return 0      //knights
+            if(board[yx+k[z++]]-nbm==3)return 0      //knights
         }
     }
     aa=0
@@ -266,24 +277,45 @@ function findmove(){
 
 // move the piece (no testing)
 
+
+
 function move(s,e,queener,score){
-    var a=board[s]&7,bmx=bmove>>3,dir=10-bmx*20,aa=board[e],x=s%10,tx=e%10,ty=e-tx,gap=e-s
-	themove=treeclimber(1,8-bmove,0,s,e,ep,0)
-	if (themove[0]<-400){debug(' incheck',themove);return false}
+    var a=board[s]&7,bmx=bmove>>3,dir=10-bmx*20,aa=board[e],x=s%10,tx=e%10,ty=e-tx,gap=e-s;
 
+	//test if this move is legal
+	p=parse(bmove,ep,0,0)
+	test=0;
+    for (z=0;z<p.length;z++){
+        test=test||(s==p[z][1]&&e==p[z][2]);
+	}
+	if (!test)return 0;
 
-//    boardheap[moveno]=[board.toString(),castle.toString(),ep,M1,M2,M3]
-    ep=0
+/// now see whether in check after this move, by getting the best reply.
+	themove=treeclimber(1,8-bmove,0,s,e,ep,0);
+	if (themove[0]<-400){
+		debug (treeclimber(2,bmove,0,0,0,0,0)[0])
+		debug(' incheck',themove);
+		return false
+	}
+	//if got this far, the move is accepted (except for castling?). Now we need to make it, and save board state.
+	//put board on heap.
+
+    boardheap[moveno]=[board.toString(),castle.toString(),ep,M1,M2,M3]
+    //debug (boardheap);
+
+    ep=0// ep reset
+
     if(a==1){ //pawns
 //     	debug(board[e+dir],"piece:",5-queener,'e',e,'s',s)
         if(board[e+dir]>15)board[s]+=4-queener //queener is choice for pawn queening
-        if(e==s+2*dir)ep=s+dir       //set up ep  - perhaps do pawn test (save time in loop)
-        if(!aa&&x!=tx)shift(e,e+dir)// blank ep pawn
+        if(e==s+2*dir && (board[e-1]&1||board[e+1]&1))ep=s+dir  //set up ep - with pawn test to save time in parse loop
+
+        if(!aa&&x!=tx)shift(e,e-dir)// blank ep pawn
     }
-    if(s==21+bmx*70||s==28+bmx*70)castle[bmx]&=(x<5)+1        //castle flags
+    if(s==21+bmx*70||s==28+bmx*70)castle[bmx]&=(x<5)+1        //castle flags (blank on any move from rook points)
     if(a==6){
         if(gap*gap==4){  //castling - move rook too
-        	if (!check(s,8-bmove,dir,gap>>1))return false
+        	//if (!check(s,8-bmove,dir,gap>>1))return false
             shift(s-4+(s<e)*7,s+gap/2)
         }
         castle[bmx]=0
@@ -291,11 +323,13 @@ function move(s,e,queener,score){
         ky[bmx]=ty
         kp[bmx]=e
     }
+    // from here there is no turning back
     shift(s,e)
     display2(s,e,score,aa)
+
 	themove=treeclimber(1,bmove,0,120,120,ep,0)
-	debug(themove)
-	if (themove[0]>400){going=0;debug('checkmate',themove)}
+	//debug(themove)
+	if (themove[0]<-400){going=0;debug('checkmate',themove)}
 
     if(!(++moveno%7)){   //alter strategy multipliers
         M1=(M1-1||1)
@@ -305,40 +339,59 @@ function move(s,e,queener,score){
     }
     bmove=8-bmove
 	beta[1]=999
+	return true
 }
+
 
 
 //*************************************** macro-control
 
-function B(it){
+function B(it){ //it is clicked square
     var a=board[it],z,p
-    if(!a&&!inhand) return
+    //if(!a&&!inhand) return
+	if (ss==it && inhand){   //ss is global, for starting place of moving piece.
+		Bim('pih',0)         //this bit replaces a piece if you click on the square it came from.
+		Bim('i'+ss,inhand)
+		inhand=0;
+		return
+	}
     if (a&&(bmove==(a&8))){     //ie, if one picked up of right colour, it becomes start
-        if (inhand) d.images['i'+ss].src=inhand+'.gif'
+        if (inhand) Bim('i'+ss,inhand) //put back old piece, if any
         inhand=a
         ss=it
-        d.images['i'+ss].src='0.gif'     //not real shift, but blank start
-        d.images['pih'].src=a+'.gif'
-        return
+        Bim('i'+ss,0)     //not real shift, but blank start
+        Bim('pih',a)     //dragging piece
+        if(E)drag()      //puts in right place
+        d.onmousemove=drag;  //link in hand image to mouse
+    	return
     }
-    if (inhand){
-        p=parse(bmove,ep,0,0)
-        for (z=0;z<p.length;z++){
-            if(p[z][1]==ss &&p[z][2]==it){
-				bubbit('trying '+ss+' '+it)
-				move(ss,it,d.fred.hob.selectedIndex,y)
-				inhand=0
-            }
-        }
+
+    if (inhand){      //now, here seems to be doing parsing, when the if move should do it.
+		bubbit('trying '+ss+' '+it)
+		if(move(ss,it,d.fred.hob.selectedIndex,y)){
+			Bim('pih',0); //blank moving gif
+			d.onmousemove=null;         //and switch off mousemove.
+			if(A) itch.top=itch.left='400px'//flick moving img off board
+			inhand=0;
+		}
     }
 }
 
 //B1 is auto
-
+Btime=0
 function B1(){
     findmove()          //do other colour
-    setTimeout("if(going)B1()",500)
+    Btime=setTimeout("B2()",500)
 }
+function B2(){
+	if (going || player!=bmove){
+		clearTimeout(Btime);
+		B1();
+	}
+}
+
+
+
 
 //*******************************shift & display
 
@@ -346,12 +399,12 @@ function shift(s,e){
     var a=board[s]
     board[e]=a
     board[s]=0
-    d.images['i'+s].src='0.gif'
-    d.images['i'+e].src=a+'.gif'
+    Bim('i'+s,0)
+    Bim('i'+e,a)
 }
 
 function display2(s,e,a,b){
-    var z,x=s%10,y=(s-x)/10,tx=e%10,ty=(e-tx)/10,mn=1+moveno>>1
+    var z,x=s%10,y=(s-x)/10,tx=e%10,ty=(e-tx)/10,mn=1+(moveno>>1)
     d.fred.bib.value+="\n"+(bmove?'    ':(mn<10?" ":"")+mn+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'   '+a+prunees
 }
 
@@ -360,11 +413,8 @@ function bubbit(s){
 }
 
 function debug(){
-	for (var z=0;z<arguments.length;z++){
-		var az=arguments[z]
-		d.fred.bug.value+=az+"  "
-	}
-	d.fred.bug.value+="\n"
+
+	return
 }
 
 //*******************************************redraw screen from board
@@ -373,19 +423,20 @@ function refresh(bd,bw){
 //	bw*=120
 	for (var z=0;z<120;z++){
 		screenboard[z]=(bw?119-z:z)
-		if(bd[z]<16)d.images['i'+screenboard[z]].src=bd[z]+'.gif'
+		if(bd[z]<16)Bim('i'+screenboard[z],bd[z])
 	}
-//	alert (screenboard)
+//	alert (bd)
 
 }
 
 
 function goback(x){
+	if (x>moveno)return
 	moveno-=x
 	var b=boardheap[moveno]
-	alert (b+'\n'+boardheap)
-	board=eval(b[0])
-	castle=eval(b[1])
+	//alert(b)
+	board=eval("["+b[0]+"]")
+	castle=eval("["+b[1]+"]")
 	ep=b[2]
 	M1=b[3]
 	M1=b[4]
@@ -393,6 +444,24 @@ function goback(x){
 	bmove=moveno%2
 	refresh(board,bmove)
 }
+
+//*********************************************drag piece
+
+function drag(e) {
+	e=e||event //MSIE uses "event" magical variable, netscapes magically populate 1st argument (e)
+	itch.left=(e.clientX+1)+"px";
+	itch.top=(e.clientY-4)+"px";
+}
+
+function Bim(img,src){
+	if (A || img!='pih'){
+	    d.images[img].src=src+'.gif'
+	}
+}
+
+
+
+
 
 
 //*********************************************final write,etc
@@ -403,7 +472,7 @@ for (y=90;y>10;y-=10){
     for(x=0;x<10;x++){
         z=y+x
         if(x&&x<9){
-            html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B('+z+')"><img src=0.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
+            html+=('<td class=' + ((x+(y/10))&1?'b':'w') + '><a href="#" onclick="B('+z+');return false"><img src=0.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
         }
     }
     html+='</tr>\n'
@@ -413,3 +482,19 @@ html+='</table>'
 
 d.write(html)
 refresh(board,0)
+
+
+
+///***********************************************testing
+
+
+function parsetest(){
+	var z,x,y=500
+	x=new Date()
+	for (z=0;z<y;z++){
+		parse(bmove,ep,0)
+	}
+	x-=new Date()
+	debug ('parse took '+ -x/y +' milliseconds')
+}
+
