@@ -1,11 +1,3 @@
-/*
- * 5k chess -by douglas@paradise.net.nz
- * 
- * DEV -denotes debugging or development use only.
- * MVL -used in move list only. can be scrapped if necessary. 
- *
- */
-
 bmove=0    // the moving player 0=white 8=black
 inhand=0   // piece in hand (ie, during move)
 going=0    // DEV: denotes auto play, or not. 
@@ -16,12 +8,13 @@ Bt=1999
 Al=-Bt
 ss=0       //used in display.js
 s0=3;
+mate=0;   //1 for stale-, 2 for check-
 d=document;
 lttrs="abcdefgh"
 pawns=[[],[]];
 dirs=[10,-10];
 BE=120;
-
+//kp=[25,95]
 boardheap=[]  // history of board state, for undo.
 pieces=[]
 board=[]  
@@ -205,6 +198,7 @@ function move(s,e,queener){
 	    return 0;
 	}	
     }
+    display2(s,e,E,ch);
     t=safetywrapper(0,bmove,s,e,ep);
     if (t>400){
 	debug('check!',t);
@@ -214,14 +208,13 @@ function move(s,e,queener){
     t=safetywrapper(1,8-bmove,s,e,ep);
     if(t<-400){	
 	going=0;
-	debug(ch?'checkmate':'stalemate',t);
 	finish(ch);
+	//	if(!ch)return 0; //don't do stale mate move.
     }
-    if(E&7==6){finish('checkmate - got thru checks')}
+    if(E&7==6){finish(1)}
 
     //put board on heap.
     boardheap[moveno]=[board.toString(),castle.toString(),ep];
-    display2(s,e,E,ch);
     ep=0;
     var x=s%10;
     var gap=e-s;
@@ -234,6 +227,7 @@ function move(s,e,queener){
     if(s==21+bmx*70||s==28+bmx*70)castle[bmx]&=(x<5)+1;        //castle flags (blank on any move from rook points)
     if(e==21+bmx*70||e==28+bmx*70)castle[!bmx]&=(x<5)+1;       //(or on any move *too* opposition corners)
     if(a==6){
+	//	kp[bmx]=e; 
 	if(gap*gap==4){  //castling - move rook too
 	    shift(s-4+(s<e)*7,s+gap/2);
 	}
@@ -247,7 +241,11 @@ function move(s,e,queener){
 }
 
 function finish(ch){
-    debug(ch);
+    dfbv(ch?'checkmate!':'stalemate!');
+    mate=ch++;
+    going=0;    
+    //    Bim(kp[bmove>>3],0); 
+    //    setTimeout('Bim(kp[bmove>>3],bmove+6)',2000); 
 }
 
 
@@ -271,9 +269,9 @@ function prepare(){
 	weights[z]=b_weights[z]*s0;
 	kweights[z]=(moveno>40)||(10-2*b_weights[z])*s0;// while moveno <= 40, weight to edge.
 	Q=pweights[1][119-z]=pweights[0][z]=b_pweights[z];//centralising for first 8 moves, then forwards only.
-	if (moveno<5 && z>40){
-	    pweights[0][z]=pweights[1][119-z]=Q+(Math.random()*weights[z])>>1;
-	    weights[24]=weights[94]=14;
+	if (moveno<7 && z>40){
+	    pweights[0][z]=pweights[1][119-z]=Q+(Math.random()*weights[z])|1;
+	    weights[24]=weights[94]=19;//hold queens at home
 	}
     }
     //    debug("moveno s0",moveno,s0);
@@ -419,8 +417,9 @@ function check(yx,nbm,dir,side){         //dir is dir
 
 function B(it){ //it is clicked square
     var a=board[it],p='pih';
+    if (mate)return;
     if (ss==it && inhand){   //ss is global, for starting place of moving piece.
-	Bim(p,0);         //this bit replaces a piece if you click on the square it came from.
+	Bim(p,0);         //this bit replaces a piece if you click on the square it came from
 	Bim(ss,inhand,1);
 	inhand=0;
 	return;
@@ -452,7 +451,7 @@ function B(it){ //it is clicked square
 //B1 is auto
 Btime=0;
 function B1(){
-    if(findmove()){          //do other colour
+    if(!mate && findmove()){          //do other colour
 	Btime=setTimeout("B2()",500)
     }
     else{ going=0}
@@ -478,8 +477,12 @@ function shift(s,e){
 }
 
 function display2(s,e,b,c){
-    var x=s%10,tx=e%10,mn=1+(moveno>>1)
-    d.fred.bib.value+="\n"+(bmove?'     ':(mn<10?" ":"")+mn+".  ")+lttrs.charAt(x-1)+((s-x)/10-1)+(b?'x':'-')+lttrs.charAt(tx-1)+((e-tx)/10-1)+(c?'+':' ')
+    var x=s%10,tx=e%10,mn=1+(moveno>>1);
+    dfbv("\n"+(bmove?'     ':(mn<10?" ":"")+mn+".  ")+lttrs.charAt(x-1)+((s-x)/10-1)+(b?'x':'-')+lttrs.charAt(tx-1)+((e-tx)/10-1)+(c?'+':' '));
+}
+
+function dfbv(x){
+    d.fred.bib.value+=x;
 }
 
 
@@ -500,7 +503,7 @@ function goback(){
     var b=boardheap[moveno];
     board=eval("["+b[0]+"]");
     castle=eval("["+b[1]+"]");
-    d.fred.bib.value+='\n  --undo--';
+    dfbv('\n --undo--');
     ep=b[2];
     bmove=moveno%2;
     refresh(bmove);
