@@ -1,5 +1,5 @@
-sx=sy=st=bmove=moveno=inhand=going=0
-flip=1
+sx=sy=st=bmove=inhand=going=0
+moveno=flip=1
 d=document
 board=[]
 lttrs="abcdefgh"
@@ -21,6 +21,7 @@ ep=0  //en passant state off
 M1=4    //centre weighting
 M2=3    //centre weigting of departure point
 M3=1    // line up with king weight
+beta=[0,0,0,0,0,0]
 
 
 for(z=0;z<8;z++){
@@ -63,6 +64,8 @@ html+='</tr></table>'
 // k
 // yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,dir=bmx*10-20,mvl=[],mvlength,wate
 
+//b is threshold for move addition - could be end of parsing (beta snip)?
+
 function parse(bm,EP,tpn,b){
     var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,dir=10-bmx*20,mvl=[],mvlength,wate
     for(yx=21;yx<99;yx++){
@@ -92,7 +95,7 @@ function parse(bm,EP,tpn,b){
                         }
                     }
                 }
-                else{
+                else{//rook, bishop, queen
                     for(cx=0;cx<mvlength;cx++){     //goeth thru list of moves
                         m=mv[cx]
                         tyx=yx
@@ -101,7 +104,7 @@ function parse(bm,EP,tpn,b){
                             tyx+=m
                             aa=board[tyx]
                             if(!aa||(aa&24)==nbm){
-                                mvl[++k]=[tpn+pv[aa]+(ak?0:weight[tyx]*M1)-wate,yx,tyx]
+                                mvl[++k]=[tpn+pv[aa]+(weight[tyx]*M1)-wate,yx,tyx]
                                 //if ((aa&7)==6)return 0
                             }
                         }
@@ -116,7 +119,7 @@ function parse(bm,EP,tpn,b){
                         mvl[k][0]+=80                         //overwrite previous
                     }
                     if(board[yx-dir-dir]&16&&(!board[tyx+dir])){  //2 squares at start
-                        mvl[++k]=[tpn+weight[tyx+dir]*M1-wate,yx,tyx+dir,tyx]    //ep points to the takable spot
+                        mvl[++k]=[tpn+weight[tyx+dir]*M1-wate,yx,tyx+dir,tyx]    //ep points to the takeable spot
                     }
                 }
                 if(EP&&(EP==tyx+1||EP==tyx-1)&& bm!=(board[EP-dir]&8)) {       //enpassant
@@ -137,14 +140,14 @@ function parse(bm,EP,tpn,b){
 }
 
 //################treeclimb
-//treeclimber(level,bmove,500,120,120,ep)
+//treeclimber(level,bmove,500,120,120,ep,pruner)
 //tpn == cumulative score
 
 var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treeclimb integer sort (descending)
 
-function treeclimber(count,bm,tpn,s,e,EP){
-    var z,mvl,pl,mvt,pl2,pl3,pr,mv
-    var a=board[s],aa=board[e],mz=-999
+function treeclimber(count,bm,tpn,s,e,EP,pruner){
+    var z,mvl,pl,mvt,mv
+    var a=board[s],aa=board[e],mz=[-999]
     board[e]=a
     board[s]=0
     mvl=parse(bm,EP,tpn,beta[count])
@@ -153,35 +156,40 @@ function treeclimber(count,bm,tpn,s,e,EP){
         parsees+=pl
         if(!count){
 			for(z=0;z<pl;z++){
-				if(mvl[z][0]>mz){
-					mz=mvl[z][0]
-//					evaluees++
-//					if (mz[0]<beta[1]){
-//						beta[1]=mz[0]
-//						break
-//					}
+				if(mvl[z][0]>mz[0]){
+					mz=mvl[z]
+					evaluees++
+					if (mz[0]>beta[0]){
+						break
+					}
 				}
 			}
         }
         else{
             mvl.sort(comp)//descending order
+			beta[--count]=999
             for(z=0;z<pl;z++){
                 mv=mvl[z]
-                mvt=treeclimber(count-1,8-bm,-mv[0],mv[1],mv[2],mv[3])
-                if(mvt[0]>mz){
-					evaluees++
-					mz=mvt[0]
-//					if (mz[0]<beta[count+1]){
-//						beta[count+1]=mz[0]
-//						break
-//					}
+                if (!pruner || mv[0]>-beta[count]){
+					mvt=(mv[0]<200) ? mvt=treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
+					if(mvt>mz[0]){
+						evaluees++
+						mz=[mvt,mv[1],mv[2]]  //
+						if (mz[0]>beta[count]||beta[count]>998){
+							beta[count]=-mz[0]
+			//				break
+						}
+						if (mz[0]>beta[count+1])break
+					}
+				}
+				else{
+					prunees++
 				}
             }
         }
-
-        mz=-mz
+        mz[0]=-mz[0]
     }
-    else mz=-300
+    else mz=[-300]
 //    beta[count]=-1000
     board[s]=a
     board[e]=aa
@@ -221,42 +229,32 @@ function findmove(){
     var s,e,pn,themove,sb,bs
     millisecs1=new Date()       //timing routine
     level=d.fred.hep.selectedIndex+1
-    evaluees=parsees=0
-	beta=[99,99,99,99,99,99]
-	beta[level+1]=1000
-
-    mvl=parse(bmove,ep,0,beta[level])
-    themove=[-300,120,120]
-    if(mvl){
-		mvl.sort(comp)//descending order
-		for(z=0;z<mvl.length;z++){
-			mv=mvl[z]
-			mvt=treeclimber(level-1,8-bmove,0,mv[1],mv[2],mv[3])
-			if(mvt>themove[0]){
-				themove=[mvt,mv[1],mv[2]]
-			}
-		}
+    evaluees=parsees=prunees=0
+	beta[level]=999
+    themove=treeclimber(level,bmove,0,120,120,ep,1)
+    if (themove[0] >40){
+		debug ("retrying",themove)
+		beta[level]=999
+	    themove=treeclimber(level,bmove,0,120,120,ep,0)
 	}
-
-    //themove=treeclimber(level,bmove,0,120,120,ep,0)
     millisecs2=new Date()
     d.fred.ep.value=millisecs2-millisecs1+ 'ms'
-    bubbit("parsed "+parsees+ "evaluated "+evaluees)
-    pn=themove[0]
-    if (pn<-200){going=0;alert('checkmate')}
-    else{
-        s=themove[1]
-        e=themove[2]
-        move(s,e,0,pn+" ev."+evaluees+" "+(millisecs2-millisecs1)+ 'ms' )
-    }
+    bubbit("prs:"+parsees+ "eval:"+evaluees+" prune:"+prunees)
+    pn=-themove[0]
+	s=themove[1]
+	e=themove[2]
+	move(s,e,0,pn+" ev."+evaluees+" "+(millisecs2-millisecs1)+ 'ms' )
+	//if (pn>200){going=0;debug('checkmate',themove)}
+
 }
 
 // move the piece (no testing)
 function move(s,e,queener,score){
-    var a=board[s]&7,bmx=bmove>>3,dir=bmx*10-20,aa=board[e],x=s%10,tx=e%10,ty=e-tx,gap=e-s
+    var a=board[s]&7,bmx=bmove>>3,dir=10-bmx*20,aa=board[e],x=s%10,tx=e%10,ty=e-tx,gap=e-s
     ep=0
     if(a==1){ //pawns
-        if(board[e+dir]&16) board[s]+=4-queener //queener is choice for pawn queening
+//     	debug(board[e+dir],"piece:",5-queener,'e',e,'s',s)
+        if(board[e+dir]>15)board[s]+=4-queener //queener is choice for pawn queening
         if(e==s+2*dir)ep=s+dir       //set up ep  - perhaps do pawn test (save time in loop)
         if(!aa&&x!=tx)shift(e,e+dir)// blank ep pawn
     }
@@ -278,6 +276,9 @@ function move(s,e,queener,score){
         M3+=1
     }
     bmove=8-bmove
+	beta[1]=999
+	themove=treeclimber(1,bmove,0,120,120,ep,0)
+	if (themove[0]>200){going=0;debug('checkmate',themove)}
 }
 
 //*************************************** macro-control
@@ -291,16 +292,15 @@ function B(it){
         ss=it
         d.images['i'+ss].src='0.gif'     //not real shift, but blank start
         d.images['pih'].src=a+'.gif'
-        d
         return
     }
     if (inhand){
         p=parse(bmove,ep,0,0)
-        debug (p)
+//        debug (p)
         for (z=0;z<p.length;z++){
             if(p[z][1]==ss &&p[z][2]==it){
 				bubbit('trying '+ss+' '+it)
-                //y=treeclimber(1,8-bmove,500,ss,it,ep)[0]
+                //y=treeclimber(1,8-bmove,500,ss,it,ep,0)[0]
                 move(ss,it,d.fred.hob.selectedIndex,y)
                 //else{
                 //    alert('check! '+y)
@@ -331,7 +331,7 @@ function shift(s,e){
 
 function display2(s,e,a,b){
     var z,x=s%10,y=(s-x)/10,tx=e%10,ty=(e-tx)/10
-    d.fred.bib.value+="\n"+(bmove?'    ':(moveno<10?" ":"")+moveno+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'    '+a
+    d.fred.bib.value+="\n"+(bmove?'    ':(moveno<10?" ":"")+moveno+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'   '+a+prunees
 }
 
 function bubbit(s){
