@@ -163,55 +163,56 @@ function parse(bm,EP,tpn){
 
 var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treeclimb integer sort (descending)
 
-function treeclimber(count,bm,tpn,s,e,EP,pruner){
-    var z,mvl,pl,mvt,mv,b,cmp=comp
+function treeclimber(count,bm,tpn,s,e,EP,pruner,alpha,beta){
+    var z,movelist,pl,score,mv,b,a,cmp=comp,t
 //    var cmp=comp
-    var a=board[s],aa=board[e],best=[-999]
-    board[e]=a
+    var S=board[s],E=board[e],best=-999
+    board[e]=E
     board[s]=0
-    mvl=parse(bm,EP,tpn)
-    if(mvl){
-        pl=mvl.length
+    movelist=parse(bm,EP,tpn)
+    if(movelist){
+        pl=movelist.length
         parsees+=pl
+		// do innermost loop seperately.
         if(!count){
-			b=beta[0] //localise for extra speed
 			for(z=0;z<pl;z++){
-				if(mvl[z][0]>best[0]){
-					best=mvl[z]
+				if(movelist[z][0]>best){
+					best=movelist[z][0]
 					evaluees++
-					if (best[0]>b){
+					if (best>beta){
 						break
 					}
 				}
 			}
+			board[s]=S
+			board[e]=E
+			return [best]
         }
-        else{
-            mvl.sort(cmp)//descending order
-            b=beta[count]
-			beta[--count]=999
-            for(z=0;z<pl;z++){
-                mv=mvl[z]
-                if (!pruner || mv[0]>-beta[count]){
-					mvt=(mv[0]>-400) ? -treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner)[0] : mv[0]  //ie, if king taken, don't follow thread
-					if(mvt>best[0]){
-						evaluees++
-						best=[mvt,mv[1],mv[2]]  //
-						if (best[0]>beta[count]||beta[count]>998){
-							beta[count]=-best[0]
-			//				break
-						}
-						if (best[0]>b)break
-					}
-				}
-				else{
-					prunees++
-				}
-            }
-        }
-    }
+        best=[best]
+		movelist.sort(cmp)//descending order
+		b=beta
+		a=alpha
+		count--
+		for(z=0;z<pl;z++){
+			mv=movelist[z]
+			t=-treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner,-b,-a)[0]
+			if ((a < t) && (t < beta) && z){
+				a = -treeclimber(count,8-bm,-mv[0],mv[1],mv[2],mv[3],pruner,-beta,-t)[0]
+			}
+			if (t>a){
+				best=[t,mv[1],mv[2],mv[3]]
+				a=t
+			}
+			if (a>beta){
+				break
+			}
+			b=a+1
+		}
+	}
     else best=[600]
-    board[s]=a
-    board[e]=aa
+//    beta[count]=-1000
+    board[s]=S
+    board[e]=E
     return best
 }
 
@@ -256,11 +257,11 @@ function findmove(){
     level=d.fred.hep.selectedIndex+1
     evaluees=parsees=prunees=0
 	beta[level]=999
-    themove=treeclimber(level,bmove,0,120,120,ep,1)
+    themove=treeclimber(level,bmove,0,120,120,ep,1,-1,1)
     if (themove[0] >60){
-		debug ("retrying",themove)
-		beta[level]=999
-	    themove=treeclimber(level,bmove,0,120,120,ep,0)
+		debug ("would be retrying",themove)
+//		beta[level]=999
+//	    themove=treeclimber(level,bmove,0,120,120,ep,0,-101,101)
 	}
     millisecs2=new Date()
     //d.fred.ep.value=millisecs2-millisecs1+ 'ms'
@@ -289,9 +290,9 @@ function move(s,e,queener,score){
 	if (!test)return 0;
 
 /// now see whether in check after this move, by getting the best reply.
-	themove=treeclimber(1,8-bmove,0,s,e,ep,0);
+	themove=treeclimber(1,8-bmove,0,s,e,ep,0,-101,101);
 	if (themove[0]<-400){
-		debug (treeclimber(2,bmove,0,0,0,0,0)[0])
+		debug (treeclimber(2,bmove,0,0,0,0,0,-101,101)[0])
 		debug(' incheck',themove);
 		return false
 	}
@@ -330,7 +331,7 @@ function move(s,e,queener,score){
 		test=test||(p[z][0]>400);
 	}
 	if (test)c=1;
-	themove=treeclimber(1,bmove,0,120,120,ep,0)
+	themove=treeclimber(1,bmove,0,120,120,ep,0,-101,101)
 	if (themove[0]<-400){going=0;debug('checkmate',themove);c=1}
 
     display2(s,e,score,aa,c)
