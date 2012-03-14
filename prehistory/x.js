@@ -63,8 +63,6 @@ html+='</tr></table>'
 // k
 // yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,dir=bmx*10-20,mvl=[],mvlength,wate
 
-//b is threshold for move addition - could be end of parsing (beta snip)?
-
 function parse(bm,EP,tpn,b){
     var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,dir=10-bmx*20,mvl=[],mvlength,wate
     for(yx=21;yx<99;yx++){
@@ -145,8 +143,8 @@ function parse(bm,EP,tpn,b){
 var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treeclimb integer sort (descending)
 
 function treeclimber(count,bm,tpn,s,e,EP){
-    var z,mvl,pl,mvt,mv
-    var a=board[s],aa=board[e],mz=[-999]
+    var z,mvl,pl,mvt,pl2,pl3,pr,mv
+    var a=board[s],aa=board[e],mz=-999
     board[e]=a
     board[s]=0
     mvl=parse(bm,EP,tpn,beta[count])
@@ -155,13 +153,13 @@ function treeclimber(count,bm,tpn,s,e,EP){
         parsees+=pl
         if(!count){
 			for(z=0;z<pl;z++){
-				if(mvl[z][0]>mz[0]){
-					mz=mvl[z]
-					evaluees++
-					if (mz[0]<beta[0]){
-		//				beta[0]=mz[0]
-						break
-					}
+				if(mvl[z][0]>mz){
+					mz=mvl[z][0]
+//					evaluees++
+//					if (mz[0]<beta[1]){
+//						beta[1]=mz[0]
+//						break
+//					}
 				}
 			}
         }
@@ -170,22 +168,20 @@ function treeclimber(count,bm,tpn,s,e,EP){
             for(z=0;z<pl;z++){
                 mv=mvl[z]
                 mvt=treeclimber(count-1,8-bm,-mv[0],mv[1],mv[2],mv[3])
-                if(mvt[0]>mz[0]){
+                if(mvt[0]>mz){
 					evaluees++
-					mz=[mvt[0],mv[1],mv[2]]  //
-					if (mz[0]<-beta[count-1]){
-						beta[count-1]=-mz[0]
-		//				break
-					}
-					if (mz[0]<beta[count])break
+					mz=mvt[0]
+//					if (mz[0]<beta[count+1]){
+//						beta[count+1]=mz[0]
+//						break
+//					}
 				}
             }
-            beta[count-1]=-99
         }
 
-        mz[0]=-mz[0]
+        mz=-mz
     }
-    else mz=[-300]
+    else mz=-300
 //    beta[count]=-1000
     board[s]=a
     board[e]=aa
@@ -226,9 +222,23 @@ function findmove(){
     millisecs1=new Date()       //timing routine
     level=d.fred.hep.selectedIndex+1
     evaluees=parsees=0
-	beta=[-99,-99,-99,-99,-99,-99]
+	beta=[99,99,99,99,99,99]
 	beta[level+1]=1000
-    themove=treeclimber(level,bmove,0,120,120,ep,0)
+
+    mvl=parse(bmove,ep,0,beta[level])
+    themove=[-300,120,120]
+    if(mvl){
+		mvl.sort(comp)//descending order
+		for(z=0;z<mvl.length;z++){
+			mv=mvl[z]
+			mvt=treeclimber(level-1,8-bmove,0,mv[1],mv[2],mv[3])
+			if(mvt>themove[0]){
+				themove=[mvt,mv[1],mv[2]]
+			}
+		}
+	}
+
+    //themove=treeclimber(level,bmove,0,120,120,ep,0)
     millisecs2=new Date()
     d.fred.ep.value=millisecs2-millisecs1+ 'ms'
     bubbit("parsed "+parsees+ "evaluated "+evaluees)
