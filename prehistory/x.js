@@ -22,7 +22,6 @@ M1=4    //centre weighting
 M2=3    //centre weigting of departure point
 M3=1    // line up with king weight
 
-beta=[0,0,0,0]
 
 for(z=0;z<8;z++){
     pv[z+8]=pv[z]=10*pv[z]  //same piece values for black and white
@@ -64,7 +63,9 @@ html+='</tr></table>'
 // k
 // yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,dir=bmx*10-20,mvl=[],mvlength,wate
 
-function parse(bm,EP,tpn,beta){
+//b is threshold for move addition - could be end of parsing (beta snip)?
+
+function parse(bm,EP,tpn,b){
     var tyx,yx,h,aa,a,cx,mv,k=-1,bmx=bm>>3,nbm=bm^8,dir=10-bmx*20,mvl=[],mvlength,wate
     for(yx=21;yx<99;yx++){
         a=board[yx]
@@ -143,40 +144,49 @@ function parse(bm,EP,tpn,beta){
 
 var comp=new Function('a','b','return b[0]-a[0]')//comparison function for treeclimb integer sort (descending)
 
-function treeclimber(count,bm,tpn,s,e,EP,beta){
-    var z,mvl,pl,mvt,pl2,pl3,pr,mv
-    var a=board[s],aa=board[e],mz=[0]
+function treeclimber(count,bm,tpn,s,e,EP){
+    var z,mvl,pl,mvt,mv
+    var a=board[s],aa=board[e],mz=[-999]
     board[e]=a
     board[s]=0
-    mvl=parse(bm,EP,tpn,beta)
-    //mvl=pr[0]
-	//debug ("count",count,"bm",bm,"tpn",tpn,"move",s,e,"beta",beta)
-	//debug("mvl",mvl)
+    mvl=parse(bm,EP,tpn,beta[count])
     if(mvl){
         pl=mvl.length
-	    evaluees+=pl
-
+        parsees+=pl
         if(!count){
 			for(z=0;z<pl;z++){
-				if(mvl[z][0]>mz[0])mz=mvl[z]
+				if(mvl[z][0]>mz[0]){
+					mz=mvl[z]
+					evaluees++
+					if (mz[0]<beta[0]){
+		//				beta[0]=mz[0]
+						break
+					}
+				}
 			}
-			//mz=[pr[1]]   //beta
         }
         else{
-            mvl.sort()//descending order
-            mvl.reverse()
-            pl2=pl>>1
+            mvl.sort(comp)//descending order
             for(z=0;z<pl;z++){
                 mv=mvl[z]
-                mvt=treeclimber(count-1,8-bm,1000-mv[0],mv[1],mv[2],mv[3],mz[0])
-                //debug ("mvt "+mvt)
-                //debug("mz "+mz,mvt[0]>mz[0])
-                if(mvt[0]>mz[0])mz=[mvt[0],mv[1],mv[2]]  //
+                mvt=treeclimber(count-1,8-bm,-mv[0],mv[1],mv[2],mv[3])
+                if(mvt[0]>mz[0]){
+					evaluees++
+					mz=[mvt[0],mv[1],mv[2]]  //
+					if (mz[0]<-beta[count-1]){
+						beta[count-1]=-mz[0]
+		//				break
+					}
+					if (mz[0]<beta[count])break
+				}
             }
+            beta[count-1]=-99
         }
-        mz[0]=1000-mz[0]
+
+        mz[0]=-mz[0]
     }
-    else mz=[101]
+    else mz=[-300]
+//    beta[count]=-1000
     board[s]=a
     board[e]=aa
     return mz
@@ -215,13 +225,15 @@ function findmove(){
     var s,e,pn,themove,sb,bs
     millisecs1=new Date()       //timing routine
     level=d.fred.hep.selectedIndex+1
-    evaluees=0
-    themove=treeclimber(level,bmove,500,120,120,ep,0)
+    evaluees=parsees=0
+	beta=[-99,-99,-99,-99,-99,-99]
+	beta[level+1]=1000
+    themove=treeclimber(level,bmove,0,120,120,ep,0)
     millisecs2=new Date()
     d.fred.ep.value=millisecs2-millisecs1+ 'ms'
-    bubbit("evaluated "+evaluees)
+    bubbit("parsed "+parsees+ "evaluated "+evaluees)
     pn=themove[0]
-    if (pn<350){going=0;alert('checkmate')}
+    if (pn<-200){going=0;alert('checkmate')}
     else{
         s=themove[1]
         e=themove[2]
@@ -309,7 +321,7 @@ function shift(s,e){
 
 function display2(s,e,a,b){
     var z,x=s%10,y=(s-x)/10,tx=e%10,ty=(e-tx)/10
-    d.fred.bib.value+="\n"+(moveno<10?" ":"")+moveno+". "+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'    '+a
+    d.fred.bib.value+="\n"+(bmove?'    ':(moveno<10?" ":"")+moveno+". ")+lttrs.charAt(x-1)+(y-1)+(b?'x':'-')+lttrs.charAt(tx-1)+(ty-1)+'    '+a
 }
 
 function bubbit(s){
