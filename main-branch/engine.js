@@ -41,6 +41,7 @@ var VALUES=[0, 0,    //Piece values
             144, 144,//queens
             0];
 
+var EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1];
 
 var BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var BASE_PAWN_WEIGHTS;
@@ -74,8 +75,8 @@ function new_game(){
     console.debug(weight_string.length, board_string.length);
     var pawn_weights='000012346900';  //per row - reward advancement.
     var pweights = [[], []];
-    var kweights = [];
-    var weights = [];
+    var kweights = [[], []];
+    var weights = [[], []];
     var x, y;
     for(y=0;y<12;y++){
         var pawn_weight = parseInt(pawn_weights.charAt(y), 35);
@@ -87,8 +88,10 @@ function new_game(){
             board[i]=parseInt(board_string.charAt(i), 35);
             pweights[0][i] = 0;
             pweights[1][i] = 0;
-            kweights[i] = 0;
-            weights[i] = 0;
+            kweights[0][i] = 0;
+            kweights[1][i] = 0;
+            weights[0][i] = 0;
+            weights[1][i] = 0;
         }
     }
     board[OFF_BOARD] = 0;
@@ -249,45 +252,124 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 }
 
 
+function dump_board(board, name){
+    if (name !== undefined)
+        console.log(name);
+    for (var y = 0; y < 12; y++){
+        var s = y * 10;
+        console.log(board.slice(s, s + 10));
+    }
+}
+
+
 ////////////////////////////////////parse
 
 /* prepare() works out weightings for assessing various moves,
  * favouring centralising moves early, for example. */
 
 function prepare(state){
+    var i;
     var pieces = state.pieces = [[], []];
-    var weights = state.weights;
+    var w_weights = state.weights[0];
+    var b_weights = state.weights[1];
     var wp_weights = state.pweights[0];
     var bp_weights = state.pweights[1];
-    var base_weights = BASE_WEIGHTS;
-    var base_pawn_weights = BASE_PAWN_WEIGHTS;
+    var wk_weights = state.kweights[0];
+    var bk_weights = state.kweights[1];
 
-    var kweights = state.kweights;
-    var moveno = state.moveno;
+    /*covert state.moveno half move count to move cycle count */
+    var moveno = state.moveno >> 1;
     var board = state.board;
-    // high earliness indicates a low move number
-    var earliness = (moveno < 32) ? 4 - (moveno >> 3) : (moveno > 64);
 
-    for(var i = 20; i  < 100; i++){
+    // high earliness_weight indicates a low move number
+    var earliness_weight = (moveno < EARLINESS_WEIGHTING.length) ? EARLINESS_WEIGHTING[moveno] : 0;
+    var king_should_hide = moveno < 12;
+    var early = moveno < 5;
+    var target_king = moveno > 15;
+    var kings = [0, 0];
+
+    /* find the pieces first, so the king positions are known */
+    for(i = 20; i  < 100; i++){
         var a = board[i];
-        if(a&14){
-            pieces[a&1].push([a,i]);
+        var piece = a & 14;
+        var colour = a & 1;
+        if(piece){
+            pieces[colour].push([a, i]);
+            if (piece == KING)
+                kings[colour] = i;
         }
-        weights[i] = base_weights[i] * earliness;
-
-        //king weighted toward edge while moveno <= 40
-        kweights[i] = (moveno > 40) || (10 - 2 * base_weights[i]) * earliness;
-
-        //pawns weighted toward centre for first 8 moves, then forwards only.
-        //pawn weights are also slightly randomised.
-        var w = parseInt((i > 40 && moveno < 8) * ((DEBUG ? 0.5 : Math.random())
-                                                   * weights[i]) * 1);
-        wp_weights[i] = bp_weights[119 - i] = base_pawn_weights[i] + w;
     }
-    if (moveno < 5){
-        // go for the king early? XXX
-        weights[24] = weights[94] = 14;
+
+
+    var wkx = kings[0] % 10;
+    var wky  = parseInt(kings[0] / 10);
+    var bkx = kings[1] % 10;
+    var bky  = parseInt(kings[1] / 10);
+
+    for (var y = 2; y < 10; y++){
+        for (var x = 1; x < 9; x++){
+            i = y * 10 + x;
+            b_weights[i] = BASE_WEIGHTS[i] * earliness_weight;
+            w_weights[i] = BASE_WEIGHTS[i] * earliness_weight;
+
+            /* encourage them off the back row */
+            if (early){
+                if (y == 2){
+                    w_weights[i] -= 5;
+                }
+                if (y == 9){
+                    b_weights[i] -= 5;
+                }
+            }
+            //kings weighted toward back row to start with
+            if (king_should_hide){
+                wk_weights[i] = bk_weights[i] = (y == 2 || y == 9) * 5 * earliness_weight;
+            }
+            else {
+                wk_weights[i] = bk_weights[i] = 0;
+            }
+
+            /* start going for opposite king. Just mill about in the
+             * area.
+             *
+             * As prepare is only called at the beginning of each tree
+             * search, the king could wander out of the targetted area
+             * in deep searches.  But that's OK.
+             */
+            if (target_king){
+                var wdx = Math.abs(wkx - x);
+                var wdy = Math.abs(wky - y);
+                var bdx = Math.abs(bkx - x);
+                var bdy = Math.abs(bky - y);
+
+                if (wdx < 4 || wdy < 4){
+                    b_weights[i] += 5;
+                    bk_weights[i] += 5;
+                }
+
+                if (bdx < 4 || bdy < 4){
+                    w_weights[i] += 5;
+                    wk_weights[i] += 5;
+                }
+            }
+            /* pawns weighted toward centre at start then forwards only.
+             * pawn weights are also slightly randomised, so each game is different.
+             */
+            DEBUG = 1;
+            var wp = parseInt((y >= 4 && early) * ((DEBUG ? 0.5 : Math.random())
+                                                   * w_weights[i]));
+            var bp = parseInt((y <= 7 && early) * ((DEBUG ? 0.5 : Math.random())
+                                                   * b_weights[i]));
+            wp_weights[i] = BASE_PAWN_WEIGHTS[i] + wp;
+            bp_weights[i] = BASE_PAWN_WEIGHTS[119 - i] + bp;
+        }
     }
+
+    //dump_board(w_weights, 'w weights');
+    //dump_board(b_weights, 'b weights');
+    //dump_board(wp_weights, 'w p weights');
+    //dump_board(bp_weights, 'b p weights');
+    //dump_board(wk_weights, 'w king weights');
 }
 
 
@@ -302,8 +384,8 @@ function parse(state, colour, ep, castle_state, score) {
     var movelist=[];
     var weight;
     var pweight = state.pweights[colour];
-    var kweights = state.kweights;
-    var weights = state.weights;
+    var kweights = state.kweights[colour];
+    var weights = state.weights[colour];
     var pieces = state.pieces[colour];
     var plen = pieces.length;
 
