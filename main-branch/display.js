@@ -12,7 +12,6 @@
 
 /* The routines here draw the screen and handle user interaction */
 
-var GAMEOVER = false;
 var going=0;    // DEV: denotes auto play, or not.
 
 var input = {
@@ -52,19 +51,14 @@ function square_clicked(square){
         // there is one in hand, so this is an attempted move
         //but is it valid?
         var move_result = move(state, input.start, square);
-        if (move_result)
-            display_move_text(state.moveno, input.start, square);
-
-        if(move_result == 1){
+        if(move_result & MOVE_FLAG_OK){
+            display_move_text(state.moveno, input.start, square, move_result);
             show_image(square, input.inhand);
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
-            next_move();
-        }
-        else { // failed to move. is it actually checkmate?
-            if (move_result == 2)
-                GAMEOVER = true;
+            if (! move_result & MOVE_FLAG_MATE)
+                next_move();
         }
     }
 }
@@ -73,32 +67,31 @@ function square_clicked(square){
 var auto_play_timeout_ID;
 
 function next_move(){
-    if (GAMEOVER){
-        return;
-    }
     var state = input.board_state;
     var mover = state.to_play;
-    if (input.players[mover] == 'computer'){
+    if (input.players[mover] == 'computer' &&
+        auto_play_timeout_ID === undefined){
         var timeout = (input.players[1 - mover] == 'computer') ? 500: 10;
         auto_play_timeout_ID = window.setTimeout(computer_move, timeout);
     }
 }
 
 function computer_move(){
+    auto_play_timeout_ID = undefined;
     var state = input.board_state;
     var s, e, mv;
     mv = findmove(state, 3);
     s = mv[0], e = mv[1];
     console.log(s, e);
     var move_result = move(state, s, e);
-    display_move_text(state.moveno, s, e);
+    display_move_text(state.moveno, s, e, move_result);
 
     for (var i = 20; i < 100; i++){
         show_image(i, state.board[i]);
     }
 
-    if (move_result == 2)
-        GAMEOVER = 1;
+    if (move_result & MOVE_FLAG_MATE)
+        return;
     next_move();
 }
 
@@ -115,9 +108,9 @@ function stringify_point(p){
 }
 
 
-function display_move_text(moveno, s, e){
+function display_move_text(moveno, s, e, flags){
     var mn;
-    console.log(moveno);
+    console.log(moveno, s, e, flags);
     if ((moveno & 1) == 0){
         mn = '    ';
     }
@@ -126,11 +119,37 @@ function display_move_text(moveno, s, e){
         while(mn.length < 4)
             mn = ' ' + mn;
     }
-
-    var msg = mn + stringify_point(s) + '-' + stringify_point(e) + "\n";
-
     var div = document.getElementById("log");
-    div.innerHTML += msg;
+    var item = new_child(div, "div");
+
+    var tail = '';
+    if (flags & MOVE_FLAG_CHECK)
+        tail = (flags & MOVE_FLAG_MATE) ? ' #' : ' +';
+    else if (flags & MOVE_FLAG_MATE)
+        tail = ' stalemate';
+
+    var msg;
+    if (flags & MOVE_FLAG_CASTLE_QUEEN)
+        msg = 'O-O-O';
+    else if (flags & MOVE_FLAG_CASTLE_KING)
+        msg = 'O-O';
+    else
+        msg = stringify_point(s) + ((flags & MOVE_FLAG_CAPTURE) ? 'x' : '-') + stringify_point(e);
+
+    item.innerHTML = mn + msg + tail;
+    item.id = "move_" + moveno;
+    item.className = "log_move";
+    item.addEventListener("click",
+                          function (n){
+                              return function(e){
+                                  goto_move(n);
+                              };
+                          }(moveno),
+                          true);
+}
+
+function goto_move(n){
+    console.log(n);
 }
 
 

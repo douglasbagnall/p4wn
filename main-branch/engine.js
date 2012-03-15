@@ -566,11 +566,21 @@ function findmove(state, level){
  * queener is the desired pawn promotion if the move gets a pawn to
   the other end.
 
- return:
- 0 if the move is illegal.
- 1 if the move is OK
- 2 if the move is OK and it ends the game.
- */
+ return value contains bitwise flags
+
+*/
+
+var MOVE_FLAG_OK = 1;
+var MOVE_FLAG_CHECK = 2;
+var MOVE_FLAG_MATE = 4;
+var MOVE_FLAG_CAPTURE = 8;
+var MOVE_FLAG_CASTLE_KING = 16;
+var MOVE_FLAG_CASTLE_QUEEN = 32;
+
+var MOVE_ILLEGAL = 0;
+var MOVE_MISSED_MATE = MOVE_FLAG_CHECK | MOVE_FLAG_MATE;
+var MOVE_CHECKMATE = MOVE_FLAG_OK | MOVE_FLAG_CHECK | MOVE_FLAG_MATE;
+var MOVE_STALEMATE = MOVE_FLAG_OK | MOVE_FLAG_MATE;
 
 function move(state, s, e){
     var board = state.board;
@@ -581,7 +591,7 @@ function move(state, s, e){
     // king has just been taken; should have been seen earlier!
     if((E&14) == KING){
         console.log('checkmate - got thru checks');
-        return 2;
+        return MOVE_MISSED_MATE;
     }
 
     /*see if this move is even slightly legal, disregarding check.*/
@@ -597,7 +607,7 @@ function move(state, s, e){
     if (! legal) {
         console.log('no such move!', p,
                     ' s,e', s, e,' S,E', S, E);
-        return 0;
+        return MOVE_ILLEGAL;
     }
     /*now try the move, and see what the response is.
      * If the king gets taken, it is check.
@@ -616,7 +626,7 @@ function move(state, s, e){
 
     if (in_check) {
         console.log('in check', t);
-        return 0;
+        return MOVE_ILLEGAL;
     }
     /* see if it is check already -- that is, if we have another move now,
      * can we get the king?
@@ -628,19 +638,22 @@ function move(state, s, e){
     var is_check = t[0] > 400;
 
     modify_state_for_move(state, s, e);
+
+    var castle_q = (S == KING) && (s - e == -2) ? MOVE_FLAG_CASTLE_QUEEN : 0;
+    var castle_k = (S == KING) && (s - e == 2) ? MOVE_FLAG_CASTLE_KING : 0;
+    var capture = E ? MOVE_FLAG_CAPTURE : 0;
+    var flags = capture | castle_q | castle_k;
+
     if (is_check && is_mate){
-        console.log('checkmate');
-        return 2;
+        return flags | MOVE_CHECKMATE;
     }
-    else if (is_check){
-        console.log('check');
-        return 1;
+    if (is_check){
+        return flags | MOVE_FLAG_OK | MOVE_FLAG_CHECK;
     }
-    else if (is_mate){
-        console.log('stalemate');
-        return 2;
+    if (is_mate){
+        return flags | MOVE_STALEMATE;
     }
-    return 1;
+    return flags | MOVE_FLAG_OK;
 }
 
 function modify_state_for_move(state, s, e){

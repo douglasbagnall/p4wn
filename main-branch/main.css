@@ -18,6 +18,9 @@
   white-space: pre;
   font-size: smaller;
   float: left;
+  overflow: auto;
+  height: 90%;
+  width: 10em;
 }
 
 #controls{
