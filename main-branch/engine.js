@@ -252,15 +252,6 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 }
 
 
-function dump_board(board, name){
-    if (name !== undefined)
-        console.log(name);
-    for (var y = 0; y < 12; y++){
-        var s = y * 10;
-        console.log(board.slice(s, s + 10));
-    }
-}
-
 
 ////////////////////////////////////parse
 
@@ -536,6 +527,25 @@ function check_castling(board, s, colour, dir, side){
 }
 
 
+
+function dump_board(board, name){
+    if (name !== undefined)
+        console.log(name);
+    for (var y = 0; y < 12; y++){
+        var s = y * 10;
+        console.log(board.slice(s, s + 10));
+    }
+}
+
+function dump_state(state){
+    dump_board(state.weights[0], 'w weights');
+    dump_board(state.weights[1], 'b weights');
+    dump_board(state.pweights[0], 'w p weights');
+    dump_board(state.pweights[1], 'b p weights');
+    dump_board(state.kweights[0], 'w king weights');
+    dump_board(state.kweights[1], 'b king weights');
+    console.log("pieces", state.pieces);
+}
 
 //************************************* findmove();
 

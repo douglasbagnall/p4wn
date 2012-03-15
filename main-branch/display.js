@@ -247,6 +247,13 @@ var CONTROLS = [
             input.players = ['human', 'human'];
             next_move();
         }
+    },
+    {
+        label: 'dump state',
+        id: 'dump_button',
+        onclick: function(e){
+            dump_state(input.board_state);
+        }
     }
 ];
 
