@@ -491,11 +491,11 @@ function check_castling(board, s, colour, dir, side){
         //bishops, rooks, queens
         for(m = dir - 1; m < dir + 2; m++){
             e = p + m;
-            var end = (m == dir) ? 8: 4;
+            var end = (m == dir) ? 4: 8;
             while(1){
                 E=board[e];
                 if (E){
-                    if((E & end) && (E & 1 == colour))
+                    if((E & end) && ((E & 1) == colour))
                         return 0;
                     break;
                 }
