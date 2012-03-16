@@ -236,8 +236,9 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     }
     else{
         /*XXX signal stalemate or something? */
-        console.log('no movelist');
-    };
+        bs = 0;
+        be = 0;
+     };
     if(rs){
         board[rs]=rook;
         board[re]=0;
@@ -602,8 +603,13 @@ function move(state, s, e){
     var E=board[e];
     var S=board[s];
 
-    // king has just been taken; should have been seen earlier!
-    if((E&14) == KING){
+    /* If the king has just been taken, a checkmate or stalemate has
+     * previously been missed, so signal the end now.
+     *
+     * If the computer suggests (s == 0 && e == 0), treeclimber found no
+     * pieces to move, which is an extreme case of stalemate.
+     */
+    if((E&14) == KING || (s == 0 && e == 0)){
         console.log('checkmate - got thru checks');
         return MOVE_MISSED_MATE;
     }
