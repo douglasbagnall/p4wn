@@ -256,7 +256,11 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 ////////////////////////////////////parse
 
 /* prepare() works out weightings for assessing various moves,
- * favouring centralising moves early, for example. */
+ * favouring centralising moves early, for example.
+ *
+ * It is called before each tree search, not for each parse(),
+ * so it is OK for it to be a little bit slow.
+ */
 
 function prepare(state){
     var i;
@@ -317,9 +321,12 @@ function prepare(state){
                     b_weights[i] -= 5;
                 }
             }
-            //kings weighted toward back row to start with
             if (king_should_hide){
-                wk_weights[i] = bk_weights[i] = (y == 2 || y == 9) * 2 * earliness_weight;
+                /*keep kings back on home row*/
+                if (y == 2)
+                    wk_weights[i] = 2 * earliness_weight;
+                else if (y == 9)
+                    bk_weights[i] = 2 * earliness_weight;
             }
             else {
                 wk_weights[i] = bk_weights[i] = 0;
@@ -364,6 +371,13 @@ function prepare(state){
             wp_weights[i] = BASE_PAWN_WEIGHTS[i] + wp;
             bp_weights[i] = BASE_PAWN_WEIGHTS[119 - i] + bp;
         }
+    }
+    if (moveno > 10 && moveno < 30){
+        /* not early; pry those rooks out of their corners */
+        b_weights[91] -= 9;
+        b_weights[98] -= 9;
+        w_weights[21] -= 9;
+        w_weights[28] -= 9;
     }
 }
 
