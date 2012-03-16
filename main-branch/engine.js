@@ -72,7 +72,7 @@ function new_game(){
                        "g579db975g" +
                        'gggggggggg' + 'gggggggggg');
     var weight_string = "000000000000000000000000000000000111100000123321000123553210";
-    console.debug(weight_string.length, board_string.length);
+    console.log(weight_string.length, board_string.length);
     var pawn_weights='000012346900';  //per row - reward advancement.
     var pweights = [[], []];
     var kweights = [[], []];
@@ -145,7 +145,6 @@ function comp(a, b){
 function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                      castle_state){
     var board = state.board;
-
     var z = -1;
     var ncolour = 1 - colour;
     score = -score;
@@ -576,6 +575,7 @@ function findmove(state, level){
                       OFF_BOARD, OFF_BOARD,
                       MIN_SCORE, MAX_SCORE,
                       state.enpassant, state.castles);
+    console.log(t[0]);
     return [t[1], t[2]];
 }
 
@@ -635,6 +635,7 @@ function move(state, s, e){
                     ' s,e', s, e,' S,E', S, E);
         return MOVE_ILLEGAL;
     }
+
     /*now try the move, and see what the response is.
      * If the king gets taken, it is check.
      *
@@ -688,7 +689,6 @@ function modify_state_for_move(state, s, e){
     state.history.push([s, e]);
     var gap = e - s;
     var piece = board[s] & 14;
-    console.log('gap', gap, 'piece', piece);
     var dir = DIRS[colour];
     if (piece == PAWN){
         /*queening*/

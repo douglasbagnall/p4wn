@@ -53,11 +53,12 @@ function square_clicked(square){
         var move_result = move(state, input.start, square);
         if(move_result & MOVE_FLAG_OK){
             display_move_text(state.moveno, input.start, square, move_result);
-            show_image(square, input.inhand);
+            refresh();
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
-            if (! move_result & MOVE_FLAG_MATE)
+            auto_play_timeout_ID = undefined;
+            if (! (move_result & MOVE_FLAG_MATE))
                 next_move();
         }
     }
@@ -82,17 +83,16 @@ function computer_move(){
     var s, e, mv;
     mv = findmove(state, 3);
     s = mv[0], e = mv[1];
-    console.log(s, e);
     var move_result = move(state, s, e);
-    display_move_text(state.moveno, s, e, move_result);
+    if (move_result){
+        display_move_text(state.moveno, s, e, move_result);
+        refresh();
 
-    for (var i = 20; i < 100; i++){
-        show_image(i, state.board[i]);
+        if (! (move_result & MOVE_FLAG_MATE))
+            next_move();
     }
-
-    if (move_result & MOVE_FLAG_MATE)
-        return;
-    next_move();
+    else
+        console.log("no good move!", s, e);
 }
 
 
@@ -160,19 +160,16 @@ function goto_move(n){
 }
 
 
-//*******************************************redraw screen from board
+//refresh: redraw screen from board, from colour's point of view
 
-function refresh(bw){
-    input.player = bw;
+function refresh(colour){
+    if (colour)
+        input.orientation = colour;
     for (var i = 20; i < 100; i++){
         if(input.board_state.board[i] != EDGE)
             show_image(i, input.board_state.board[i]);
     }
 }
-
-
-//*********************************************drag piece
-
 
 function show_image(img, src){
     var id = "i" + (input.player ? 119 - img : img);
@@ -238,7 +235,6 @@ var CONTROLS = [
         label: 'swap sides',
         id: 'swap_button',
         onclick: function(e){
-            console.log('clicked');
             var p = input.players;
             var tmp = p[0];
             p[0] = p[1];
