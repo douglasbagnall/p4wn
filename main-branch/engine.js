@@ -106,7 +106,8 @@ function new_game(){
         kweights: kweights,
         weights: weights,
         pieces: [],
-        moveno: 0
+        moveno: 0,
+        history: []
     };
 }
 
@@ -684,6 +685,7 @@ function move(state, s, e){
 function modify_state_for_move(state, s, e){
     var board = state.board;
     var colour = state.to_play;
+    state.history.push([s, e]);
     var gap = e - s;
     var piece = board[s] & 14;
     console.log('gap', gap, 'piece', piece);
@@ -720,4 +722,38 @@ function modify_state_for_move(state, s, e){
     board[s] = 0;
     state.moveno++;
     state.to_play = 1 - colour;
+}
+
+
+function jump_to_moveno(state, moveno){
+    console.log('jumping to move', moveno);
+    var i;
+    if (moveno === undefined || moveno > state.moveno)
+        moveno = state.moveno;
+    else if (moveno < 0){
+        moveno = state.moveno - moveno - 1;
+    }
+    var history = state.history;
+    var state2 = new_game();
+    for (i = 0; i < moveno; i++){
+        var m = history[i];
+        move(state2, m[0], m[1]);
+    }
+    /* copy the replayed state accross, not all that deeply, but
+     * enough to cover, eg, held references to board. */
+
+    var attr, dest;
+    for (attr in state2){
+        var src = state2[attr];
+        if (attr instanceof Array){
+            dest = state[attr];
+            dest.length = 0;
+            for (i = 0; i < src.length; i++){
+                dest[i] = src[i];
+            }
+        }
+        else {
+            state[attr] = src;
+        }
+    }
 }

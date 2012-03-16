@@ -149,7 +149,14 @@ function display_move_text(moveno, s, e, flags){
 }
 
 function goto_move(n){
-    console.log(n);
+    jump_to_moveno(input.board_state, n);
+    var div = document.getElementById('log');
+    var entries = div.childNodes;
+    for (var i = entries.length - 1; i >= n; i--){
+        div.removeChild(entries[i]);
+    }
+    refresh();
+    next_move();
 }
 
 
