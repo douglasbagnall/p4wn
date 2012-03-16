@@ -32,13 +32,13 @@ var MOVES = [0, 0,
              [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9]
             ];
 
-var VALUES=[0, 0,    //Piece values
-            16, 16,  //pawns
-            80, 80,  //rooks
-            48, 48,  //knights
-            48, 48,  //bishops
-            999, 999,//kings
-            144, 144,//queens
+var VALUES=[0, 0,      //Piece values
+            16, 16,    //pawns
+            80, 80,    //rooks
+            48, 48,    //knights
+            48, 48,    //bishops
+            5000, 5000,//kings
+            144, 144,  //queens
             0];
 
 var EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1];
@@ -248,7 +248,12 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     if (S){
         pieces[moved_colour].length--;
     }
-
+    if (b < -1500){
+        /* make distant checkmates seem less bad than immediate ones.
+         * This makes recognising real checkmate easier.
+         */
+        b += 200;
+    }
     return [b, bs, be];
 }
 
