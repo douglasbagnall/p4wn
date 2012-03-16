@@ -154,18 +154,19 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var E = board[e];
     board[e]=S;
     board[s]=0;
-    var pieces = state.pieces;
     var piece = S & 14;
     var moved_colour = S & 1;
-
+    var piece_locations = state.pieces[moved_colour];
     if (S){
-        pieces[moved_colour].push([S, e]);
+        piece_locations.push([S, e]);
     }
 
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
     if(piece == PAWN && board[e + DIRS[moved_colour]] == EDGE){
         board[e] = state.pawn_promotion[moved_colour] + moved_colour;
+        //update the saved piece locations list
+        piece_locations[piece_locations.length - 1][0] = board[e];
     }
     else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs = s - 4 + (s < e) * 7;
@@ -176,6 +177,7 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         if (s != 25 + moved_colour * 70){
             var _conditional_break_point = s;
         }
+        piece_locations.push([rook, re]);
     }
     if (castle_state)
         castle_state &= get_castles_mask(s, e, moved_colour);
@@ -242,11 +244,12 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     if(rs){
         board[rs]=rook;
         board[re]=0;
+        piece_locations.length--;
     }
     board[s]=S;
     board[e]=E;
     if (S){
-        pieces[moved_colour].length--;
+        piece_locations.length--;
     }
     if (b < -1500){
         /* make distant checkmates seem less bad than immediate ones.
