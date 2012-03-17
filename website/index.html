@@ -1,0 +1,143 @@
+<html>
+<head>
+<title>Websites wot play chess</title>
+
+<link rel="stylesheet" type="text/css" href="/css.css" />
+
+</head>
+<body>
+<div class="nav">
+<a href="/">home</a>
+<a href="http://cvs.sourceforge.net/viewcvs.py/p4wn/chess/">CVS tree</a>
+<a href="http://sourceforge.net/projects/p4wn/">project page</a>
+<a href="/5k/">5k</a>
+<a href="/6k/">6k</a>
+<a href="/main-branch/">big</a>
+</div>
+
+<div class="main">
+
+<h1>Javascript Chess</h1>
+
+<p>
+In 2002 I (Douglas Bagnall) wrote a 
+<a href="http://www.the5k.org/description.asp/entry_id=719">javascript chess game</a>
+for the 5k competition.  People are still curious about it,  so it has finally gained 
+its own sourceforge site.  
+</p>
+<p>
+The code is now in the public domain.  That means you can do whatever you want with it;  
+there is no copyright.
+</p>
+
+<h2>Different Versions</h2>
+<p>
+The code has forked a few times already, due mainly to a lack of version control. 
+I think this is an OK thing with such a tiny program, allowing experiments and
+varying objectives.  If you want to take it in a new direction, please do.  It would
+be nice if you put your fork in the CVS tree, but of course there is no obligation.
+</p>
+
+<ul>
+<li>The <a href="/5k/">smallest possible page</a>.  Less than 3k of code should 
+be possible.
+</li>
+<li><a href="/main-branch/">Better play, more readable code</a>, with debugging
+stuff.  
+</li>
+<li><a href="/6k/">Something inbetween</a> - good but small.  
+</li>
+<li>Personal or experimental branches, such as Ron Winter's 
+<a href="http://cvs.sourceforge.net/viewcvs.py/p4wn/chess/misc/ron/">untangled 
+version</a> and perhaps an actionscript branch. 
+</ul>
+
+<h2>How it works</h2>
+<p>
+It recursively explores the tree of possible moves, keeping score along the way.  
+It tries to take as many pieces as possible and get into the centre early.  That's
+about all.   Its endgame strategy is to win before the endgame. 
+</p>
+
+<h2>Bugs</h2>
+<p>It doesn't always lose graciously, often trying to move out of checkmate.  You 
+could take that as a concession, but it is irksome.</p>
+
+<h2>To do</h2>
+
+<p>(incomplete list)</p>
+
+<ul>
+<li>Fix the bug.</li>
+<li>
+The small ("5k") branch can be shrunk in a number of ways.  It uses
+a principal variation search algorithm, which could be replaced by a smaller plainer 
+alpha-beta search (I tried principal variation in search of speed, and never got
+round to switching back).  Someone claims 
+<a href="http://krishaven.spymac.net/javacomp.html">compression tricks</a> could save
+744 bytes.  Better encoding of piece names will save space and time.
+</li>
+<li>
+The big version could be reoptimised for speed rather than space.  Different searches and
+evaluations could be tried (it really is naive now).  The recursion could be removed.  
+Some kind of hackery could be used to get past the javascript timeout in browsers. 
+Some of the variable names are a bit stupid.
+</li>
+<li>
+The pictures could be better.
+</li>
+<li>
+It could also, very easily, be ported to actionscript, and compiled for flash players.
+The core engine is simple ECMAscript, so I can't see to much trouble with porting it. 
+It may be possible to have two separate wrappers for the same engine, so developments
+in javascript are usable in flash.
+</li>
+<li> 
+One day it might get a name.
+</li>
+</ul>
+
+<h2>Similar Projects</h2>
+<p>
+Neil Pearce has written a javascript chess game which can be found at
+<a
+href="http://javascript.internet.com/games/javascript-chess-with-cpu-oppo.html">internet.com</a>
+and other places.  
+</p>
+<p>
+There was one by David Moore in the 
+<a href="http://www.the5k.org/description.asp/entry_id=352">2001 5k
+competition</a>. Unfortunately it won't work in my
+browsers.
+</p>
+<p>
+The most famous small chess implentation is probably the <a
+href="http://users.ox.ac.uk/~uzdm0006/scans/1kchess/assem.html">1k
+ZX81</a> game.  Not only is it very short, it ran in only 1024 bytes of ram.
+On the other hand, it didn't know all the rules. 
+</p>
+
+
+
+<h2>License (or lack thereof)</h2>
+<p>
+Most popular free licenses are longer than the code, and often refer to things that
+don't apply well to a webpage (such as the source/binary distinction).  So it is public 
+domain. 
+</p>
+
+
+</div>
+
+
+<div class="bottom"> 
+
+<img src="http://sourceforge.net/sflogo.php?group_id=105501&amp;type=5" 
+width="210" height="62" border="0" alt="SF logo" />
+<br />
+<i>Last modified  August 2004.</i>
+</div>
+
+
+</body>
+</html>

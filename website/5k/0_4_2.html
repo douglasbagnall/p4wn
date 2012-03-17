@@ -1,0 +1,383 @@
+<html>
+<style>
+.w {background-color:#cc1111}
+.b {background-color:#770000}
+.t {float:left}
+td {text-align:center}
+</style>
+<body>
+<script>
+sx=sy=st=bmove=moveno=inhand=going=0
+flip=1
+level=2
+d=document
+board=[]
+lttrs="abcdefgh"
+strink=''
+html='<table cellpadding=4 class=t><tr>'
+bstring="23456432111111110000000000000000000000000000000099999999ABCDECBA"
+wstring="00000000001111000123321012355321"
+moveinit=[0,0,[1,0,0,8],[1,16,2,8],[1,8],[1,0,0,8,1,8],[1,0,0,8,1,8],0]
+moves=[]
+pawn=[8,48]
+castle=[1,1]
+
+pv=[0,1,5,3,3,9,50,2]
+pn=[]
+weight=[]
+ep=9  //ie off
+multi=[4,3]
+
+for(z=0;z<8;z++){
+    pv[z]=10*pv[z]
+    pv[z+8]=pv[z]                   //same value for black as white
+    moves[z]=moves[z+8]=[]          //both refer to same array
+    mv=moveinit[z]
+    y=0
+    if(mv){
+        for(x=0;x<mv.length;x++){
+            mx=mv[x]
+            my=mv[++x]
+            for(fy=0;fy<2;fy++){        //must be shorter logic
+                for(fx=0;fx<2;fx++){
+                    moves[z][y++]=mx
+                    moves[z][y++]=my
+                    mx=-mx
+                    fx+=!mx //if mx=0, don't repeat
+                }
+                my=-my
+                fy+=!my
+            }
+        }
+    }
+    else{moves[z]=0}
+}
+
+for (y=56;y>=0;y-=8){
+    for(x=0;x<8;x++){
+        z=y+x
+        weight[z]=parseInt(wstring.charAt(((z<32)?z:63-z)))
+        board[z]=parseInt(bstring.charAt(z),16)
+        html+=('<td class=' + ((x+(y>>3))%2?'w':'b') + '><a href="#" onclick="B('+z+')"><img src='+board[z]+'.gif width=44 height=44 name=i'+z+' border=0></a></td>\n')
+    }
+    html+='</tr><tr>\n'
+}
+html+='</tr></table>'
+
+
+//**************************************************functions
+
+function parse(bm,EP,tpn){
+    var tyx,yx,tx,ty,x,y,h,aa,a,cx,mv,mx,my,fx,fy,k=0,ep=9,dir=8-bm*2,bmx=(bm>0)|0,bmc=(bm==bmove)*2-1,pl=[],mvlength,pl=[],el=[],sl=[],epl=[]
+    for(y=0;y<64;y+=8){
+        for(x=0;x<8;x++){
+            yx=y+x
+            wate=weight[yx]*multi[1]
+            a=board[yx]
+            a8=bm==(a&8)
+            a&=7
+            if(a>1&&a8){
+                mv=moves[a]
+                mvlength=mv.length
+                for(cx=0;cx<mvlength;cx++){     //goeth thru list of moves
+                    mx=mv[cx]
+                    my=mv[++cx]
+                    ty=y
+                    tx=x
+                    aa=0
+                    while(!aa &&(tx+=mx)>=0 && (ty+=my)>=0 && tx<8 && ty<57){   //while on board && no piece
+                        aa=board[ty+tx]
+                        if(!aa||(aa&8)!=bm){
+                            pl[k]=tpn+bmc*(pv[aa]+((a!=6)?weight[ty+tx]*multi[0]:0)-wate)
+                            sl[k]=yx;el[k]=tx+ty;epl[k++]=9 //rating,start,end,enpassant
+                            if ((aa&7)==6)return 0
+                        }
+                        aa=(a==3||a==6)||aa         //sets aa to 1 if knight or king; breaks loop
+                    }
+                }
+            }
+            if(a==1&&a8){
+                tyx=yx+dir
+                if(!board[tyx]){
+                    pl[k]=tpn+bmc*(weight[tyx]*multi[0]-wate);sl[k]=yx;el[k]=tyx;epl[k++]=9
+                    if(pawn[!bmx]==y){  //queening
+                        pl[--k]=tpn+bmc*80                         //overwrite previous
+                        epl[k++]=64
+                    }
+                    if(pawn[bmx]==y&&(!board[tyx+dir])){  //2 squares at start
+                        pl[k]=tpn+bmc*(weight[tyx+dir]*multi[0]-wate)
+                        sl[k]=yx;el[k]=tyx+dir;epl[k++]=x
+                    }
+                }
+                if((EP==x+1||EP==x-1)&&pawn[bmx]==y) {       //enpassant
+                    pl[k]=tpn+bmc*(1+weight[tyx]*multi[0]-wate)
+                    sl[k]=yx;el[k]=tyx-x+EP;epl[k++]=9
+                }
+                for(h=-1;h<2;h+=2){                        //h=-1,1 --for pawn capturing
+                    aa=board[tyx+h]
+                    if(aa && (aa&8)!=bm && h+x<8 && h+x>=0){
+                        pl[k]=tpn+bmc*(pv[aa]+weight[tyx]*multi[0]-wate)
+                        sl[k]=yx;el[k]=tyx+h;epl[k++]=9
+                        if(aa&7==6)return 0
+                    }
+                }
+            }
+            if(castle[bmx] && a==6&&a8){
+                if(!board[yx-1]&&!board[yx-2]&&!board[yx-3]&&check(y,x,bm,dir)&&check(y,x-1,bm,dir)&&check(y,x-2,bm,dir)){
+                    pl[k]=tpn+bmc*11                                //no analysis, just encouragement
+                    sl[k]=yx;el[k]=yx-2;epl[k++]=32            //32 flags castling?
+                }
+                if(!board[yx+1]&&!board[yx+2]&&check(y,x,bm,dir)&&check(y,x+1,bm,dir)&&check(y,x+2,bm,dir)){
+                    pl[k]=tpn+bmc*12                                //no analysis, just encouragement
+                    sl[k]=yx;el[k]=yx+2;epl[k++]=32            //33 flags castling?
+                }
+            }
+        }
+    }
+    return [pl,sl,el,epl]
+}
+
+function check(y,x,bm,my){         //my is dir
+    var tx,ty,aa,aa7
+    for(mx=-1;mx<2;mx++){
+        ty=y
+        tx=x
+        aa=board[y+my+x+mx]
+        if(aa&&(aa&8)!=bm&&((aa&7)==1||(aa&7)==6))return 0        //don't need to check for pawn position --cannot arrive at centre without passing thru check
+        aa=0
+        while(!aa &&(tx+=mx)>=0 && (ty+=my)>=0 && tx<8 && ty<57){   //while on board && no piece
+            aa=board[ty+tx]
+            aa7=aa&7
+            if((aa&8)!=bm && ((aa7==2&&!mx)||(aa7==4&&mx)||aa7==5))return 0
+        }
+    }
+    for (z=0;z<8;z++){
+        mx=moves[3][z]
+        my=moves[3][++z]
+        if(y>=my&&y-my<57&&x>=mx&&x-mx<8&&(board[y-my+x-mx]^(8-bm))==3)return 0      //knights
+    }
+    return 1
+}
+
+
+function treeclimber(count,bm,ep,tpn,s,e){
+    var z,x,y,tx,ty,mvl,a,aa,pl=[],el=[],sl=[],epl=[],bmc=(bm==bmove),mvt,mvworst=0,mvbest=0,pll
+    aa=board[e]
+    a=board[e]=board[s]
+    board[s]=0
+    if(!count){
+        board[s]=a
+        board[e]=aa
+    }   //for initial parse
+    mvl=parse(bm,ep,tpn)
+    if(!mvl) {
+        board[s]=a
+        board[e]=aa
+        return [(bmc)?tpn+50:tpn-50,s,e,ep]
+    }
+    pl=mvl[0]
+    pll=pl.length
+    sl=mvl[1]
+    el=mvl[2]
+    epl=mvl[3]
+    if(count==level){
+        if(bmc){
+            for(z=0;z<pll;z++){
+                if(pl[z]>pl[mvbest])mvbest=z
+            }
+        }
+        else{
+            for(z=0;z<pll;z++){
+                if(pl[z]<pl[mvworst])mvworst=z
+            }
+        }
+    }
+    else{
+        for(z=0;z<pll;z++){
+            mvt=treeclimber(count+1,8-bm,epl[z],pl[z],sl[z],el[z])
+            if(mvt[0]>pl[mvbest])mvbest=z
+            if(mvt[0]<pl[mvworst])mvworst=z
+         //   if (count==0)display2(sl[z],el[z],mvt[0],count)  //debug
+        }
+    }
+    board[s]=a
+    board[e]=aa
+    z=bmc?mvbest:mvworst
+    if (count==0){
+        display2(sl[z],el[z],mvt[0],count)  //debug
+    //    alert(mvbest)
+    }
+
+    return [pl[z],sl[z],el[z],epl[z]]
+}
+
+//*************************************making moves
+
+
+function findmove(){
+    var s,e,pn,themove
+    strink="\ncolour="+bmove//debug
+    themove=treeclimber(0,bmove,ep,0,0,0)
+    display2(themove[1],themove[2],themove[0],themove[3])
+    d.fred.bib.value+=strink//debug
+    pn=themove[0]
+    s=themove[1]
+    e=themove[2]
+    if(themove[3]&64)board[s]=bmove+5
+    shift(s,e)
+    if(themove[3]&32){
+        castle[bmove>0]=0
+        shift((s&56)+(s<e)*7,s+(e-s)/2)
+    }
+    showmove(s,e)
+}
+
+function B(it){
+    var a=board[it]
+    if(moveno%4){
+        multi[0]=(multi[0]-1||1)
+        multi[1]=(multi[0]-1||1)
+    }
+    if(!a&&!inhand) return
+    if (a&&(bmove==(a&8))){     //ie, if one picked up of right colour, it becomes start
+        if (inhand) d.images['i'+ss].src=inhand+'.gif'
+        inhand=a
+        ss=it
+        d.images['i'+ss].src='0.gif'     //not real shift, but blank start
+        return
+    }
+    if (inhand){
+        if(test(ss,it)){      //if holding one, and test is good, it is end
+            ++moveno
+            if(!pawn[bmove>>3]==ss&&board[ss]==bmove+1)board[ss]=bmove+5
+            shift(ss,it)
+            if(board[ss]==6+bmove && (ss-it)*(ss-it)==4){
+                castle[bmove>>3]=0
+                shift((ss&56)+(ss<it)*7,ss+(it-ss)/2)
+            }
+            bmove=bmove^8       //0 indicates white to move, 8 black
+            millisecs1=new Date()       //timing routine
+            findmove()          //do other colour
+            millisecs2=new Date()
+            d.fred.ep.value=millisecs2-millisecs1+ 'ms'
+            bmove=bmove^8       //0 indicates white to move, 8 black
+        }
+        else{
+            if (inhand)d.images['i'+ss].src=inhand+'.gif'
+            a=0
+        }
+        inhand=0
+    }
+}
+function B2(it){
+    moveno+=(bmove==0)
+    if(moveno%4){
+        multi[0]=(multi[0]-1||1)
+        multi[1]=(multi[0]-1||1)
+    }
+    millisecs1=new Date()       //timing routine
+    findmove()          //do other colour
+    millisecs2=new Date()
+    d.fred.ep.value=millisecs2-millisecs1+ 'ms'
+    bmove=bmove^8       //0 indicates white to move, 8 black
+    setTimeout("if(going)B(11)",500)
+}
+
+
+function test(s,e){
+    var S,E,mvl,good,z,a,aa
+    mvl=parse(bmove,ep,0)        //colour,en passant flag
+    if(mvl){
+        good=0
+        for(z=0;z<mvl[0].length;z++){
+            S=mvl[1][z]
+            E=mvl[2][z]
+            aa=board[E]
+            a=board[E]=board[S]
+            board[S]=0
+            good=good||(s==S&&e==E&&parse(8-bmove,9,0))
+            //display(S,E,'')
+            board[S]=a
+            board[E]=aa
+        }
+        display2(s,e,'',0)
+        return good
+    }
+    else{
+        if (mvl==0)alert('checkmate')
+        else alert('stalemate')
+        return 0
+    }
+
+}
+
+function shift(s,e){
+    var a=board[s]
+    board[e]=a
+    board[s]=0
+    d.images['i'+s].src='0.gif'
+    d.images['i'+e].src=a+'.gif'
+}
+
+
+//*************************************************************************************************************** debug
+
+function showmove(s,e){
+    x=s%8
+    y=(s-x)/8
+    tx=e%8
+    ty=(e-tx)/8
+    d.fred.check.value=multi
+}
+function display(s,e,a){
+    var sx,sy,x,y
+    sx=s%8
+    sy=(s-sx)/8
+    //if(isNaN(sy+1))alert("s:"+s+" e:"+e+" a:"+a)
+    x=e%8
+    y=(e-x)/8
+    d.fred.bib.value+="\n"+lttrs.charAt(sx)+(sy+1)+'-'+lttrs.charAt(x)+(y+1)+'  '+a
+}
+function display2(s,e,a,b){
+    var z,sx,sy,x,y,space=""
+    sx=s%8
+    sy=(s-sx)/8
+    x=e%8
+    y=(e-x)/8
+    for (z=b;z<level;z++)space+=" "
+    strink+="\n"+(moveno<10?" ":"")+moveno+". "+lttrs.charAt(sx)+(sy+1)+'-'+lttrs.charAt(x)+(y+1)+'    '+a
+}
+
+
+
+function showboard(){
+    var x,y
+    for (y=56;y>=0;y-=8){
+        for(x=0;x<8;x++){
+            d.images[56-y+x].src=board[y+x]+'.gif'
+        }
+    }
+}
+
+
+//*********************************************final write,etc
+
+d.write(html)
+</script>
+
+<form name=fred>
+
+<textarea name=bib cols=30 rows=30>
+</textarea>
+<input name=bub size=40>
+<input name=ep size=12>
+<input name=check size=10>
+
+<input type=button value=update name=show title=show onclick='showboard()'>
+<input type=button value=start name=show title=show onclick='going=!going;this.value=going?"stop":"start";if(going)B(0)'>
+
+
+</form>
+
+
+</body>

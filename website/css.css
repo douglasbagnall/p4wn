@@ -1,0 +1,64 @@
+
+body {
+ font-family:  "Georgia", serif;
+ color: #333; 
+ background: white;
+}
+
+div.main {
+ color: #333; 
+ margin: 0px 50px 0px 150px;
+}
+
+div.nav {
+ color: #347;
+ position: absolute;
+ left: 5;
+ top: 50;
+ width: 120;
+}
+
+* > div.nav {
+ color: #347;
+ position: fixed;
+ left: 5;
+ top: 50;
+ width: 120;
+}
+
+div.nav a {
+ color: #347;
+ display: block;
+}
+div.nav a:visited {
+ color: #437;
+ display: block;
+}
+
+div.bottom {
+ 
+ margin-left: 65%;
+}
+
+
+h1 {
+ color: #000;
+ font-family: "Georgia", serif;
+ font-weight: normal; 
+ margin: 40px 0px 0px -10px;
+ font-size: 1.5em;
+}
+
+h2 {
+ color: #000;
+ font-family: "Georgia", serif;
+ margin: 10px 0px 0px -10px;
+ font-weight: normal;
+ font-size: 1.21em;
+}
+
+h3 {
+ color: #333;
+ font-weight: bold; 
+ font-size: 1em;
+}
