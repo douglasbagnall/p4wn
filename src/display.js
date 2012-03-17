@@ -4,10 +4,6 @@
  * laws allow. No warranty; no restrictions.
  *
  * lives at http://p4wn.sf.net/
- *
- * Additional work by: [add yourself if you wish]
- *
- *  Chris Lear
  */
 
 /* The routines here draw the screen and handle user interaction */

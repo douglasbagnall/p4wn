@@ -3,19 +3,20 @@ P4wn, a smallish javascript chess engine
 
 This is a web page that can play chess. It was first written by
 Douglas Bagnall between 2000 and 2002, and a version of it was entered
-in the 2002 5k web page contest. Back then it was developed without
-source control and was minified by hand, resulting in terse and obtuse
-code that resisted modification.
+in the 2002 5k web contest. Back then it was developed without source
+control and was minified by hand, resulting in terse and obtuse code
+that resisted further modification.
 
 The version here (in ``src/``) has been reconstructed and expanded
 from old backup files. It almost certainly lacks some bug fixes and
 optimisations found in the 5k and 6k versions, but it has been fixed
-and modernised in other ways.
+in other ways and altered to suit modern browsers.
 
-The code has been put in the public domain, or if that does not make
-sense in your country, the CC0 license applies. You can do anything
-you want with it. You have no restrictions or obligations and no
-warranty.
+The code is in the public domain, or if that does not make sense in
+your country, the CC0_ license applies. You can do anything you want
+with it. There are no restrictions, obligations, or warranties.
+
+.. _CC0 http://creativecommons.org/publicdomain/zero/1.0/
 
 The name "p4wn" was originally only intended as a sourceforge
 subdomain, not to be applied to the chess program itself. People have
@@ -28,22 +29,25 @@ As mentioned, it was entered in a 2002 competition for small web
 pages. In 2004 it gained a sourceforge page (http://p4wn.sf.net) with
 a CVS tree. This spurred a small flurry of forks, as various people
 tried fixing the obvious bugs and bad graphics or further reducing the
-code size. These forks never coalesced into a directed path of
-development, probably due to the pathological state of the code and
-the lack of a perceived need for small chess playing web pages.
+code size. These forks never coalesced into a directed series of
+patches, probably due to the pathological state of the code and the
+lack of a perceived need for small chess playing web pages.
 
 In March 2012 Douglas Bagnall liberated the code into git and tried to
 de-obfuscate, disentangle, and modernise it, resulting in what you
 find in ``/src/``.
 
-P4wn was first written for turn of the century browsers, and to be as
-small as possible. It worked in Netscape 3. The new version targets
-HTML5-ish browsers and aims to be as small as is reasonable.
-
+The original program was first written for turn of the century
+browsers, and to be as small as possible. It worked in Netscape 3. The
+new version targets HTML5-ish browsers and aims to be as small as is
+reasonable, while remaining easy to modify and embed. While it might
+appear that every single line differs, the code is substantially the
+same. The changes are mostly in the variable names and whitespace. In
+particular, it is full of constructs that reflect the programmer's
+interest in brevity over clarity (as well as his inexperience).
 
 Description of the code
 =======================
-
 
 There are four text files, and images:
 
@@ -54,7 +58,6 @@ are intended as examples and are deliberately simple.
 though it is quite complex in its way.
 
 **engine.js** plays chess and verifies moves.
-
 
 
 Board structure
@@ -223,7 +226,34 @@ General front-end improvements
 
 The images and interaction could be better.
 
+Contributors and copyright
+==========================
 
+These people (and probably others whose names I have mislaid) have
+added something to p4wn:
+
+* Douglas Bagnall
+* Sven Vahar
+* Antony Lesuisse
+* Ron Winter
+* Chris Lear
+
+Public domain/ CC0
+------------------
+
+All of the authors listed have dedicated their contributions to this
+work to the public domain by waiving all of his rights to the work
+worldwide under copyright law, including all related and neighboring
+rights, to the extent allowed by law.
+
+You can copy, modify, distribute and perform the work, even for
+commercial purposes, all without asking permission.
+
+Sharing your contributions
+--------------------------
+
+If you want your contributions to be included in the main p4wn
+repository, you will also need to waive copyright on them.
 
 
 .. This README written in reStructuredText for automated html markup.

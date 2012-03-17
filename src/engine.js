@@ -4,15 +4,6 @@
  * laws allow. No warranty; no restrictions.
  *
  * lives at http://p4wn.sf.net/
- *
- * Additional work by: [add yourself if you wish]
- *
- *  Chris Lear
- */
-
-/* TODO
- * clarify variable names
- * generalise player state, (perhaps tick boxes for b and w computer control)
  */
 
 var MAX_SCORE = 9999;    // extremes of evaluation range
