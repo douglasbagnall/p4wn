@@ -8,11 +8,14 @@
 <body>
 <div class="nav">
 <a href="/">home</a>
-<a href="http://cvs.sourceforge.net/viewcvs.py/p4wn/chess/">CVS tree</a>
+<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/">CVS tree</a>
 <a href="http://sourceforge.net/projects/p4wn/">project page</a>
+<a href="https://lists.sourceforge.net/lists/listinfo/p4wn-chess">mailing list</a>
 <a href="/5k/">5k</a>
 <a href="/6k/">6k</a>
-<a href="/main-branch/">big</a>
+<a href="/unicode/">unicode</a>
+<a href="/sven/">tidy</a>
+<a href="/main-branch/">messy</a>
 </div>
 
 <div class="main">
@@ -21,7 +24,7 @@
 
 <p>
 In 2002 I (Douglas Bagnall) wrote a 
-<a href="http://www.the5k.org/description.asp/entry_id=719">javascript chess game</a>
+<a href="http://p4wn.sourceforge.net/5k/">javascript chess game</a>
 for the 5k competition.  People are still curious about it,  so it has finally gained 
 its own sourceforge site.  
 </p>
@@ -30,26 +33,57 @@ The code is now in the public domain.  That means you can do whatever you want w
 there is no copyright.
 </p>
 
+<h2>News</h2>
+
+<h3>2005-03-23: Sven Vahar's fancy version in CVS</h3>
+<p>
+The <a href="http://aab.pri.ee/chess/">improved board</a> that 
+<a href="http://aab.pri.ee/">Sven Vahar</a> made in December 2004 is now 
+available in CVS, and as a zip <a href="/downloads/sven_vehars_fancy_version.zip">download</a>.
+</p>
+
+<h3>2005-03-04: Unicode version by Antony Lesuisse</h3>
+<p>
+Antony Lesuisse replaced the external gifs with unicode glyphs, creating a
+<a href="/unicode/">completely self-contained page</a> of only 4385 bytes.  It has been added to CVS.
+</p>
+<p>
+If you don't see a row of chess pieces here (&#9812;&#9813;&#9814;&#9815;&#9821;&#9822;&#9823;),
+you might have problems using the page - it depends on your browser's font rendering.
+</p>
+<h3>2004-12-14: New version by Sven Vahar</h3>
+<p>
+<a href="http://aab.pri.ee/">Sven Vahar</a> has created a cleaner
+interface with help text, with both 
+<a href="http://aab.pri.ee/male/">Estonian</a> and
+<a href="http://aab.pri.ee/chess/">English</a> versions.
+
+</p>
 <h2>Different Versions</h2>
 <p>
 The code has forked a few times already, due mainly to a lack of version control. 
 I think this is an OK thing with such a tiny program, allowing experiments and
-varying objectives.  If you want to take it in a new direction, please do.  It would
-be nice if you put your fork in the CVS tree, but of course there is no obligation.
+varying objectives.  If you want to take it in a new direction, please do.
+New forks are welcome in the CVS tree.  The main branches are:
 </p>
 
 <ul>
-<li>The <a href="/5k/">smallest possible page</a>.  Less than 3k of code should 
+<li>The <a href="/unicode/">smallest possible page</a>.  Less than 3k of code should 
 be possible.
 </li>
+<li>The <a href="/5k/">smallest page using images</a>. 
+</li>
 <li><a href="/main-branch/">Better play, more readable code</a>, with debugging
-stuff.  
+stuff, hopefully somewhat modular.  
 </li>
 <li><a href="/6k/">Something inbetween</a> - good but small.  
 </li>
 <li>Personal or experimental branches, such as Ron Winter's 
-<a href="http://cvs.sourceforge.net/viewcvs.py/p4wn/chess/misc/ron/">untangled 
-version</a> and perhaps an actionscript branch. 
+<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/misc/ron/">untangled 
+version</a>, and Sven Vehar's 
+<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/sven/">prettier interface</a>.</li>
+<li>An actionscript branch, if I ever get round to it, compilable with 
+<a href="http://ming.sf.net/">ming</a></li>
 </ul>
 
 <h2>How it works</h2>
@@ -113,7 +147,8 @@ browsers.
 <p>
 The most famous small chess implentation is probably the <a
 href="http://users.ox.ac.uk/~uzdm0006/scans/1kchess/assem.html">1k
-ZX81</a> game.  Not only is it very short, it ran in only 1024 bytes of ram.
+ZX81</a> game.  Not only is it short, it ran in only 1024 bytes of ram 
+(javascript has megabytes to play with).
 On the other hand, it didn't know all the rules. 
 </p>
 
@@ -135,7 +170,7 @@ domain.
 <img src="http://sourceforge.net/sflogo.php?group_id=105501&amp;type=5" 
 width="210" height="62" border="0" alt="SF logo" />
 <br />
-<i>Last modified  August 2004.</i>
+<i>Last modified March 2005.</i>
 </div>
 
 
