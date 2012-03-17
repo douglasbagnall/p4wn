@@ -2,38 +2,53 @@
 <head>
 <title>Websites wot play chess</title>
 
-<link rel="stylesheet" type="text/css" href="/css.css" />
+<link rel="stylesheet" type="text/css" href="css.css" />
+<link rel="stylesheet" href="p4wn.css" />
 
 </head>
 <body>
 <div class="nav">
 <a href="/">home</a>
-<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/">CVS tree</a>
-<a href="http://sourceforge.net/projects/p4wn/">project page</a>
+<a href="http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn;a=summary">git tree</a>
+<a href="http://sourceforge.net/projects/p4wn/">sourceforge</a>
 <a href="https://lists.sourceforge.net/lists/listinfo/p4wn-chess">mailing list</a>
 <a href="/5k/">5k</a>
 <a href="/6k/">6k</a>
 <a href="/unicode/">unicode</a>
 <a href="/sven/">tidy</a>
-<a href="/main-branch/">messy</a>
 </div>
 
 <div class="main">
 
-<h1>Javascript Chess</h1>
+<h1>p4wn, a javascript chess engine</h1>
+
+<div id="board"></div>
+<div id="log"></div>
+<div id="messages"></div>
+<div id="controls"></div>
 
 <p>
-In 2002 I (Douglas Bagnall) wrote a 
-<a href="http://p4wn.sourceforge.net/5k/">javascript chess game</a>
-for the 5k competition.  People are still curious about it,  so it has finally gained 
-its own sourceforge site.  
+This is a small javascript chess engine. It was originally written by
+Douglas Bagnall between 2000 and 2002, and a <a
+href="http://p4wn.sourceforge.net/5k/">javascript chess game</a> of it
+was entered in the 2002 5k competition. Various people have added bits
+and pieces over the years, and in 2012 it was substantially rewritten
+to ease modification and embedding.
 </p>
 <p>
-The code is now in the public domain.  That means you can do whatever you want with it;  
-there is no copyright.
+P4wn has been placed in the public domain with a CC0 dedication. That
+means you can do whatever you want with it without asking anyone.
 </p>
 
 <h2>News</h2>
+
+<h3>2012-03-19: Switch to Git, with clarified code</h3>
+<p>
+All of a sudden I decided to pay some attention to this. The <a
+href="http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn;a=summary">git
+repository</a> obsoletes the CVS, and contains a newly expanded
+version.
+</p>
 
 <h3>2005-03-23: Sven Vahar's fancy version in CVS</h3>
 <p>
@@ -167,12 +182,30 @@ domain.
 
 <div class="bottom"> 
 
+<p xmlns:dct="http://purl.org/dc/terms/">
+  <a rel="license"
+     href="http://creativecommons.org/publicdomain/zero/1.0/">
+    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;" alt="CC0" />
+  </a>
+  <br />
+  To the extent possible under law,
+  <a rel="dct:publisher"
+     href="http://p4wn.sf.net">
+    <span property="dct:title">Douglas Bagnall</span></a>
+  has waived all copyright and related or neighboring rights to
+  <span property="dct:title">P4wn chess engine</span>.
+</p>
+
 <img src="http://sourceforge.net/sflogo.php?group_id=105501&amp;type=5" 
 width="210" height="62" border="0" alt="SF logo" />
 <br />
-<i>Last modified March 2005.</i>
+<i>Last modified March 2012.</i>
 </div>
 
+<img src="images/0.gif" id="pih" width="20" height="32" alt="" />
+
+<script src="engine.js"></script>
+<script src="display.js"></script>
 
 </body>
 </html>
