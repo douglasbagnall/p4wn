@@ -175,18 +175,17 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 
     var movelist = parse(state, colour, ep, castle_state, score);
     var movecount = movelist.length;
-    var mv;
+    var mv, bs, be;
     if (movecount) {
         if(count){
             //BRANCH NODES
             var t;
-            var cmp=comp;
-            movelist.sort(cmp); //descending order
+            movelist.sort(comp); //descending order
             count--;
-            var best=movelist[0];
+            var best = movelist[0];
             var bscore = best[0];
-            var bs=best[1];
-            var be=best[2];
+            bs = best[1];
+            be = best[2];
             var bep = best[3];
             if (bscore < 400){
                 b=-treeclimber(state, count, ncolour, bscore, bs, be,

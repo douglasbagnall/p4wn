@@ -8,8 +8,6 @@
 
 /* The routines here draw the screen and handle user interaction */
 
-var going=0;    // DEV: denotes auto play, or not.
-
 var input = {
     start: 0,     // start click - used in display.js
     inhand: 0,     // piece in hand (ie, during move)
