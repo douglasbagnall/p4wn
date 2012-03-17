@@ -21,6 +21,22 @@ var input = {
     players: ['human', 'computer'] //[white, black] controllers
 };
 
+var IMAGE_NAMES = [
+    'images/empty.gif',
+    'images/empty.gif',   // 1 is unused
+    'images/white_pawn.gif',
+    'images/black_pawn.gif',
+    'images/white_rook.gif',
+    'images/black_rook.gif',
+    'images/white_knight.gif',
+    'images/black_knight.gif',
+    'images/white_bishop.gif',
+    'images/black_bishop.gif',
+    'images/white_king.gif',
+    'images/black_king.gif',
+    'images/white_queen.gif',
+    'images/black_queen.gif'
+];
 
 function square_clicked(square){
     var state = input.board_state;
@@ -171,16 +187,16 @@ function refresh(colour){
     }
 }
 
-function show_image(img, src){
+function show_image(img, piece){
     var id = "i" + (input.player ? 119 - img : img);
     var e = document.getElementById(id);
     if (e)
-        e.src='images/' + src + '.gif';
+        e.src = IMAGE_NAMES[piece];
 }
 
 function show_piece_in_hand(piece){
     var im = document.getElementById('pih');
-    im.src = 'images/' + piece + '.gif';
+    im.src = IMAGE_NAMES[piece];
     if (piece == 0){
         document.onmousemove = null;         //and switch off mousemove.
         im.style.top = '0px';
@@ -223,7 +239,7 @@ function write_board_html(){
             img.addEventListener("click",
                                  click_closure(z),
                                  true);
-            img.src = "images/0.gif";
+            img.src = IMAGE_NAMES[0];
             img.width= "30";
             img.height= "30";
         }
