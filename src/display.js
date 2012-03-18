@@ -32,6 +32,10 @@ var IMAGE_NAMES = [
     'images/black_queen.gif'
 ];
 
+var SQUARE_WIDTH = 30;
+var SQUARE_HEIGHT = 30;
+
+
 function square_clicked(square){
     var state = input.board_state;
     var board = state.board;
@@ -234,8 +238,8 @@ function write_board_html(){
                                  click_closure(z),
                                  true);
             img.src = IMAGE_NAMES[0];
-            img.width= "30";
-            img.height= "30";
+            img.width= SQUARE_WIDTH;
+            img.height= SQUARE_HEIGHT;
         }
     }
 }
@@ -285,7 +289,8 @@ var CONTROLS = [
         id: 'dump_button',
         onclick: function(e){
             dump_state(input.board_state);
-        }
+        },
+        debug: true
     }
 ];
 
@@ -294,6 +299,8 @@ function write_controls_html(){
     var div = document.getElementById("controls");
     for (var i = 0; i < CONTROLS.length; i++){
         var o = CONTROLS[i];
+        if (o.debug && ! DEBUG)
+            continue;
         var span = new_child(div, "span");
         span.className = 'control-button';
         span.id = o.id;
