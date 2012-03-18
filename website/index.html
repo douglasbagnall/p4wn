@@ -1,7 +1,8 @@
 <html>
 <head>
 <title>Websites wot play chess</title>
-
+<meta chatset="UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="css.css" />
 <link rel="stylesheet" href="p4wn.css" />
 
@@ -20,7 +21,7 @@
 
 <div class="main">
 
-<h1>p4wn, a javascript chess engine</h1>
+<h1>P4wn, a javascript chess engine</h1>
 
 <div id="board"></div>
 <div id="log"></div>
@@ -30,13 +31,13 @@
 <p>
 This is a small javascript chess engine. It was originally written by
 Douglas Bagnall between 2000 and 2002, and a <a
-href="http://p4wn.sourceforge.net/5k/">javascript chess game</a> of it
+href="http://p4wn.sourceforge.net/5k/">version</a> of it
 was entered in the 2002 5k competition. Various people have added bits
 and pieces over the years, and in 2012 it was substantially rewritten
 to ease modification and embedding.
 </p>
 <p>
-P4wn has been placed in the public domain with a CC0 dedication. That
+P4wn has been placed in the public domain with a CC-zero dedication. That
 means you can do whatever you want with it without asking anyone.
 </p>
 
@@ -46,21 +47,21 @@ means you can do whatever you want with it without asking anyone.
 <p>
 All of a sudden I decided to pay some attention to this. The <a
 href="http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn;a=summary">git
-repository</a> obsoletes the CVS, and contains a newly expanded
-version.
+repository</a> obsoletes the CVS, and the code has had some attention
+to make it explicable.
 </p>
 
 <h3>2005-03-23: Sven Vahar's fancy version in CVS</h3>
 <p>
-The <a href="http://aab.pri.ee/chess/">improved board</a> that 
-<a href="http://aab.pri.ee/">Sven Vahar</a> made in December 2004 is now 
-available in CVS, and as a zip <a href="/downloads/sven_vehars_fancy_version.zip">download</a>.
+The <a href="http://aab.pri.ee/chess/">improved board</a> that
+<a href="http://aab.pri.ee/">Sven Vahar</a> made in December 2004 is now
+available in CVS, and as a zip <a href="downloads/sven_vehars_fancy_version.zip">download</a>.
 </p>
 
 <h3>2005-03-04: Unicode version by Antony Lesuisse</h3>
 <p>
 Antony Lesuisse replaced the external gifs with unicode glyphs, creating a
-<a href="/unicode/">completely self-contained page</a> of only 4385 bytes.  It has been added to CVS.
+<a href="unicode/">completely self-contained page</a> of only 4385 bytes.  It has been added to CVS.
 </p>
 <p>
 If you don't see a row of chess pieces here (&#9812;&#9813;&#9814;&#9815;&#9821;&#9822;&#9823;),
@@ -69,140 +70,84 @@ you might have problems using the page - it depends on your browser's font rende
 <h3>2004-12-14: New version by Sven Vahar</h3>
 <p>
 <a href="http://aab.pri.ee/">Sven Vahar</a> has created a cleaner
-interface with help text, with both 
+interface with help text, with both
 <a href="http://aab.pri.ee/male/">Estonian</a> and
 <a href="http://aab.pri.ee/chess/">English</a> versions.
 
 </p>
-<h2>Different Versions</h2>
-<p>
-The code has forked a few times already, due mainly to a lack of version control. 
-I think this is an OK thing with such a tiny program, allowing experiments and
-varying objectives.  If you want to take it in a new direction, please do.
-New forks are welcome in the CVS tree.  The main branches are:
-</p>
-
-<ul>
-<li>The <a href="/unicode/">smallest possible page</a>.  Less than 3k of code should 
-be possible.
-</li>
-<li>The <a href="/5k/">smallest page using images</a>. 
-</li>
-<li><a href="/main-branch/">Better play, more readable code</a>, with debugging
-stuff, hopefully somewhat modular.  
-</li>
-<li><a href="/6k/">Something inbetween</a> - good but small.  
-</li>
-<li>Personal or experimental branches, such as Ron Winter's 
-<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/misc/ron/">untangled 
-version</a>, and Sven Vehar's 
-<a href="http://p4wn.cvs.sourceforge.net/p4wn/chess/sven/">prettier interface</a>.</li>
-<li>An actionscript branch, if I ever get round to it, compilable with 
-<a href="http://ming.sf.net/">ming</a></li>
-</ul>
 
 <h2>How it works</h2>
 <p>
-It recursively explores the tree of possible moves, keeping score along the way.  
+It recursively explores the tree of possible moves, keeping score along the way.
 It tries to take as many pieces as possible and get into the centre early.  That's
-about all.   Its endgame strategy is to win before the endgame. 
+about all.   Its endgame strategy is to win before the endgame.
 </p>
 
-<h2>Bugs</h2>
-<p>It doesn't always lose graciously, often trying to move out of checkmate.  You 
-could take that as a concession, but it is irksome.</p>
+<h2>Mailing list</h2> <p>There is a <a
+href="https://lists.sourceforge.net/lists/listinfo/p4wn-chess">mailing
+list</a> hosted by sourceforge, which averages about two messages per
+year. Ask any questions there.
+</p>
 
-<h2>To do</h2>
-
-<p>(incomplete list)</p>
-
-<ul>
-<li>Fix the bug.</li>
-<li>
-The small ("5k") branch can be shrunk in a number of ways.  It uses
-a principal variation search algorithm, which could be replaced by a smaller plainer 
-alpha-beta search (I tried principal variation in search of speed, and never got
-round to switching back).  Someone claims 
-<a href="http://krishaven.spymac.net/javacomp.html">compression tricks</a> could save
-744 bytes.  Better encoding of piece names will save space and time.
-</li>
-<li>
-The big version could be reoptimised for speed rather than space.  Different searches and
-evaluations could be tried (it really is naive now).  The recursion could be removed.  
-Some kind of hackery could be used to get past the javascript timeout in browsers. 
-Some of the variable names are a bit stupid.
-</li>
-<li>
-The pictures could be better.
-</li>
-<li>
-It could also, very easily, be ported to actionscript, and compiled for flash players.
-The core engine is simple ECMAscript, so I can't see to much trouble with porting it. 
-It may be possible to have two separate wrappers for the same engine, so developments
-in javascript are usable in flash.
-</li>
-<li> 
-One day it might get a name.
-</li>
-</ul>
 
 <h2>Similar Projects</h2>
 <p>
-Neil Pearce has written a javascript chess game which can be found at
-<a
-href="http://javascript.internet.com/games/javascript-chess-with-cpu-oppo.html">internet.com</a>
-and other places.  
+Gary Linscott wrote <a
+href="http://forwardcoding.com/projects/ajaxchess/chess.html">Garbochess-JS</a>.
+It seems much stronger than p4wn, and uses the WebWorkers javascript
+to keep the UI going while it schemes away in the background.
 </p>
+
 <p>
-There was one by David Moore in the 
-<a href="http://www.the5k.org/description.asp/entry_id=352">2001 5k
-competition</a>. Unfortunately it won't work in my
-browsers.
+Óscar Toledo G. has written various tiny chess engines in various languages, including
+<a href="http://nanochess.110mb.com/chess4.html">javascript</a>.
 </p>
+
+<p>
+Neil Pearce wrote a javascript chess game which no longer seems to be online.
+</p>
+
+<p>
+There was one by David Moore in the 2001 5k
+competition.  Now it is
+<a href="http://djjmtmoore.googlepages.com/5kChess.htm">here</a>.
+</p>
+
 <p>
 The most famous small chess implentation is probably the <a
 href="http://users.ox.ac.uk/~uzdm0006/scans/1kchess/assem.html">1k
-ZX81</a> game.  Not only is it short, it ran in only 1024 bytes of ram 
+ZX81</a> game.  Not only is it short, it ran in only 1024 bytes of ram
 (javascript has megabytes to play with).
-On the other hand, it didn't know all the rules. 
-</p>
-
-
-
-<h2>License (or lack thereof)</h2>
-<p>
-Most popular free licenses are longer than the code, and often refer to things that
-don't apply well to a webpage (such as the source/binary distinction).  So it is public 
-domain. 
+On the other hand, it didn't know all the rules.
 </p>
 
 
 </div>
 
 
-<div class="bottom"> 
+<div class="bottom">
 
-<p xmlns:dct="http://purl.org/dc/terms/">
+<table><tr><td xmlns:dct="http://purl.org/dc/terms/">
   <a rel="license"
      href="http://creativecommons.org/publicdomain/zero/1.0/">
-    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;" alt="CC0" />
+    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none; float:left; padding:0 8px" alt="CC0" />
   </a>
-  <br />
   To the extent possible under law,
   <a rel="dct:publisher"
      href="http://p4wn.sf.net">
     <span property="dct:title">Douglas Bagnall</span></a>
   has waived all copyright and related or neighboring rights to
   <span property="dct:title">P4wn chess engine</span>.
-</p>
-
-<img src="http://sourceforge.net/sflogo.php?group_id=105501&amp;type=5" 
-width="210" height="62" border="0" alt="SF logo" />
-<br />
+</td>
+<td>
+<img src="http://sourceforge.net/sflogo.php?group_id=105501&amp;type=5"
+width="210" height="62" border="0" alt="SF logo" style="padding:0px 10px;" />
+</td></tr></table>
 <i>Last modified March 2012.</i>
+
 </div>
 
-<img src="images/0.gif" id="pih" width="20" height="32" alt="" />
+<img src="images/empty.gif" id="pih" width="20" height="32" alt="" />
 
 <script src="engine.js"></script>
 <script src="display.js"></script>
