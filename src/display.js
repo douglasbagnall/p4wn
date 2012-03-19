@@ -11,7 +11,7 @@
 var input = {
     start: 0,     // start click - used in display.js
     inhand: 0,     // piece in hand (ie, during move)
-    board_state: new_game(),
+    board_state: p4_new_game(),
     players: ['human', 'computer'] //[white, black] controllers
 };
 
@@ -64,15 +64,15 @@ function square_clicked(square){
     else if (input.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
-        var move_result = move(state, input.start, square);
-        if(move_result & MOVE_FLAG_OK){
+        var move_result = p4_move(state, input.start, square);
+        if(move_result & P4_MOVE_FLAG_OK){
             display_move_text(state.moveno, input.start, square, move_result);
             refresh();
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
             auto_play_timeout_ID = undefined;
-            if (! (move_result & MOVE_FLAG_MATE))
+            if (! (move_result & P4_MOVE_FLAG_MATE))
                 next_move();
         }
     }
@@ -95,14 +95,14 @@ function computer_move(){
     auto_play_timeout_ID = undefined;
     var state = input.board_state;
     var s, e, mv;
-    mv = findmove(state, 3);
+    mv = p4_findmove(state, 3);
     s = mv[0], e = mv[1];
-    var move_result = move(state, s, e);
+    var move_result = p4_move(state, s, e);
     if (move_result){
         display_move_text(state.moveno, s, e, move_result);
         refresh();
 
-        if (! (move_result & MOVE_FLAG_MATE))
+        if (! (move_result & P4_MOVE_FLAG_MATE))
             next_move();
     }
     else
@@ -137,18 +137,18 @@ function display_move_text(moveno, s, e, flags){
     var item = new_child(div, "div");
 
     var tail = '';
-    if (flags & MOVE_FLAG_CHECK)
-        tail = (flags & MOVE_FLAG_MATE) ? ' #' : ' +';
-    else if (flags & MOVE_FLAG_MATE)
+    if (flags & P4_MOVE_FLAG_CHECK)
+        tail = (flags & P4_MOVE_FLAG_MATE) ? ' #' : ' +';
+    else if (flags & P4_MOVE_FLAG_MATE)
         tail = ' stalemate';
 
     var msg;
-    if (flags & MOVE_FLAG_CASTLE_QUEEN)
+    if (flags & P4_MOVE_FLAG_CASTLE_QUEEN)
         msg = 'O-O-O';
-    else if (flags & MOVE_FLAG_CASTLE_KING)
+    else if (flags & P4_MOVE_FLAG_CASTLE_KING)
         msg = 'O-O';
     else
-        msg = stringify_point(s) + ((flags & MOVE_FLAG_CAPTURE) ? 'x' : '-') + stringify_point(e);
+        msg = stringify_point(s) + ((flags & P4_MOVE_FLAG_CAPTURE) ? 'x' : '-') + stringify_point(e);
 
     item.innerHTML = mn + msg + tail;
     item.id = "move_" + moveno;
@@ -163,7 +163,7 @@ function display_move_text(moveno, s, e, flags){
 }
 
 function goto_move(n){
-    jump_to_moveno(input.board_state, n);
+    p4_jump_to_moveno(input.board_state, n);
     var div = document.getElementById('log');
     var entries = div.childNodes;
     for (var i = entries.length - 1; i >= n; i--){
@@ -180,7 +180,7 @@ function refresh(colour){
     if (colour)
         input.orientation = colour;
     for (var i = 20; i < 100; i++){
-        if(input.board_state.board[i] != EDGE)
+        if(input.board_state.board[i] != P4_EDGE)
             show_image(i, input.board_state.board[i]);
     }
 }
@@ -299,7 +299,7 @@ function write_controls_html(){
     var div = document.getElementById("controls");
     for (var i = 0; i < CONTROLS.length; i++){
         var o = CONTROLS[i];
-        if (o.debug && ! DEBUG)
+        if (o.debug && ! P4_DEBUG)
             continue;
         var span = new_child(div, "span");
         span.className = 'control-button';

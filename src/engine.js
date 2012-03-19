@@ -6,36 +6,36 @@
  * lives at http://p4wn.sf.net/
  */
 
-var MAX_SCORE = 9999;    // extremes of evaluation range
-var MIN_SCORE = -MAX_SCORE;
+var P4_MAX_SCORE = 9999;    // extremes of evaluation range
+var P4_MIN_SCORE = -P4_MAX_SCORE;
 
-var DIRS=[10,-10];
-var OFF_BOARD=120;
-var DEBUG=0;
+var P4_DIRS = [10, -10];
+var P4_OFF_BOARD = 120;
+var P4_DEBUG = 0;
 
 /* in order, doubled: <nothing>, pawn, rook, knight, bishop, king, queen */
-var MOVES = [0, 0,
-             0, 0,
-             [1,10,-1,-10], [1,10,-1,-10],
-             [21,19,12,8,-21,-19,-12,-8], [21,19,12,8,-21,-19,-12,-8],
-             [11,9,-11,-9], [11,9,-11,-9],
-             [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9],
-             [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9]
-            ];
+var P4_MOVES = [0, 0,
+                0, 0,
+                [1,10,-1,-10], [1,10,-1,-10],
+                [21,19,12,8,-21,-19,-12,-8], [21,19,12,8,-21,-19,-12,-8],
+                [11,9,-11,-9], [11,9,-11,-9],
+                [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9],
+                [1,10,11,9,-1,-10,-11,-9], [1,10,11,9,-1,-10,-11,-9]
+               ];
 
-var VALUES=[0, 0,      //Piece values
-            16, 16,    //pawns
-            80, 80,    //rooks
-            48, 48,    //knights
-            48, 48,    //bishops
-            5000, 5000,//kings
-            144, 144,  //queens
-            0];
+var P4_VALUES=[0, 0,      //Piece values
+               16, 16,    //pawns
+               80, 80,    //rooks
+               48, 48,    //knights
+               48, 48,    //bishops
+               5000, 5000,//kings
+               144, 144,  //queens
+               0];
 
-var EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1];
+var P4_EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1];
 
-var BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
-var BASE_PAWN_WEIGHTS;
+var P4_BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
+var P4_BASE_PAWN_WEIGHTS;
 
 /*piece codes:
  *  piece & 2  -> single move piece (including pawn)
@@ -43,14 +43,14 @@ var BASE_PAWN_WEIGHTS;
  *     piece & 4  -> row and column moves
  *     piece & 8  -> diagonal moves
  */
-var PAWN = 2, ROOK = 4, KNIGHT = 6, BISHOP = 8, QUEEN = 12, KING = 10;
-var EDGE = 16;
+var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
+var P4_EDGE = 16;
 
 // fills the board and initialises some look up tables
-function new_game(){
+function p4_new_game(){
     var board = [];
-    BASE_WEIGHTS = [];
-    BASE_PAWN_WEIGHTS = [];
+    P4_BASE_WEIGHTS = [];
+    P4_BASE_PAWN_WEIGHTS = [];
     /* Encoding is base-35
      * g is 16, meaning off board
      * pieces are valued 2, 4, 6, etc,  + 0/1 for white/black
@@ -73,9 +73,9 @@ function new_game(){
         var pawn_weight = parseInt(pawn_weights.charAt(y), 35);
         for(x=0;x<10;x++){
             var i = (y * 10) + x;
-            BASE_PAWN_WEIGHTS[i] = pawn_weight;
-            BASE_WEIGHTS[i] = parseInt(weight_string.charAt((i < 60) ? i : 119 - i),
-                                       35) & 15;
+            P4_BASE_PAWN_WEIGHTS[i] = pawn_weight;
+            P4_BASE_WEIGHTS[i] = parseInt(weight_string.charAt((i < 60) ? i : 119 - i),
+                                          35) & 15;
             board[i]=parseInt(board_string.charAt(i), 35);
             pweights[0][i] = 0;
             pweights[1][i] = 0;
@@ -85,12 +85,12 @@ function new_game(){
             weights[1][i] = 0;
         }
     }
-    board[OFF_BOARD] = 0;
+    board[P4_OFF_BOARD] = 0;
     return {
         board: board,
         enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
         castles: 15,
-        pawn_promotion: [QUEEN, QUEEN],
+        pawn_promotion: [P4_QUEEN, P4_QUEEN],
         to_play: 0, //0: white, 1: black
         taken_piece: 0,
         pweights: pweights,
@@ -103,7 +103,7 @@ function new_game(){
 }
 
 
-function get_castles_mask(s, e, colour){
+function p4_get_castles_mask(s, e, colour){
     var mask = 0;
     var shift = colour * 2;
     var side = colour * 70;
@@ -127,20 +127,16 @@ function get_castles_mask(s, e, colour){
 
 ///////////////////////////treeclimb begins
 
-//comparison function for treeclimb integer sort (descending)
-function comp(a, b){
-    return b[0] - a[0];
-}
 
 /****treeclimber */
-function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
+function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                      castle_state){
     var board = state.board;
     var z = -1;
     var ncolour = 1 - colour;
     score = -score;
     if (score <-400) return [score, s, e];  //if king taken, no deepening.
-    var b = MIN_SCORE;     //best move starts at -infinity
+    var b = P4_MIN_SCORE;     //best move starts at -infinity
     var S = board[s];
     var E = board[e];
     board[e]=S;
@@ -154,12 +150,12 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
-    if(piece == PAWN && board[e + DIRS[moved_colour]] == EDGE){
+    if(piece == P4_PAWN && board[e + P4_DIRS[moved_colour]] == P4_EDGE){
         board[e] = state.pawn_promotion[moved_colour] + moved_colour;
         //update the saved piece locations list
         piece_locations[piece_locations.length - 1][0] = board[e];
     }
-    else if (piece == KING && ((s-e)*(s-e)==4)){  //castling - move rook too
+    else if (piece == P4_KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs = s - 4 + (s < e) * 7;
         re = (s + e) >> 1; //avg of s,e=rook's spot
         rook = moved_colour + 4;
@@ -171,16 +167,18 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         piece_locations.push([rook, re]);
     }
     if (castle_state)
-        castle_state &= get_castles_mask(s, e, moved_colour);
+        castle_state &= p4_get_castles_mask(s, e, moved_colour);
 
-    var movelist = parse(state, colour, ep, castle_state, score);
+    var movelist = p4_parse(state, colour, ep, castle_state, score);
     var movecount = movelist.length;
     var mv, bs, be;
     if (movecount) {
         if(count){
             //BRANCH NODES
             var t;
-            movelist.sort(comp); //descending order
+            movelist.sort(function (a, b){
+                              return b[0] - a[0];
+                          }); //descending order
             count--;
             var best = movelist[0];
             var bscore = best[0];
@@ -188,16 +186,16 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             be = best[2];
             var bep = best[3];
             if (bscore < 400){
-                b=-treeclimber(state, count, ncolour, bscore, bs, be,
-                               -beta, -alpha, bep, castle_state)[0];
+                b=-p4_treeclimber(state, count, ncolour, bscore, bs, be,
+                                  -beta, -alpha, bep, castle_state)[0];
                 for(z=1;z<movecount;z++){
                     if (b>alpha)alpha=b;  //b is best
                     mv = movelist[z];
-                    t = -treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
-                                     -alpha-1, -alpha, mv[3], castle_state)[0];
+                    t = -p4_treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
+                                        -alpha-1, -alpha, mv[3], castle_state)[0];
                     if ((t > alpha) && (t < beta)){
-                        t = -treeclimber(state, count, ncolour,
-                                         mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
+                        t = -p4_treeclimber(state, count, ncolour,
+                                            mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
                     }
                     if (t>b){
                         b=t;
@@ -217,7 +215,7 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             }
         }
         else{
-            b=MIN_SCORE;
+            b=P4_MIN_SCORE;
             //LEAF NODES
             while(--movecount>-1 &&  beta>b){ //***
                 if(movelist[movecount][0]>b){
@@ -261,7 +259,7 @@ function treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
  * so it is OK for it to be a little bit slow.
  */
 
-function prepare(state){
+function p4_prepare(state){
     var i;
     var pieces = state.pieces = [[], []];
     var w_weights = state.weights[0];
@@ -276,7 +274,7 @@ function prepare(state){
     var board = state.board;
 
     // high earliness_weight indicates a low move number
-    var earliness_weight = (moveno < EARLINESS_WEIGHTING.length) ? EARLINESS_WEIGHTING[moveno] : 0;
+    var earliness_weight = (moveno < P4_EARLINESS_WEIGHTING.length) ? P4_EARLINESS_WEIGHTING[moveno] : 0;
     var king_should_hide = moveno < 12;
     var early = moveno < 5;
     var target_king = moveno > 15;
@@ -289,16 +287,16 @@ function prepare(state){
         var colour = a & 1;
         if(piece){
             pieces[colour].push([a, i]);
-            if (piece == KING)
+            if (piece == P4_KING)
                 kings[colour] = i;
             else
-                material[colour] += VALUES[piece];
+                material[colour] += P4_VALUES[piece];
         }
     }
     var white_surplus = material[0] - material[1];
-    var white_winning = white_surplus > VALUES[PAWN];
-    var black_winning = white_surplus < -VALUES[PAWN];
-    var big_margin = parseInt(Math.abs(white_surplus) / (3 * VALUES[PAWN]));
+    var white_winning = white_surplus > P4_VALUES[P4_PAWN];
+    var black_winning = white_surplus < -P4_VALUES[P4_PAWN];
+    var big_margin = parseInt(Math.abs(white_surplus) / (3 * P4_VALUES[P4_PAWN]));
 
     var wkx = kings[0] % 10;
     var wky  = parseInt(kings[0] / 10);
@@ -308,8 +306,8 @@ function prepare(state){
     for (var y = 2; y < 10; y++){
         for (var x = 1; x < 9; x++){
             i = y * 10 + x;
-            b_weights[i] = BASE_WEIGHTS[i] * earliness_weight;
-            w_weights[i] = BASE_WEIGHTS[i] * earliness_weight;
+            b_weights[i] = P4_BASE_WEIGHTS[i] * earliness_weight;
+            w_weights[i] = P4_BASE_WEIGHTS[i] * earliness_weight;
 
             /* encourage them off the back row */
             if (early){
@@ -362,13 +360,12 @@ function prepare(state){
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
              */
-            DEBUG = 1;
-            var wp = parseInt((y >= 4 && early) * (((DEBUG ? 0.5 : Math.random()) + 0.2)
+            var wp = parseInt((y >= 4 && early) * (((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
                                                    * w_weights[i]));
-            var bp = parseInt((y <= 7 && early) * (((DEBUG ? 0.5 : Math.random()) + 0.2)
+            var bp = parseInt((y <= 7 && early) * (((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
                                                    * b_weights[i]));
-            wp_weights[i] = BASE_PAWN_WEIGHTS[i] + wp;
-            bp_weights[i] = BASE_PAWN_WEIGHTS[119 - i] + bp;
+            wp_weights[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
+            bp_weights[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
         }
     }
     if (moveno > 10 && moveno < 30){
@@ -382,13 +379,13 @@ function prepare(state){
 
 
 
-function parse(state, colour, ep, castle_state, score) {
+function p4_parse(state, colour, ep, castle_state, score) {
     var board = state.board;
     var s, e;    //start and end position
     var E,a;       //E=piece at end place, a= piece moving
     var i, z;
     var other_colour = 1 - colour;
-    var dir=DIRS[colour]; //dir= 10 for white, -10 for black
+    var dir=P4_DIRS[colour]; //dir= 10 for white, -10 for black
     var k=-1;
     var movelist=[];
     var weight;
@@ -409,27 +406,27 @@ function parse(state, colour, ep, castle_state, score) {
         if (pieces[z][0]==a){
             a &= 14;
             if(a > 2){    //non-pawns
-                var is_king = a == KING;
+                var is_king = a == P4_KING;
                 var weight_lut = is_king ? kweights : weights;
                 weight = score - weight_lut[s];
-                var moves = MOVES[a];
+                var moves = P4_MOVES[a];
                 if(a & 2){
                     for(i = 0; i < 8; i++){
                         e = s + moves[i];
                         E = board[e];
                         if(!E || (E&17)==other_colour){
-                            movelist[++k]=[weight + VALUES[E] + weight_lut[e], s, e, 0];
+                            movelist[++k]=[weight + P4_VALUES[E] + weight_lut[e], s, e, 0];
                         }
                     }
                     if(is_king && castle_flags){
                         if((castle_flags & 1) &&
                             (board[s-1] + board[s-2] + board[s-3] == 0) &&
-                            check_castling(board, s - 2,other_colour,dir,-1)){//Q side
-                                movelist[++k]=[weight+11, s, s-2, 0];     //no analysis, just encouragement
+                            p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
+                            movelist[++k]=[weight+11, s, s-2, 0];     //no analysis, just encouragement
                         }
                         if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
-                           check_castling(board, s, other_colour, dir, 1)){//K side
-                                movelist[++k]=[weight+12,s,s+2, 0];
+                            p4_check_castling(board, s, other_colour, dir, 1)){//K side
+                            movelist[++k]=[weight+12,s,s+2, 0];
                         }
                     }
                 }
@@ -443,7 +440,7 @@ function parse(state, colour, ep, castle_state, score) {
                             e+=m;
                             E=board[e];
                             if(!E||(E&17)==other_colour){
-                                movelist[++k]=[weight+VALUES[E]+weight_lut[e],s,e,0];
+                                movelist[++k]=[weight+P4_VALUES[E]+weight_lut[e],s,e,0];
                             }
                         }
                     }
@@ -465,7 +462,7 @@ function parse(state, colour, ep, castle_state, score) {
                 for(var h=e-1;h<e+2;h+=2){ //h=-1,1 --for pawn capturing
                     E=board[h] & 15;
                     if(E && (E&1) != colour){
-                        movelist[++k]=[weight+VALUES[E]+pweight[h],s,h,0];
+                        movelist[++k]=[weight+P4_VALUES[E]+pweight[h],s,h,0];
                     }
                 }
             }
@@ -483,7 +480,7 @@ function parse(state, colour, ep, castle_state, score) {
  * side: -1 means Q side; 1, K side
  */
 
-function check_castling(board, s, colour, dir, side){
+function p4_check_castling(board, s, colour, dir, side){
     var e;
     var E;
     var m, p;
@@ -491,8 +488,8 @@ function check_castling(board, s, colour, dir, side){
     var rook = colour + 4;
     var knight = colour + 6;
     var bishop = colour + 8;
-    var queen = colour + QUEEN;
-    var king = colour + KING;
+    var queen = colour + P4_QUEEN;
+    var king = colour + P4_KING;
 
     /* go through 3 positions, checking for check in each
      */
@@ -541,7 +538,7 @@ function check_castling(board, s, colour, dir, side){
 
 
 
-function dump_board(board, name){
+function p4_dump_board(board, name){
     if (name !== undefined)
         console.log(name);
     for (var y = 0; y < 12; y++){
@@ -550,23 +547,23 @@ function dump_board(board, name){
     }
 }
 
-function dump_state(state){
-    dump_board(state.weights[0], 'w weights');
-    dump_board(state.weights[1], 'b weights');
-    dump_board(state.pweights[0], 'w p weights');
-    dump_board(state.pweights[1], 'b p weights');
-    dump_board(state.kweights[0], 'w king weights');
-    dump_board(state.kweights[1], 'b king weights');
+function p4_dump_state(state){
+    p4_dump_board(state.weights[0], 'w weights');
+    p4_dump_board(state.weights[1], 'b weights');
+    p4_dump_board(state.pweights[0], 'w p weights');
+    p4_dump_board(state.pweights[1], 'b p weights');
+    p4_dump_board(state.kweights[0], 'w king weights');
+    p4_dump_board(state.kweights[1], 'b king weights');
     console.log("pieces", state.pieces);
 }
 
 //************************************* findmove();
 
-function findmove(state, level){
-    prepare(state);
-    var t=treeclimber(state, level, state.to_play, 0,
-                      OFF_BOARD, OFF_BOARD,
-                      MIN_SCORE, MAX_SCORE,
+function p4_findmove(state, level){
+    p4_prepare(state);
+    var t=p4_treeclimber(state, level, state.to_play, 0,
+                      P4_OFF_BOARD, P4_OFF_BOARD,
+                      P4_MIN_SCORE, P4_MAX_SCORE,
                       state.enpassant, state.castles);
     console.log(t[0]);
     return [t[1], t[2]];
@@ -584,19 +581,19 @@ function findmove(state, level){
 
 */
 
-var MOVE_FLAG_OK = 1;
-var MOVE_FLAG_CHECK = 2;
-var MOVE_FLAG_MATE = 4;
-var MOVE_FLAG_CAPTURE = 8;
-var MOVE_FLAG_CASTLE_KING = 16;
-var MOVE_FLAG_CASTLE_QUEEN = 32;
+var P4_MOVE_FLAG_OK = 1;
+var P4_MOVE_FLAG_CHECK = 2;
+var P4_MOVE_FLAG_MATE = 4;
+var P4_MOVE_FLAG_CAPTURE = 8;
+var P4_MOVE_FLAG_CASTLE_KING = 16;
+var P4_MOVE_FLAG_CASTLE_QUEEN = 32;
 
-var MOVE_ILLEGAL = 0;
-var MOVE_MISSED_MATE = MOVE_FLAG_CHECK | MOVE_FLAG_MATE;
-var MOVE_CHECKMATE = MOVE_FLAG_OK | MOVE_FLAG_CHECK | MOVE_FLAG_MATE;
-var MOVE_STALEMATE = MOVE_FLAG_OK | MOVE_FLAG_MATE;
+var P4_MOVE_ILLEGAL = 0;
+var P4_MOVE_MISSED_MATE = P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
+var P4_MOVE_CHECKMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
+var P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
 
-function move(state, s, e){
+function p4_move(state, s, e){
     var board = state.board;
     var colour = state.to_play;
     var E=board[e];
@@ -608,15 +605,15 @@ function move(state, s, e){
      * If the computer suggests (s == 0 && e == 0), treeclimber found no
      * pieces to move, which is an extreme case of stalemate.
      */
-    if((E&14) == KING || (s == 0 && e == 0)){
+    if((E&14) == P4_KING || (s == 0 && e == 0)){
         console.log('checkmate - got thru checks');
-        return MOVE_MISSED_MATE;
+        return P4_MOVE_MISSED_MATE;
     }
 
     /*see if this move is even slightly legal, disregarding check.*/
     var legal = false;
-    prepare(state);
-    var p = parse(state, colour, state.enpassant, state.castles, 0);
+    p4_prepare(state);
+    var p = p4_parse(state, colour, state.enpassant, state.castles, 0);
     for (var z = 0; z < p.length; z++){
         if (s == p[z][1] && e == p[z][2]){
             legal = true;
@@ -626,7 +623,7 @@ function move(state, s, e){
     if (! legal) {
         console.log('no such move!', p,
                     ' s,e', s, e,' S,E', S, E);
-        return MOVE_ILLEGAL;
+        return P4_MOVE_ILLEGAL;
     }
 
     /*now try the move, and see what the response is.
@@ -639,53 +636,53 @@ function move(state, s, e){
      *    (but maybe stalemate).
      *
     */
-    var t = treeclimber(state, 1, 1 - colour, 0, s, e, MIN_SCORE, MAX_SCORE,
-                        state.enpassant, state.castles);
+    var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
+                           state.enpassant, state.castles);
     var in_check = t[0] > 400;
     var is_mate = t[0] < -400;
 
     if (in_check) {
         console.log('in check', t);
-        return MOVE_ILLEGAL;
+        return P4_MOVE_ILLEGAL;
     }
     /* see if it is check already -- that is, if we have another move now,
      * can we get the king?
      *
      * NB: state.enpassant is irrelevant
      */
-    t = treeclimber(state, 0, colour, 0, s, e, MIN_SCORE, MAX_SCORE,
-                    0, state.castles);
+    t = p4_treeclimber(state, 0, colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
+                       0, state.castles);
     var is_check = t[0] > 400;
 
-    modify_state_for_move(state, s, e);
+    p4_modify_state_for_move(state, s, e);
 
-    var castle_q = (S == KING) && (s - e == -2) ? MOVE_FLAG_CASTLE_QUEEN : 0;
-    var castle_k = (S == KING) && (s - e == 2) ? MOVE_FLAG_CASTLE_KING : 0;
-    var capture = E ? MOVE_FLAG_CAPTURE : 0;
+    var castle_q = (S == P4_KING) && (s - e == -2) ? P4_MOVE_FLAG_CASTLE_QUEEN : 0;
+    var castle_k = (S == P4_KING) && (s - e == 2) ? P4_MOVE_FLAG_CASTLE_KING : 0;
+    var capture = E ? P4_MOVE_FLAG_CAPTURE : 0;
     var flags = capture | castle_q | castle_k;
 
     if (is_check && is_mate){
-        return flags | MOVE_CHECKMATE;
+        return flags | P4_MOVE_CHECKMATE;
     }
     if (is_check){
-        return flags | MOVE_FLAG_OK | MOVE_FLAG_CHECK;
+        return flags | P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK;
     }
     if (is_mate){
-        return flags | MOVE_STALEMATE;
+        return flags | P4_MOVE_STALEMATE;
     }
-    return flags | MOVE_FLAG_OK;
+    return flags | P4_MOVE_FLAG_OK;
 }
 
-function modify_state_for_move(state, s, e){
+function p4_modify_state_for_move(state, s, e){
     var board = state.board;
     var colour = state.to_play;
     state.history.push([s, e]);
     var gap = e - s;
     var piece = board[s] & 14;
-    var dir = DIRS[colour];
-    if (piece == PAWN){
+    var dir = P4_DIRS[colour];
+    if (piece == P4_PAWN){
         /*queening*/
-        if(board[e + dir] == EDGE)
+        if(board[e + dir] == P4_EDGE)
             board[s] = state.pawn_promotion[colour] + colour;
 
         /* setting en passant flag*/
@@ -699,7 +696,7 @@ function modify_state_for_move(state, s, e){
             board[e - dir] = 0;
         }
     }
-    else if(piece == KING && gap * gap == 4){  //castling - move rook too
+    else if(piece == P4_KING && gap * gap == 4){  //castling - move rook too
         var rs = s - 4 + (s < e) * 7;
         var re = (s + e) >> 1;
         board[re] = board[rs];
@@ -708,7 +705,7 @@ function modify_state_for_move(state, s, e){
     }
 
     if (state.castles){
-        state.castles &= get_castles_mask(s, e, colour);
+        state.castles &= p4_get_castles_mask(s, e, colour);
         console.debug("castle state", state.castles);
     }
     board[e] = board[s];
@@ -718,7 +715,7 @@ function modify_state_for_move(state, s, e){
 }
 
 
-function jump_to_moveno(state, moveno){
+function p4_jump_to_moveno(state, moveno){
     console.log('jumping to move', moveno);
     var i;
     if (moveno === undefined || moveno > state.moveno)
@@ -727,7 +724,7 @@ function jump_to_moveno(state, moveno){
         moveno = state.moveno - moveno - 1;
     }
     var history = state.history;
-    var state2 = new_game();
+    var state2 = p4_new_game();
     for (i = 0; i < moveno; i++){
         var m = history[i];
         move(state2, m[0], m[1]);
