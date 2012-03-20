@@ -20,6 +20,7 @@
   float: left;
   overflow: auto;
   width: 10em;
+  height: 90%;
 }
 
 #controls{
