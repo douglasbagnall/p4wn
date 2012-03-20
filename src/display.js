@@ -12,8 +12,15 @@ var input = {
     start: 0,     // start click - used in display.js
     inhand: 0,     // piece in hand (ie, during move)
     board_state: p4_new_game(),
-    players: ['human', 'computer'] //[white, black] controllers
+    players: ['human', 'computer'], //[white, black] controllers
+    pawn_becomes: 0, //index into PROMOTIONS array
+    computer_level: 2
 };
+
+var PROMOTIONS = ['rook', 'knight', 'bishop', 'queen'];
+
+var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
+
 
 var IMAGE_NAMES = [
     'images/empty.gif',
@@ -78,12 +85,22 @@ function square_clicked(square){
     }
 }
 
+function update_promotions(state, name){
+    for (var i = 0; i < 2; i++){
+        if (input.players[i] == 'human')
+            p4_set_pawn_promotion(state, i, name);
+        else
+            p4_set_pawn_promotion(state, i, undefined);
+    }
+}
+
 
 var auto_play_timeout_ID;
 
 function next_move(){
     var state = input.board_state;
     var mover = state.to_play;
+    update_promotions(state, PROMOTIONS[input.pawn_becomes]);
     if (input.players[mover] == 'computer' &&
         auto_play_timeout_ID === undefined){
         var timeout = (input.players[1 - mover] == 'computer') ? 500: 10;
@@ -95,7 +112,7 @@ function computer_move(){
     auto_play_timeout_ID = undefined;
     var state = input.board_state;
     var s, e, mv;
-    mv = p4_findmove(state, 3);
+    mv = p4_findmove(state, input.computer_level + 1);
     s = mv[0], e = mv[1];
     var move_result = p4_move(state, s, e);
     if (move_result){
@@ -211,7 +228,7 @@ function show_piece_in_hand(piece){
 
 function click_closure(n){
     return function(e){
-        square_clicked(input.player ? 119 - n : n);
+        square_clicked(input.orientation ? 119 - n : n);
     };
 }
 
@@ -312,6 +329,26 @@ var CONTROLS = [
                 el.innerHTML = '<b>swap</b>';
             else
                 el.innerHTML = 'swap';
+        }
+    },
+    {
+        label: 'pawn becomes <b>queen</b>',
+        id: 'pawn_promotion_button',
+        onclick: function(e){
+            var x = (input.pawn_becomes + 1) % PROMOTIONS.length;
+            input.pawn_becomes = x;
+            e.currentTarget.innerHTML = 'pawn becomes <b>' + PROMOTIONS[x] + '</b>';
+        }
+    },
+    {
+        id: 'computer_level_button',
+        onclick: function(e){
+            var x = (input.computer_level + 1) % LEVELS.length;
+            input.computer_level = x;
+            e.currentTarget.innerHTML = 'computer level: <b>' + LEVELS[x] + '</b>';
+        },
+        refresh: function(el){
+            el.innerHTML = 'computer level: <b>' + LEVELS[input.computer_level] + '</b>';
         }
     },
     {

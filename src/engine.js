@@ -727,7 +727,7 @@ function p4_jump_to_moveno(state, moveno){
     var state2 = p4_new_game();
     for (i = 0; i < moveno; i++){
         var m = history[i];
-        move(state2, m[0], m[1]);
+        p4_move(state2, m[0], m[1]);
     }
     /* copy the replayed state accross, not all that deeply, but
      * enough to cover, eg, held references to board. */
@@ -746,4 +746,22 @@ function p4_jump_to_moveno(state, moveno){
             state[attr] = src;
         }
     }
+}
+
+/* setting the promotion to undefined lets the computer choose.
+ * (thus far, it always chooses queen).
+ */
+function p4_set_pawn_promotion(state, colour, name){
+    var piece;
+    if (name === undefined)
+        piece = P4_QUEEN;
+    else {
+        piece = {
+            rook: P4_ROOK,
+            knight: P4_KNIGHT,
+            bishop: P4_BISHOP,
+            queen: P4_QUEEN
+        }[name.toLowerCase()] || P4_QUEEN;
+    }
+    state.pawn_promotion[colour] = piece;
 }
