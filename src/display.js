@@ -18,9 +18,8 @@ var input = {
 };
 
 var PROMOTIONS = ['queen', 'rook', 'knight', 'bishop'];
-
+var ROTATE_BOARD = true;
 var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
-
 var SQUEEZE_INTO_BOX = true;
 
 var IMAGE_NAMES = [
@@ -273,7 +272,7 @@ function refresh_buttons(){
 
 function maybe_rotate_board(){
     var p = input.players;
-    if (p[0] != p[1]){
+    if (p[0] != p[1] && ROTATE_BOARD){
         input.orientation = p[0] == 'computer' ? 1 : 0;
         refresh();
     }
@@ -318,7 +317,7 @@ var CONTROLS = [
             var tmp = p[0];
             p[0] = p[1];
             p[1] = tmp;
-            if (p[0] != p[1])
+            if (p[0] != p[1] && ROTATE_BOARD)
                 input.orientation = 1 - input.orientation;
 
             refresh_buttons();
