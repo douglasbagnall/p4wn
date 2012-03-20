@@ -1,12 +1,12 @@
 
 body {
  font-family:  "Georgia", serif;
- color: #333; 
+ color: #333;
  background: white;
 }
 
 div.main {
- color: #333; 
+ color: #333;
  margin: 0px 50px 0px 250px;
 }
 
@@ -43,7 +43,7 @@ div.bottom {
 h1 {
  color: #000;
  font-family: "Georgia", serif;
- font-weight: normal; 
+ font-weight: normal;
  margin: 40px 0px 0px -10px;
  font-size: 1.5em;
 }
@@ -58,6 +58,24 @@ h2 {
 
 h3 {
  color: #333;
- font-weight: bold; 
+ font-weight: bold;
  font-size: 1em;
+}
+
+span.control-button {
+  padding: 0px 2px;
+  font-size: 9px;
+}
+
+div.log_move {
+  padding: 0px 2px;
+}
+
+#chessboard {
+  padding: 5px 0;
+}
+
+#log {
+  width: 80px;
+  font-size: 9px;
 }
