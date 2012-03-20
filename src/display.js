@@ -390,7 +390,7 @@ function squeeze_into_box(){
     var div = document.getElementById('log');
     div.style.height = (SQUARE_HEIGHT * 9) + 'px';
     var div2 = document.getElementById('controls');
-    div2.style.width = (SQUARE_WIDTH * 11) + 'px';
+    div2.style.width = (SQUARE_WIDTH * 9 + 90) + 'px';
     div2.style.clear = 'both';
 }
 

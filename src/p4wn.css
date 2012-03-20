@@ -28,8 +28,11 @@
 }
 
 .control-button {
-  padding: 0px 7px;
+  padding: 0px 5px;
   cursor: pointer;
+  white-space: nowrap;
+  display: inline-block;
+  margin: 1px;
 }
 
 .log_move {
