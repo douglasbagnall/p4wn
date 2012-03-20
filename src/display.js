@@ -177,6 +177,7 @@ function display_move_text(moveno, s, e, flags){
                               };
                           }(moveno),
                           true);
+    div.scrollTop = 999999;
 }
 
 function goto_move(n){
