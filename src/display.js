@@ -21,6 +21,7 @@ var PROMOTIONS = ['queen', 'rook', 'knight', 'bishop'];
 
 var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
 
+var SQUEEZE_INTO_BOX = true;
 
 var IMAGE_NAMES = [
     'images/empty.gif',
@@ -384,8 +385,20 @@ function write_controls_html(){
     }
 }
 
+//hacky thing to make the log fit beside the board.
+function squeeze_into_box(){
+    var div = document.getElementById('log');
+    div.style.height = (SQUARE_HEIGHT * 9) + 'px';
+    var div2 = document.getElementById('controls');
+    div2.style.width = (SQUARE_WIDTH * 11) + 'px';
+    div2.style.clear = 'both';
+}
+
+
 write_board_html();
 write_controls_html();
+if (SQUEEZE_INTO_BOX)
+    squeeze_into_box();
 
 
 
