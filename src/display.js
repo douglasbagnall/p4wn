@@ -174,11 +174,9 @@ function goto_move(n){
 }
 
 
-//refresh: redraw screen from board, from colour's point of view
+//refresh: redraw screen from board
 
-function refresh(colour){
-    if (colour)
-        input.orientation = colour;
+function refresh(){
     for (var i = 20; i < 100; i++){
         if(input.board_state.board[i] != P4_EDGE)
             show_image(i, input.board_state.board[i]);
@@ -186,7 +184,7 @@ function refresh(colour){
 }
 
 function show_image(img, piece){
-    var id = "i" + (input.player ? 119 - img : img);
+    var id = "i" + (input.orientation ? 119 - img : img);
     var e = document.getElementById(id);
     if (e)
         e.src = IMAGE_NAMES[piece];
@@ -232,11 +230,12 @@ function write_board_html(){
             var z = y + x;
             var td = new_child(tr, "td");
             td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
+            td.addEventListener("click",
+                                click_closure(z),
+                                true);
+
             var img = new_child(td, "img");
             img.id = "i" + z;
-            img.addEventListener("click",
-                                 click_closure(z),
-                                 true);
             img.src = IMAGE_NAMES[0];
             img.width= SQUARE_WIDTH;
             img.height= SQUARE_HEIGHT;
@@ -244,44 +243,75 @@ function write_board_html(){
     }
 }
 
+function refresh_buttons(){
+    for (var x in CONTROLS){
+        var o = CONTROLS[x];
+        if (o.refresh === undefined)
+            continue;
+        var e = document.getElementById(o.id);
+        o.refresh(e);
+    }
+}
+
+function maybe_rotate_board(){
+    var p = input.players;
+    if (p[0] != p[1]){
+        input.orientation = p[0] == 'computer' ? 1 : 0;
+        refresh();
+    }
+}
+
+
 var CONTROLS = [
     {
-        label: 'swap sides',
+        id: 'toggle_white_button',
+        onclick: function(e){
+            input.players[0] = (input.players[0] == 'human') ? 'computer' : 'human';
+            refresh_buttons();
+            maybe_rotate_board();
+            next_move();
+        },
+        refresh: function(el){
+            if (input.players[0] == 'human')
+                el.innerHTML = 'white <img src="images/human.png" alt="human">';
+            else
+                el.innerHTML = 'white <img src="images/computer.png" alt="computer">';
+        }
+    },
+    {
+        id: 'toggle_black_button',
+        onclick: function(e){
+            input.players[1] = (input.players[1] == 'human') ? 'computer' : 'human';
+            refresh_buttons();
+            maybe_rotate_board();
+            next_move();
+        },
+        refresh: function(el){
+            if (input.players[1] == 'human')
+                el.innerHTML = 'black <img src="images/human.png" alt="human">';
+            else
+                el.innerHTML = 'black <img src="images/computer.png" alt="computer">';
+        }
+    },
+    {
         id: 'swap_button',
         onclick: function(e){
             var p = input.players;
             var tmp = p[0];
             p[0] = p[1];
             p[1] = tmp;
+            if (p[0] != p[1])
+                input.orientation = 1 - input.orientation;
+
+            refresh_buttons();
+            maybe_rotate_board();
             next_move();
-        }
-    },
-    {
-        label: 'computer vs computer',
-        id: 'cvc_button',
-        onclick: function(e){
-            input.players = ['computer', 'computer'];
-            next_move();
-        }
-    },
-    {
-        label: 'human vs computer',
-        id: 'hvc_button',
-        onclick: function(e){
-            var p = input.players;
-            if (p[0] == p[1]){
-                p[0] = 'human';
-                p[1] = 'computer';
-            }
-            next_move();
-        }
-    },
-    {
-        label: 'human vs human',
-        id: 'hvh_button',
-        onclick: function(e){
-            input.players = ['human', 'human'];
-            next_move();
+        },
+        refresh: function(el){
+            if (input.players[0] != input.players[1])
+                el.innerHTML = '<b>swap</b>';
+            else
+                el.innerHTML = 'swap';
         }
     },
     {
@@ -304,7 +334,12 @@ function write_controls_html(){
         var span = new_child(div, "span");
         span.className = 'control-button';
         span.id = o.id;
-        span.innerHTML = o.label;
+        if (o.label){
+            span.innerHTML = o.label;
+        }
+        else {
+            o.refresh(span);
+        }
         span.addEventListener("click",
                               o.onclick,
                               true);
