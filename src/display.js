@@ -17,7 +17,7 @@ var input = {
     computer_level: 2
 };
 
-var PROMOTIONS = ['rook', 'knight', 'bishop', 'queen'];
+var PROMOTIONS = ['queen', 'rook', 'knight', 'bishop'];
 
 var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
 
@@ -332,7 +332,7 @@ var CONTROLS = [
         }
     },
     {
-        label: 'pawn becomes <b>queen</b>',
+        label: 'pawn becomes <b>' + PROMOTIONS[input.pawn_becomes] + '</b>',
         id: 'pawn_promotion_button',
         onclick: function(e){
             var x = (input.pawn_becomes + 1) % PROMOTIONS.length;
