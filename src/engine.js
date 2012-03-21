@@ -561,12 +561,16 @@ function p4_dump_state(state){
 //************************************* findmove();
 
 function p4_findmove(state, level){
+    var fen1 = p4_state2fen(state);
     p4_prepare(state);
     var t=p4_treeclimber(state, level, state.to_play, 0,
                       P4_OFF_BOARD, P4_OFF_BOARD,
                       P4_MIN_SCORE, P4_MAX_SCORE,
                       state.enpassant, state.castles);
-    console.log(t[0]);
+    var fen2 = p4_state2fen(state);
+    console.log(fen1, t[0]);
+    if (fen1 != fen2)
+        console.log("state after findmove differs", fen2);
     return [t[1], t[2]];
 }
 
