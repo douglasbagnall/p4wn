@@ -98,6 +98,7 @@ function p4_new_game(){
         weights: weights,
         pieces: [],
         moveno: 0,
+        draw_timeout: 0, //should increment for each move not captuing or moving a pawn
         history: []
     };
 }
@@ -764,4 +765,60 @@ function p4_set_pawn_promotion(state, colour, name){
         }[name.toLowerCase()] || P4_QUEEN;
     }
     state.pawn_promotion[colour] = piece;
+}
+
+/* write a standard FEN notation
+ * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+ * */
+function p4_state2fen(state){
+    var FEN_LUT = '  PpRrNnBbKkQq';
+    var board = state.board;
+    var fen = '';
+    for (var y = 9; y > 1; y--){
+        var row = '';
+        var count = 0;
+        for (var x = 1; x < 9; x++){
+            var piece = board[y * 10 + x];
+            if (piece == 0)
+                count++;
+            else{
+                if (count)
+                    row += count.toString();
+                row += FEN_LUT.charAt(piece);
+                count = 0;
+            }
+        }
+        if (count)
+            row += count;
+        fen += row;
+        if (y < 9)
+            fen += '/';
+    }
+    /*white or black */
+    fen += ' ' + 'wb'.charAt(state.to_play) + ' ';
+    /*castling */
+    if (state.castles){
+        for (var i = 0; i < 4; i++){
+            if ((state.castles >> i) & 1)
+                fen += 'KQkq'.charAt(i);
+        }
+    }
+    else
+        fen += '-';
+    /*enpassant */
+    if (state.enpassant !== 0){
+        fen += ' ' + p4_stringify_point(state.enpassant) + ' ';
+    }
+    else
+        fen += ' - ';
+    fen += state.draw_timeout + ' ';
+    fen += (state.moveno >> 1) + 1;
+    return fen;
+}
+
+function p4_stringify_point(p){
+    var letters = " abcdefgh";
+    var x = p % 10;
+    var y = (p - x) / 10 - 1;
+    return letters.charAt(x) + y;
 }

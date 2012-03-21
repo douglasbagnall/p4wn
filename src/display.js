@@ -103,18 +103,6 @@ function computer_move(){
 }
 
 
-
-
-//*******************************shift & display
-
-function stringify_point(p){
-    var letters = " abcdefgh";
-    var x = p % 10;
-    var y = (p - x) / 10 - 1;
-    return letters.charAt(x) + y;
-}
-
-
 function display_move_text(moveno, s, e, flags){
     var mn;
     console.log(moveno, s, e, flags);
@@ -141,7 +129,7 @@ function display_move_text(moveno, s, e, flags){
     else if (flags & P4_MOVE_FLAG_CASTLE_KING)
         msg = 'O-O';
     else
-        msg = stringify_point(s) + ((flags & P4_MOVE_FLAG_CAPTURE) ? 'x' : '-') + stringify_point(e);
+        msg = p4_stringify_point(s) + ((flags & P4_MOVE_FLAG_CAPTURE) ? 'x' : '-') + p4_stringify_point(e);
 
     item.innerHTML = mn + msg + tail;
     item.id = "move_" + moveno;
