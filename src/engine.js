@@ -818,3 +818,75 @@ function p4_stringify_point(p){
     var y = (p - x) / 10 - 1;
     return letters.charAt(x) + y;
 }
+
+function p4_destringify_point(p){
+    var y = parseInt(p.charAt(0), 19) - 8; //a-h <-> 10-18, base 19
+    var x = parseInt(p.charAt(1));
+    if (y > 1 && y < 10 && x > 1 && x < 9)
+        return y * 10 + x;
+    return undefined;
+}
+
+/* read a standard FEN notation
+ * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+ * */
+function p4_fen2state(fen, state){
+    if (state === undefined)
+        state = p4_new_game();
+    var BOARD_LUT = {
+        'P': 2,
+        'p': 3,
+        'R': 4,
+        'R': 5,
+        'N': 6,
+        'n': 7,
+        'B': 8,
+        'b': 9,
+        'K': 10,
+        'k': 11,
+        'Q': 12,
+        'q': 13
+    };
+    var board = state.board;
+    var fenbits = fen.split(' ');
+    var fen_board = fenbits[0];
+    var fen_toplay = fenbits[1];
+    var fen_castles = fenbits[2];
+    var fen_enpassant = fenbits[3];
+    var fen_timeout = fenbits[4];
+    var fen_moveno = fenbits[5];
+
+    //fen does Y axis backwards, X axis forwards */
+    /* fragile!*/
+    var i = 91;
+    for (var j = 0; j < fen_board.length; j++){
+        var c = fenboard.charAt(j);
+        if (c == '/'){
+            i -= 18;
+            continue;
+        }
+        var piece = BOARD_LUT[c];
+        if (piece !== undefined){
+            board[i] = piece;
+            i++;
+        }
+        else {
+            var end = i + parseInt(c);
+            for (; i < end; i++){
+                board[i] = 0;
+            }
+        }
+    }
+    state.to_play = fen_toplay.toLowerCase() == 'b';
+    state.castles = 0;
+    for (i = 0; i < fen_castles.length; i++){
+        var bit = {'q': 8, 'k': 4, 'Q': 2, 'K': 1}[fen_castles.charAt(i)];
+        state.castles |= (bit || 0);
+    }
+    if (fen_enpassant != '-'){
+        state.enpassant = p4_destringify_point(fen_enpassant);
+    }
+    state.enpassant = parseInt(fen_timeout);
+    state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
+    return state;
+}
