@@ -686,7 +686,13 @@ function p4_modify_state_for_move(state, s, e){
     var piece = board[s] & 14;
     var dir = P4_DIRS[colour];
     state.enpassant = 0;
+    /*draw timeout: 50 moves with pawn move or capture is a draw */
+    if (board[e])
+        state.draw_timeout = 0;
+    else
+        state.draw_timeout++;
     if (piece == P4_PAWN){
+        state.draw_timeout = 0;
         /*queening*/
         if(board[e + dir] == P4_EDGE)
             board[s] = state.pawn_promotion[colour] + colour;
