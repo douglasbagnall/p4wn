@@ -685,6 +685,7 @@ function p4_modify_state_for_move(state, s, e){
     var gap = e - s;
     var piece = board[s] & 14;
     var dir = P4_DIRS[colour];
+    state.enpassant = 0;
     if (piece == P4_PAWN){
         /*queening*/
         if(board[e + dir] == P4_EDGE)
