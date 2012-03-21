@@ -781,7 +781,7 @@ function p4_set_pawn_promotion(state, colour, name){
 /* write a standard FEN notation
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  * */
-function p4_state2fen(state){
+function p4_state2fen(state, reduced){
     var FEN_LUT = '  PpRrNnBbKkQq';
     var board = state.board;
     var fen = '';
@@ -817,11 +817,17 @@ function p4_state2fen(state){
         fen += '-';
     /*enpassant */
     if (state.enpassant !== 0){
-        fen += ' ' + p4_stringify_point(state.enpassant) + ' ';
+        fen += ' ' + p4_stringify_point(state.enpassant);
     }
     else
-        fen += ' - ';
-    fen += state.draw_timeout + ' ';
+        fen += ' -';
+    if (reduced){
+        /*if the 'reduced flag is set, the move number and draw
+         *timeout are not added. This form is used to detect draws by
+         *3-fold repetition.*/
+        return fen;
+    }
+    fen += ' ' + state.draw_timeout + ' ';
     fen += (state.moveno >> 1) + 1;
     return fen;
 }
