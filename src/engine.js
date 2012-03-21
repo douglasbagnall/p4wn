@@ -686,7 +686,7 @@ function p4_modify_state_for_move(state, s, e){
     var piece = board[s] & 14;
     var dir = P4_DIRS[colour];
     state.enpassant = 0;
-    /*draw timeout: 50 moves with pawn move or capture is a draw */
+    /*draw timeout: 50 moves without pawn move or capture is a draw */
     if (board[e])
         state.draw_timeout = 0;
     else
@@ -785,8 +785,8 @@ function p4_state2fen(state){
     var FEN_LUT = '  PpRrNnBbKkQq';
     var board = state.board;
     var fen = '';
+    //fen does Y axis backwards, X axis forwards */
     for (var y = 9; y > 1; y--){
-        var row = '';
         var count = 0;
         for (var x = 1; x < 9; x++){
             var piece = board[y * 10 + x];
@@ -794,15 +794,14 @@ function p4_state2fen(state){
                 count++;
             else{
                 if (count)
-                    row += count.toString();
-                row += FEN_LUT.charAt(piece);
+                    fen += count.toString();
+                fen += FEN_LUT.charAt(piece);
                 count = 0;
             }
         }
         if (count)
-            row += count;
-        fen += row;
-        if (y < 9)
+            fen += count;
+        if (y > 2)
             fen += '/';
     }
     /*white or black */
