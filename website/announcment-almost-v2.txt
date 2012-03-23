@@ -1,0 +1,116 @@
+Almost version 2 of p4wn, the smallish javascript chess engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+P4wn is a web page that can play chess. It first appeared in public in
+2002 as an entry in a 5kB web page contest, and this origin--combined
+with an absence of version control--made the code fairly inscrutable.
+In 2004 it gained a Sourceforge page, CVS, and a number of
+contributors whose efforts settled into in a pattern of baffled forks.
+The bad graphics and obvious bugs were fixed numerous times in
+incompatible ways, with these efforts never coalescing into anything
+that could be called progress.
+
+Obviously, software like p4wn is a complete waste of time and also
+sort of remarkable for its stupid heroism. This kind of work tends to
+afflict its authors with intertwined feelings of pride and shame,
+neither of which are conducive to radical rewrites, let alone in
+concert. But with time the aching identification of the self with the
+work fades, and the author is left with curiosity and an irritating
+desire to make a handful of specific changes. A vital one-line patch
+pops up and lingers in memory like a too-late unsaid rebuttal. The
+context might be murky or lost, but you belatedly know what you needed
+to do.
+
+Thus it was in March 2012 that P4wn's original author, Douglas
+Bagnall, found himself rewriting the program based on a mixture of old
+back-up files, reverse engineering, and memory. But by the time he had
+de-obfuscated and disentangled the code enough to fix it, most of the
+changes he had in mind had lost their urgency or somehow vanished. So
+here we have the original program with almost every constituent
+character replaced, yet performing the same naive algorithms using
+many of the original byte-saving constructs.
+
+Changes in (almost) version 2:
+==============================
+
+* Rewritten for clarity and to ease modification (the TL;DR).
+
+* No interesting new features from a user perspective, except perhaps
+  the ability to play the computer against itself.
+
+* Perhaps slightly worse play at the same level of search (due to a
+  shift to pure integers in move weighting and consequent de-tuning).
+
+* P4wn 1 would sometimes play on after checkmate, which annoyed
+  people. Fixed.
+
+* Git replaces CVS.
+
+* The Sourceforge repository is mirrored on Github so that javascript
+  programmers might know it exists.
+
+* The interface code has been separated from the engine, with the
+  interface intended as a minimal example (actually, you could say
+  that about both parts).
+
+* Various changes have been made to suit modern browsers. Most
+  variables are now treated as-if-statically-typed, to please the
+  JITs, and all uses of eval() have gone. The benefit of these changes
+  has not been confirmed empirically.
+
+* P4wn 2 no longer supports Netscape 3 or 4 or MSIE 4 or 5. Probably
+  the engine would still work for them, but the interface has
+  given up on the pre-DOM world.
+
+* P4wn 2 on an intel i5-540M seems over a thousand times faster than
+  P4wn 1 did on a K6-300 (that is it can search two ply deeper in
+  similar or less time). P4wn 1 is also quicker on the i5, of course.
+
+* CC-zero dedication added to the original public domain one, to cover
+  public-domain-less jurisdictions. Just in case.
+
+* The name "p4wn", was originally intended only as the sourceforge
+  subdomain, not to apply to the program itself. People universally
+  assumed otherwise, so the name has now been explicitly adopted.
+
+
+Contributors.
+=============
+
+These people (and others I have forgotten) created p4wn:
+
+* Douglas Bagnall
+* Sven Vahar
+* Antony Lesuisse
+* Ron Winter
+* Chris Lear
+
+
+Further information
+===================
+
+The home page: http://p4wn.sf.net
+
+The mailing list (in the order of 2 messages a year):
+https://lists.sourceforge.net/lists/listinfo/p4wn-chess
+
+Sourceforge git repository:
+http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn;a=summary
+git://p4wn.git.sourceforge.net/gitroot/p4wn/p4wn
+
+Github, which marks up the README nicely:
+https://github.com/douglasbagnall/p4wn
+git://github.com/douglasbagnall/p4wn.git
+
+
+Alternatives
+============
+
+If you want a very small obfuscated chess-playing program, you can't
+go past the work of Óscar Toledo G. at
+http://nanochess.110mb.com/chess4.html.
+
+If you want a webpage that plays chess reasonably well and uses real
+chess programming techniques, look at Gary Linscott's GarboChess-JS at
+http://forwardcoding.com/projects/ajaxchess/chess.html. It is BSD
+licenced.
