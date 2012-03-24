@@ -29,6 +29,7 @@ div.nav {
 div.nav a {
  color: #347;
  display: block;
+ width: 200px;
 }
 div.nav a:visited {
  color: #437;
