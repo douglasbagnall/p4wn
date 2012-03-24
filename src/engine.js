@@ -9,7 +9,6 @@
 var P4_MAX_SCORE = 9999;    // extremes of evaluation range
 var P4_MIN_SCORE = -P4_MAX_SCORE;
 
-var P4_DIRS = [10, -10];
 var P4_OFF_BOARD = 120;
 var P4_DEBUG = 0;
 
@@ -151,7 +150,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
-    if(piece == P4_PAWN && board[e + P4_DIRS[moved_colour]] == P4_EDGE){
+    if(piece == P4_PAWN && board[e + (10 - 20 * moved_colour)] == P4_EDGE){
         board[e] = state.pawn_promotion[moved_colour] + moved_colour;
         //update the saved piece locations list
         piece_locations[piece_locations.length - 1][0] = board[e];
@@ -386,7 +385,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
     var E,a;       //E=piece at end place, a= piece moving
     var i, z;
     var other_colour = 1 - colour;
-    var dir=P4_DIRS[colour]; //dir= 10 for white, -10 for black
+    var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
     var k=-1;
     var movelist=[];
     var weight;
@@ -684,7 +683,7 @@ function p4_modify_state_for_move(state, s, e){
     state.history.push([s, e]);
     var gap = e - s;
     var piece = board[s] & 14;
-    var dir = P4_DIRS[colour];
+    var dir = (10 - 20 * colour);
     state.enpassant = 0;
     /*draw timeout: 50 moves without pawn move or capture is a draw */
     if (board[e])
