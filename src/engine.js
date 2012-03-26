@@ -5,13 +5,6 @@
  *
  * lives at http://p4wn.sf.net/
  */
-
-var P4_MAX_SCORE = 9999;    // extremes of evaluation range
-var P4_MIN_SCORE = -P4_MAX_SCORE;
-
-var P4_OFF_BOARD = 120;
-var P4_DEBUG = 0;
-
 /* in order, even indices: <nothing>, pawn, rook, knight, bishop, king, queen */
 var P4_MOVES = [[], [],
                 [], [],
@@ -22,16 +15,7 @@ var P4_MOVES = [[], [],
                 [1,10,11,9,-1,-10,-11,-9], []
                ];
 
-var P4_VALUES=[0, 0,      //Piece values
-               16, 16,    //pawns
-               80, 80,    //rooks
-               48, 48,    //knights
-               48, 48,    //bishops
-               5000, 5000,//kings
-               144, 144,  //queens
-               0];
-
-var P4_EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1];
+var P4_OFF_BOARD = 120;
 
 var P4_BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var P4_BASE_PAWN_WEIGHTS;
@@ -61,19 +45,16 @@ function p4_new_game(){
                        "g33333333g" +
                        "g579db975g" +
                        'gggggggggg' + 'gggggggggg');
-    var weight_string = "000000000000000000000000000000000111100000123321000123553210";
-    console.log(weight_string.length, board_string.length);
-    var pawn_weights='000012346900';  //per row - reward advancement.
     var pweights = [[], []];
     var kweights = [[], []];
     var weights = [[], []];
     var x, y;
     for(y=0;y<12;y++){
-        var pawn_weight = parseInt(pawn_weights.charAt(y), 35);
+        var pawn_weight = parseInt(P4_PAWN_WEIGHTS.charAt(y), 35);
         for(x=0;x<10;x++){
             var i = (y * 10) + x;
             P4_BASE_PAWN_WEIGHTS[i] = pawn_weight;
-            P4_BASE_WEIGHTS[i] = parseInt(weight_string.charAt((i < 60) ? i : 119 - i),
+            P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
                                           35) & 15;
             board[i]=parseInt(board_string.charAt(i), 35);
             pweights[0][i] = 0;
