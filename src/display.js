@@ -369,6 +369,3 @@ write_board_html();
 write_controls_html();
 if (SQUEEZE_INTO_BOX)
     squeeze_into_box();
-
-refresh(0);
-next_move();
