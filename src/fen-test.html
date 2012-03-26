@@ -1,0 +1,21 @@
+<html>
+<head>
+<link rel="stylesheet" href="p4wn.css" />
+</head>
+<body>
+<div id="board"></div>
+<div id="log"></div>
+<div id="messages"></div>
+<div id="controls"></div>
+<script src="engine-config.js"></script>
+<script src="engine.js"></script>
+<script src="display-config.js"></script>
+<script src="display.js"></script>
+<script>
+var FEN = "r3kb1r/ppBnp1pp/5p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 b kq - 1 16";
+
+p4_fen2state(FEN, input.board_state);
+refresh(0);
+next_move();
+</script>
+</body>

@@ -837,7 +837,7 @@ function p4_fen2state(fen, state){
         'P': 2,
         'p': 3,
         'R': 4,
-        'R': 5,
+        'r': 5,
         'N': 6,
         'n': 7,
         'B': 8,
@@ -860,7 +860,7 @@ function p4_fen2state(fen, state){
     /* fragile!*/
     var i = 91;
     for (var j = 0; j < fen_board.length; j++){
-        var c = fenboard.charAt(j);
+        var c = fen_board.charAt(j);
         if (c == '/'){
             i -= 18;
             continue;
@@ -877,7 +877,7 @@ function p4_fen2state(fen, state){
             }
         }
     }
-    state.to_play = fen_toplay.toLowerCase() == 'b';
+    state.to_play = (fen_toplay.toLowerCase() == 'b') ? 1 : 0;
     state.castles = 0;
     for (i = 0; i < fen_castles.length; i++){
         var bit = {'q': 8, 'k': 4, 'Q': 2, 'K': 1}[fen_castles.charAt(i)];
@@ -886,7 +886,7 @@ function p4_fen2state(fen, state){
     if (fen_enpassant != '-'){
         state.enpassant = p4_destringify_point(fen_enpassant);
     }
-    state.enpassant = parseInt(fen_timeout);
+    state.draw_timeout = parseInt(fen_timeout);
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     return state;
 }
