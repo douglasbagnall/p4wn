@@ -223,6 +223,12 @@ function write_board_html(){
             img.height= SQUARE_HEIGHT;
         }
     }
+    /*piece in hand indicator */
+    var pih = new_child(document.body, 'img');
+    pih.id = 'pih';
+    pih.src = IMAGE_NAMES[0];
+    pih.width= SQUARE_WIDTH;
+    pih.height= SQUARE_HEIGHT;
 }
 
 function refresh_buttons(){
