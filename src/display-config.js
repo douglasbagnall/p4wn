@@ -1,5 +1,7 @@
 var ROTATE_BOARD = true;
 var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
+var DEFAULT_LEVEL = 2;
+var ADAPTIVE_LEVELS = true;
 var SQUEEZE_INTO_BOX = true;
 
 var IMAGE_NAMES = [

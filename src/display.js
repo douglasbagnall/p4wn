@@ -14,7 +14,7 @@ var input = {
     board_state: p4_new_game(),
     players: ['human', 'computer'], //[white, black] controllers
     pawn_becomes: 0, //index into PROMOTIONS array
-    computer_level: 2
+    computer_level: DEFAULT_LEVEL
 };
 
 var PROMOTIONS = ['queen', 'rook', 'knight', 'bishop'];
@@ -88,7 +88,20 @@ function computer_move(){
     auto_play_timeout_ID = undefined;
     var state = input.board_state;
     var s, e, mv;
-    mv = p4_findmove(state, input.computer_level + 1);
+    var depth = input.computer_level + 1;
+    var start_time = Date.now();
+    mv = p4_findmove(state, depth);
+    var delta = Date.now() - start_time;
+    console.log("findmove took", delta);
+    if (ADAPTIVE_LEVELS && depth > 2){
+        var min_time = 25 * depth;
+        while (delta < min_time){
+            depth++;
+            mv = p4_findmove(state, depth);
+            delta = Date.now() - start_time;
+            console.log("retry at depth", depth, " total time:", delta);
+        }
+    }
     s = mv[0], e = mv[1];
     var move_result = p4_move(state, s, e);
     if (move_result){
