@@ -780,18 +780,18 @@ function p4_fen2state(fen, state){
     if (state === undefined)
         state = p4_initialise_state();
     var BOARD_LUT = {
-        'P': 2,
-        'p': 3,
-        'R': 4,
-        'r': 5,
-        'N': 6,
-        'n': 7,
-        'B': 8,
-        'b': 9,
-        'K': 10,
-        'k': 11,
-        'Q': 12,
-        'q': 13
+        P: 2,
+        p: 3,
+        R: 4,
+        r: 5,
+        N: 6,
+        n: 7,
+        B: 8,
+        b: 9,
+        K: 10,
+        k: 11,
+        Q: 12,
+        q: 13
     };
     var board = state.board;
     var fenbits = fen.split(' ');
@@ -826,7 +826,7 @@ function p4_fen2state(fen, state){
     state.to_play = (fen_toplay.toLowerCase() == 'b') ? 1 : 0;
     state.castles = 0;
     for (i = 0; i < fen_castles.length; i++){
-        var bit = {'q': 8, 'k': 4, 'Q': 2, 'K': 1}[fen_castles.charAt(i)];
+        var bit = {q: 8, k: 4, Q: 2, K: 1}[fen_castles.charAt(i)];
         state.castles |= (bit || 0);
     }
     state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
@@ -837,6 +837,9 @@ function p4_fen2state(fen, state){
     return state;
 }
 
+/* p4_initialise_state() creates the board and initialises weight
+ * arrays etc.
+ */
 function p4_initialise_state(){
     P4_BASE_WEIGHTS = [];
     P4_BASE_PAWN_WEIGHTS = [];
@@ -862,8 +865,6 @@ function p4_initialise_state(){
     return state;
 }
 
-
-// fills the board and initialises some look up tables
 function p4_new_game(){
     return p4_fen2state(P4_INITIAL_BOARD);
 }
