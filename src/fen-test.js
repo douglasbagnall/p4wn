@@ -19,6 +19,9 @@ function write_fen_switches(){
         span.addEventListener("click",
                               function(s){
                                   return function(e){
+                                      var div = document.getElementById("log");
+                                      var item = new_child(div, "div");
+                                      item.innerHTML = '--------';
                                       p4_fen2state(s, input.board_state);
                                       refresh(0);
                                       var s2 = p4_state2fen(input.board_state);
@@ -28,7 +31,7 @@ function write_fen_switches(){
                                       else {
                                           console.log(s, "and", s2, "differ");
                                       }
-                              };
+                                  };
                               }(fen));
 
     }
