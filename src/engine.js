@@ -820,9 +820,10 @@ function p4_stringify_point(p){
 }
 
 function p4_destringify_point(p){
-    var y = parseInt(p.charAt(0), 19) - 8; //a-h <-> 10-18, base 19
-    var x = parseInt(p.charAt(1));
-    if (y > 1 && y < 10 && x > 1 && x < 9)
+    var x = parseInt(p.charAt(0), 19) - 9; //a-h <-> 10-18, base 19
+    var y = parseInt(p.charAt(1)) + 1;
+    console.log(p, y, x);
+    if (y >= 2 && y < 10 && x >= 1 && x < 9)
         return y * 10 + x;
     return undefined;
 }
@@ -883,9 +884,7 @@ function p4_fen2state(fen, state){
         var bit = {'q': 8, 'k': 4, 'Q': 2, 'K': 1}[fen_castles.charAt(i)];
         state.castles |= (bit || 0);
     }
-    if (fen_enpassant != '-'){
-        state.enpassant = p4_destringify_point(fen_enpassant);
-    }
+    state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
     state.draw_timeout = parseInt(fen_timeout);
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     return state;
