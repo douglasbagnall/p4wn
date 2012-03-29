@@ -337,9 +337,15 @@ var CONTROLS = [
     },
     {
         label: 'dump state',
-        id: 'dump_button',
         onclick: function(e){
-            dump_state(input.board_state);
+            p4_dump_state(input.board_state);
+        },
+        debug: true
+    },
+    {
+        label: 'dump FEN',
+        onclick: function(e){
+            console.log(p4_state2fen(input.board_state));
         },
         debug: true
     }
@@ -354,7 +360,7 @@ function write_controls_html(){
             continue;
         var span = new_child(div, "span");
         span.className = 'control-button';
-        span.id = o.id;
+        span.id = o.id || ('p4wn_button_' + i);
         if (o.label){
             span.innerHTML = o.label;
         }
