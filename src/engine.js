@@ -99,6 +99,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var movelist = p4_parse(state, colour, ep, castle_state, score);
     var movecount = movelist.length;
     var mv, bs, be;
+
     if (movecount) {
         if(count){
             //BRANCH NODES
@@ -115,7 +116,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             if (bscore < 400){
                 b=-p4_treeclimber(state, count, ncolour, bscore, bs, be,
                                   -beta, -alpha, bep, castle_state)[0];
-                for(z=1;z<movecount;z++){
+                for(z = 1; z < movecount; z++){
                     if (b>alpha)alpha=b;  //b is best
                     mv = movelist[z];
                     t = -p4_treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
@@ -129,7 +130,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                         bs=mv[1];
                         be=mv[2];
                         if(t>alpha)alpha=t;
-                        if (b>beta){
+                        if (b > beta){
                             break;
                         }
                     }
@@ -142,11 +143,11 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             }
         }
         else{
-            b=P4_MIN_SCORE;
             //LEAF NODES
-            while(--movecount>-1 &&  beta>b){ //***
-                if(movelist[movecount][0]>b){
-                    b=movelist[movecount][0];
+            b = P4_MIN_SCORE;
+            while(beta > b && --movecount != -1){
+                if(movelist[movecount][0] > b){
+                    b = movelist[movecount][0];
                 }
             }
         }
@@ -155,7 +156,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         /*XXX signal stalemate or something? */
         bs = 0;
         be = 0;
-     };
+    };
     if(rs){
         board[rs]=rook;
         board[re]=0;
@@ -309,7 +310,7 @@ function p4_prepare(state){
 function p4_parse(state, colour, ep, castle_state, score) {
     var board = state.board;
     var s, e;    //start and end position
-    var E,a;       //E=piece at end place, a= piece moving
+    var E=0, a;       //E=piece at end place, a= piece moving
     var i, z;
     var other_colour = 1 - colour;
     var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
@@ -360,16 +361,15 @@ function p4_parse(state, colour, ep, castle_state, score) {
                 else{//rook, bishop, queen
                     var mlen = moves.length;
                     for(i=0;i<mlen;){     //goeth thru list of moves
-                        E=0;
                         var m = moves[i++];
                         e=s;
-                        while(!E){   //while on board && no piece
+                        do {
                             e+=m;
                             E=board[e];
                             if(!E||(E&17)==other_colour){
                                 movelist[++k]=[weight+P4_VALUES[E]+weight_lut[e],s,e,0];
                             }
-                        }
+                        }while(!E);
                     }
                 }
             }
@@ -379,18 +379,24 @@ function p4_parse(state, colour, ep, castle_state, score) {
                 if(!board[e]){
                     movelist[++k]=[weight+pweight[e],s,e];
                     /*2 square moves at start are flagged by 0 pweights weighting*/
-                    if(! pweight[s] && (!board[e+dir])){
-                        movelist[++k]=[weight+pweight[e+dir],s,e+dir,e];
+                    var e2 = e + dir;
+                    if(! pweight[s] && (!board[e2])){
+                        movelist[++k] = [weight + pweight[e2], s, e2, e];
                     }
                 }
                 if(ep&&(ep==e+1||ep==e-1)){
                     movelist[++k]=[weight+pweight[e],s,ep];
                 }
-                for(var h=e-1;h<e+2;h+=2){ //h=-1,1 --for pawn capturing
-                    E=board[h] & 15;
-                    if(E && (E&1) != colour){
-                        movelist[++k]=[weight+P4_VALUES[E]+pweight[h],s,h,0];
-                    }
+                //h=-1,1 --for pawn capturing
+                var h = e - 1;
+                E = board[h] & 15;
+                if(E && (E & 1) != colour){
+                    movelist[++k]=[weight + P4_VALUES[E] + pweight[h], s, h, 0];
+                }
+                h += 2;
+                E = board[h] & 15;
+                if(E && (E & 1) != colour){
+                    movelist[++k]=[weight + P4_VALUES[E] + pweight[h], s, h, 0];
                 }
             }
         }
