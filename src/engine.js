@@ -29,50 +29,6 @@ var P4_BASE_PAWN_WEIGHTS;
 var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
 var P4_EDGE = 16;
 
-// fills the board and initialises some look up tables
-function p4_new_game(){
-    var board = [];
-    P4_BASE_WEIGHTS = [];
-    P4_BASE_PAWN_WEIGHTS = [];
-    var pweights = [[], []];
-    var kweights = [[], []];
-    var weights = [[], []];
-    var x, y;
-    for(y=0;y<12;y++){
-        var pawn_weight = parseInt(P4_PAWN_WEIGHTS.charAt(y), 35);
-        for(x=0;x<10;x++){
-            var i = (y * 10) + x;
-            P4_BASE_PAWN_WEIGHTS[i] = pawn_weight;
-            P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
-                                          35) & 15;
-            board[i] = 16;
-            pweights[0][i] = 0;
-            pweights[1][i] = 0;
-            kweights[0][i] = 0;
-            kweights[1][i] = 0;
-            weights[0][i] = 0;
-            weights[1][i] = 0;
-        }
-    }
-    board[P4_OFF_BOARD] = 0;
-    var state = {
-        board: board,
-        enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
-        castles: 15,
-        pawn_promotion: [P4_QUEEN, P4_QUEEN],
-        to_play: 0, //0: white, 1: black
-        taken_piece: 0,
-        pweights: pweights,
-        kweights: kweights,
-        weights: weights,
-        pieces: [],
-        moveno: 0,
-        draw_timeout: 0, //should increment for each move not captuing or moving a pawn
-        history: []
-    };
-    return p4_fen2state(P4_INITIAL_BOARD, state);
-}
-
 
 function p4_get_castles_mask(s, e, colour){
     var mask = 0;
@@ -878,4 +834,47 @@ function p4_fen2state(fen, state){
     state.draw_timeout = parseInt(fen_timeout);
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     return state;
+}
+
+// fills the board and initialises some look up tables
+function p4_new_game(){
+    var board = [];
+    P4_BASE_WEIGHTS = [];
+    P4_BASE_PAWN_WEIGHTS = [];
+    var pweights = [[], []];
+    var kweights = [[], []];
+    var weights = [[], []];
+    var x, y;
+    for(y=0;y<12;y++){
+        var pawn_weight = parseInt(P4_PAWN_WEIGHTS.charAt(y), 35);
+        for(x=0;x<10;x++){
+            var i = (y * 10) + x;
+            P4_BASE_PAWN_WEIGHTS[i] = pawn_weight;
+            P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
+                                          35) & 15;
+            board[i] = 16;
+            pweights[0][i] = 0;
+            pweights[1][i] = 0;
+            kweights[0][i] = 0;
+            kweights[1][i] = 0;
+            weights[0][i] = 0;
+            weights[1][i] = 0;
+        }
+    }
+    board[P4_OFF_BOARD] = 0;
+    var state = {
+        board: board,
+        enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
+        castles: 15,
+        pawn_promotion: [P4_QUEEN, P4_QUEEN],
+        to_play: 0, //0: white, 1: black
+        pweights: pweights,
+        kweights: kweights,
+        weights: weights,
+        pieces: [],
+        moveno: 0,
+        draw_timeout: 0, //should increment for each move not captuing or moving a pawn
+        history: []
+    };
+    return p4_fen2state(P4_INITIAL_BOARD, state);
 }
