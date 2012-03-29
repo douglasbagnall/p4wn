@@ -34,17 +34,6 @@ function p4_new_game(){
     var board = [];
     P4_BASE_WEIGHTS = [];
     P4_BASE_PAWN_WEIGHTS = [];
-    /* Encoding is base-35
-     * g is 16, meaning off board
-     * pieces are valued 2, 4, 6, etc,  + 0/1 for white/black
-     */
-    var board_string= ('gggggggggg' + 'gggggggggg' +
-                       'g468ca864g' +
-                       'g22222222g' +
-                       'g00000000g' + 'g00000000g' + 'g00000000g' + 'g00000000g' +
-                       "g33333333g" +
-                       "g579db975g" +
-                       'gggggggggg' + 'gggggggggg');
     var pweights = [[], []];
     var kweights = [[], []];
     var weights = [[], []];
@@ -56,7 +45,7 @@ function p4_new_game(){
             P4_BASE_PAWN_WEIGHTS[i] = pawn_weight;
             P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
                                           35) & 15;
-            board[i]=parseInt(board_string.charAt(i), 35);
+            board[i] = 16;
             pweights[0][i] = 0;
             pweights[1][i] = 0;
             kweights[0][i] = 0;
@@ -66,7 +55,7 @@ function p4_new_game(){
         }
     }
     board[P4_OFF_BOARD] = 0;
-    return {
+    var state = {
         board: board,
         enpassant: 0,//en passant state (points to square behind takable pawn, ie, where the taking pawn ends up.
         castles: 15,
@@ -81,6 +70,7 @@ function p4_new_game(){
         draw_timeout: 0, //should increment for each move not captuing or moving a pawn
         history: []
     };
+    return p4_fen2state(P4_INITIAL_BOARD, state);
 }
 
 
