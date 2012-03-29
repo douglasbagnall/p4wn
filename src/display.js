@@ -352,10 +352,13 @@ var CONTROLS = [
 ];
 
 
-function write_controls_html(){
+function write_controls_html(lut){
+    if (lut === undefined)
+        lut = CONTROLS;
+
     var div = document.getElementById("controls");
-    for (var i = 0; i < CONTROLS.length; i++){
-        var o = CONTROLS[i];
+    for (var i = 0; i < lut.length; i++){
+        var o = lut[i];
         if (o.debug && ! P4_DEBUG)
             continue;
         var span = new_child(div, "span");

@@ -8,6 +8,36 @@ var FEN = [
 ];
 
 
+function time_find_move(depth){
+    var N = 3;
+    var state = input.board_state;
+    var best = 1e999;
+    for (var i = 0; i < N; i++){
+        var start_time = Date.now();
+        var mv = p4_findmove(state, depth);
+        var end_time = Date.now();
+        var delta = end_time - start_time;
+        console.log("depth", depth, "run", i, "took", delta);
+        if (delta < best)
+            best = delta;
+    }
+    var div = document.getElementById("log");
+    var item = new_child(div, "div");
+    item.innerHTML = "depth " + depth + " best of " + N + ": " + best;
+}
+
+var SPEED_BUTTONS = [
+    {
+        label: "speed test",
+        onclick: function(e){
+            time_find_move(4);
+        }
+    }
+];
+
+write_controls_html(SPEED_BUTTONS);
+
+
 function write_fen_switches(){
     var div = document.getElementById("fen_switch");
     for (var i = 0; i < FEN.length; i++){
@@ -38,6 +68,6 @@ function write_fen_switches(){
 }
 
 write_fen_switches();
-p4_fen2state(FEN[2], input.board_state);
+p4_fen2state(FEN[0], input.board_state);
 refresh(0);
 next_move();
