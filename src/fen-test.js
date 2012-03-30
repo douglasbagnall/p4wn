@@ -87,6 +87,7 @@ function write_fen_switches(){
                                       else {
                                           console.log(s, "and", s2, "differ");
                                       }
+                                      next_move();
                                   };
                               }(fen));
 
