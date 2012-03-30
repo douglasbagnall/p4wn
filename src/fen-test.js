@@ -27,16 +27,41 @@ function time_find_move(depth){
     item.innerHTML = "depth " + depth + " best of " + N + ": " + best;
 }
 
-var SPEED_BUTTONS = [
+function parse_test(){
+    var state = input.board_state;
+    p4_prepare(state);
+    var p = p4_parse(state, state.to_play, state.enpassant, state.castles, 0);
+    console.log("found", p.length, "moves");
+    var current_start = undefined;
+    var current_piece = undefined;
+    for (var i = 0; i < p.length; i++){
+        var mv = p[i];
+        if (mv[1] != current_start){
+            current_start = mv[1];
+            current_piece = state.board[mv[1]];
+        }
+        console.log('  PpRrNnBbKkQq'.charAt(current_piece), p4_stringify_point(mv[1]),
+                    p4_stringify_point(mv[2]));
+    }
+}
+
+var TEST_BUTTONS = [
     {
         label: "speed test",
         onclick: function(e){
             time_find_move(4);
         }
-    }
+    },
+    {
+        label: "parse test",
+        onclick: function(e){
+            parse_test();
+        }
+    },
+
 ];
 
-write_controls_html(SPEED_BUTTONS);
+write_controls_html(TEST_BUTTONS);
 
 
 function write_fen_switches(){
