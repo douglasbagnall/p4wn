@@ -471,12 +471,16 @@ function p4_check_castling(board, s, colour, dir, side){
 
 
 
-function p4_dump_board(board, name){
+function p4_dump_board(_board, name){
     if (name !== undefined)
         console.log(name);
-    for (var y = 0; y < 12; y++){
+    var board = [];
+    for (var i = 0; i < 120; i++){
+        board[i] = _board[i] == 16 ? '' : _board[i];
+    }
+    for (var y = 2; y < 10; y++){
         var s = y * 10;
-        console.log(board.slice(s, s + 10));
+        console.log(board.slice(s + 1, s + 9));
     }
 }
 
@@ -487,7 +491,14 @@ function p4_dump_state(state){
     p4_dump_board(state.pweights[1], 'b p weights');
     p4_dump_board(state.kweights[0], 'w king weights');
     p4_dump_board(state.kweights[1], 'b king weights');
-    console.log("pieces", state.pieces);
+    p4_dump_board(state.board, 'board');
+    var attr;
+    for (attr in state){
+        if (! /weights|board$/.test(attr))
+            console.log(attr, state[attr]);
+        else
+            console.log(attr, "board array", state[attr].length);
+    }
 }
 
 //************************************* findmove();
