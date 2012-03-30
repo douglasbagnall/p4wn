@@ -41,3 +41,7 @@ var P4_WEIGHT_STRING = "00000000000000000000000000000000011110000012332100012355
 var P4_PAWN_WEIGHTS = '000012346900';  //per row - rewards advancement.
 
 var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
+
+/*use javascript typed arrays rather than plain arrays
+ * (faster in some browsers, unsupported in others) */
+var P4_USE_TYPED_ARRAYS = 1;

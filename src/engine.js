@@ -493,16 +493,11 @@ function p4_dump_state(state){
 //************************************* findmove();
 
 function p4_findmove(state, level){
-    var fen1 = p4_state2fen(state);
     p4_prepare(state);
     var t=p4_treeclimber(state, level, state.to_play, 0,
                       P4_OFF_BOARD, P4_OFF_BOARD,
                       P4_MIN_SCORE, P4_MAX_SCORE,
                       state.enpassant, state.castles);
-    var fen2 = p4_state2fen(state);
-    console.log(fen1, t[0]);
-    if (fen1 != fen2)
-        console.log("state after findmove differs", fen2);
     return [t[1], t[2]];
 }
 
@@ -846,10 +841,20 @@ function p4_fen2state(fen, state){
 /* p4_initialise_state() creates the board and initialises weight
  * arrays etc.
  */
+
 function p4_initialise_state(){
-    P4_BASE_WEIGHTS = [];
-    P4_BASE_PAWN_WEIGHTS = [];
-    var board = [];
+    var board;
+    if (P4_USE_TYPED_ARRAYS){
+        board = new Int32Array(121);
+        P4_BASE_WEIGHTS = new Int32Array(120);
+        P4_BASE_PAWN_WEIGHTS = new Int32Array(120);
+
+    }
+    else {
+        board = [];
+        P4_BASE_WEIGHTS = [];
+        P4_BASE_PAWN_WEIGHTS = [];
+    }
     var zeros = [];
     for(var i = 0; i < 120; i++){
         var y = parseInt(i / 10);
@@ -859,13 +864,19 @@ function p4_initialise_state(){
         board[i] = 16;
         zeros[i] = 0;
     }
+    function _weights(){
+        if (P4_USE_TYPED_ARRAYS)
+            return new Int32Array(120);
+        return zeros.slice();
+    }
+
     board[P4_OFF_BOARD] = 0;
     var state = {
         board: board,
         pawn_promotion: [P4_QUEEN, P4_QUEEN],
-        pweights: [zeros.slice(), zeros.slice()],
-        kweights: [zeros.slice(), zeros.slice()],
-        weights: [zeros.slice(), zeros.slice()],
+        pweights: [_weights(), _weights()],
+        kweights: [_weights(), _weights()],
+        weights: [_weights(), _weights()],
         history: []
     };
     return state;

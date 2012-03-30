@@ -1,5 +1,6 @@
 var FEN = [
     "r3kb1r/ppBnp1pp/5p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 b kq - 1 16",
+    "r3kb1r/1pBnp1pp/p4p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 w kq - 0 17",
     "4k3/4n3/8/3N1R2/4R2p/7P/1r3BK1/8 b - - 6 42",
     "4p3/8/8/8/8/k6P/6K1/8 b - - 6 42", //empty, impossible pawn
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",  //beginning
