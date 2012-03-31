@@ -596,12 +596,7 @@ function p4_move(state, s, e){
                        0, state.castles);
     var is_check = t[0] > 400;
 
-    p4_modify_state_for_move(state, s, e);
-
-    var castle_q = (S == P4_KING) && (s - e == -2) ? P4_MOVE_FLAG_CASTLE_QUEEN : 0;
-    var castle_k = (S == P4_KING) && (s - e == 2) ? P4_MOVE_FLAG_CASTLE_KING : 0;
-    var capture = E ? P4_MOVE_FLAG_CAPTURE : 0;
-    var flags = capture | castle_q | castle_k;
+    var flags = p4_modify_state_for_move(state, s, e);
 
     if (is_check && is_mate){
         return flags | P4_MOVE_CHECKMATE;
@@ -622,12 +617,16 @@ function p4_modify_state_for_move(state, s, e){
     var gap = e - s;
     var piece = board[s] & 14;
     var dir = (10 - 20 * colour);
+    var flags = 0;
     state.enpassant = 0;
     /*draw timeout: 50 moves without pawn move or capture is a draw */
-    if (board[e])
+    if (board[e]){
         state.draw_timeout = 0;
-    else
+        flags |= P4_MOVE_FLAG_CAPTURE;
+    }
+    else{
         state.draw_timeout++;
+    }
     if (piece == P4_PAWN){
         state.draw_timeout = 0;
         /*queening*/
@@ -643,6 +642,7 @@ function p4_modify_state_for_move(state, s, e){
         if(!board[e] && gap % 10){
             board[e] = board[e - dir];
             board[e - dir] = 0;
+            flags |= P4_MOVE_FLAG_CAPTURE;
         }
     }
     else if(piece == P4_KING && gap * gap == 4){  //castling - move rook too
@@ -651,6 +651,7 @@ function p4_modify_state_for_move(state, s, e){
         board[re] = board[rs];
         board[rs] = 0;
         console.log("castling", s, e, gap, s + gap / 2, re);
+        flags |= (s > e) ? P4_MOVE_FLAG_CASTLE_QUEEN : P4_MOVE_FLAG_CASTLE_KING;
     }
 
     if (state.castles){
@@ -661,6 +662,7 @@ function p4_modify_state_for_move(state, s, e){
     board[s] = 0;
     state.moveno++;
     state.to_play = 1 - colour;
+    return flags;
 }
 
 
