@@ -77,10 +77,19 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
 
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
-    if(piece == P4_PAWN && board[e + (10 - 20 * moved_colour)] == P4_EDGE){
-        board[e] = state.pawn_promotion[moved_colour] + moved_colour;
-        //update the saved piece locations list
-        piece_locations[piece_locations.length - 1][0] = board[e];
+    var ep_taken = 0, ep_position;
+    if(piece == P4_PAWN){
+        if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){ //got to end
+            board[e] = state.pawn_promotion[moved_colour] + moved_colour;
+            //update the saved piece locations list
+            piece_locations[piece_locations.length - 1][0] = board[e];
+        }
+        else if (((s ^ e) & 1) && E == 0){
+            /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
+            ep_position = e - 10 + 20 * moved_colour;
+            ep_taken = board[ep_position];
+            board[ep_position] = 0;
+        }
     }
     else if (piece == P4_KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs = s - 4 + (s < e) * 7;
@@ -162,6 +171,10 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         board[re]=0;
         piece_locations.length--;
     }
+    if (ep_position){
+        board[ep_position] = ep_taken;
+    }
+
     board[s]=S;
     board[e]=E;
     if (S){
@@ -590,7 +603,7 @@ function p4_move(state, s, e){
     /* see if it is check already -- that is, if we have another move now,
      * can we get the king?
      *
-     * NB: state.enpassant is irrelevant
+     * NB: state.enpassant is irrelevant because it is for wrong colour
      */
     t = p4_treeclimber(state, 0, colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
                        0, state.castles);
