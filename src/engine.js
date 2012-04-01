@@ -113,9 +113,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         if(count){
             //BRANCH NODES
             var t;
-            movelist.sort(function (a, b){
-                              return b[0] - a[0];
-                          }); //descending order
             count--;
             var best = movelist[0];
             var bscore = best[0];
