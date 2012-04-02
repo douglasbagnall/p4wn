@@ -454,7 +454,7 @@ function p4_check_castling(board, s, colour, dir, side){
         if (board[p + dir - 2] == knight ||
             board[p + dir + 2] == knight ||
             board[p + 2 * dir + 1] == knight ||
-            board[p + 2 * dir + 1] == knight)
+            board[p + 2 * dir - 1] == knight)
             return 0;
     }
 
