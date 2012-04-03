@@ -59,7 +59,7 @@ function p4_get_castles_mask(s, e, colour){
 function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                      castle_state){
     var board = state.board;
-    var z = -1;
+    var i;
     var ncolour = 1 - colour;
     score = -score;
     if (score <-400) return [score, s, e];  //if king taken, no deepening.
@@ -125,9 +125,9 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             if (bscore < 400){
                 b=-p4_treeclimber(state, count, ncolour, bscore, bs, be,
                                   -beta, -alpha, bep, castle_state)[0];
-                for(z = 1; z < movecount; z++){
+                for(i = 1; i < movecount; i++){
                     if (b>alpha)alpha=b;  //b is best
-                    mv = movelist[z];
+                    mv = movelist[i];
                     t = -p4_treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
                                         -alpha-1, -alpha, mv[3], castle_state)[0];
                     if ((t > alpha) && (t < beta)){
@@ -324,7 +324,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
     var board = state.board;
     var s, e;    //start and end position
     var E=0, a;       //E=piece at end place, a= piece moving
-    var i, z;
+    var i, j;
     var other_colour = 1 - colour;
     var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
     var k=-1;
@@ -337,14 +337,14 @@ function p4_parse(state, colour, ep, castle_state, score) {
     var plen = pieces.length;
 
     var castle_flags = (castle_state >> (colour * 2)) & 3;
-    for (z = 0; z < plen; z++){
-        s=pieces[z][1]; // board position
+    for (j = 0; j < plen; j++){
+        s=pieces[j][1]; // board position
         a=board[s]; //piece number
         /* the pieces list is only a convenient short cut.
          * pieces that have moved/been taken will still be listed at their
          * old place. So check.
          */
-        if (pieces[z][0]==a){
+        if (pieces[j][0]==a){
             a &= 14;
             if(a > 2){    //non-pawns
                 var is_king = a == P4_KING;
@@ -567,8 +567,8 @@ function p4_move(state, s, e){
     var legal = false;
     p4_prepare(state);
     var p = p4_parse(state, colour, state.enpassant, state.castles, 0);
-    for (var z = 0; z < p.length; z++){
-        if (s == p[z][1] && e == p[z][2]){
+    for (var i = 0; i < p.length; i++){
+        if (s == p[i][1] && e == p[i][2]){
             legal = true;
             break;
         }
