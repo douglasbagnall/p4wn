@@ -62,7 +62,8 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var i;
     var ncolour = 1 - colour;
     score = -score;
-    if (score <-400) return [score, s, e];  //if king taken, no deepening.
+    if (score < -P4_WIN)
+        return [score, s, e];  //if king taken, no deepening.
     var b = P4_MIN_SCORE;     //best move starts at -infinity
     var S = board[s];
     var E = board[e];
@@ -122,7 +123,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             bs = best[1];
             be = best[2];
             var bep = best[3];
-            if (bscore < 400){
+            if (bscore < P4_WIN){
                 b=-p4_treeclimber(state, count, ncolour, bscore, bs, be,
                                   -beta, -alpha, bep, castle_state)[0];
                 for(i = 1; i < movecount; i++){
@@ -591,8 +592,8 @@ function p4_move(state, s, e){
     */
     var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
                            state.enpassant, state.castles);
-    var in_check = t[0] > 400;
-    var is_mate = t[0] < -400;
+    var in_check = t[0] > P4_WIN;
+    var is_mate = t[0] < -P4_WIN;
 
     if (in_check) {
         console.log('in check', t);
@@ -605,7 +606,7 @@ function p4_move(state, s, e){
      */
     t = p4_treeclimber(state, 0, colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
                        0, state.castles);
-    var is_check = t[0] > 400;
+    var is_check = t[0] > P4_WIN;
 
     var flags = p4_modify_state_for_move(state, s, e);
 

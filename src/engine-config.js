@@ -1,6 +1,6 @@
 
 /*P4_VALUES defines the relative value of various pieces.
- * 
+ *
  * By default it follows the 1,3,3,5,9 pattern you learn as a kid,
  * multiplied by 16 to give sub-pawn resolution to other factors.
  */
@@ -14,9 +14,15 @@ var P4_VALUES=[0, 0,      //Piece values
                144, 144,  //queens
                0];
 
+/* Threshold that indicates a king has been taken. It has to be quite
+ * a bit less than the value of a king, in case someone finds a way
+ * to, say, sacrifice two queens in order to checkmate.
+ */
+var P4_WIN = P4_VALUES[10] >> 1;
+
 /* P4_EARLINESS_WEIGHTING indicates the extent to which the game can
  * be considered just beginning.
- * 
+ *
  * Essentially, it maps the decay of the weighting toward centralising
  * moves.
  */
@@ -34,7 +40,7 @@ var P4_DEBUG = 0;
 
 /*P4_WEIGHT_STRING and P4_PAWN_WEIGHTS are used to set up weighting
  *towards the centre, and the other end, repesctively.
- * 
+ *
  * XXX this is a crap way to do it.
  */
 var P4_WEIGHT_STRING = "000000000000000000000000000000000111100000123321000123553210";
