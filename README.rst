@@ -252,6 +252,7 @@ added something to p4wn:
 * Antony Lesuisse
 * Ron Winter
 * Chris Lear
+* Ivan Yelizariev
 
 Public domain/ CC0
 ------------------
