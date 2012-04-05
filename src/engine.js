@@ -446,7 +446,7 @@ function p4_check_castling(board, s, colour, dir, side){
             while(1){
                 E=board[e];
                 if (E){
-                    if((! E && 2) && (E & end) && ((E & 1) == colour))
+                    if((! E & 2) && (E & end) && ((E & 1) == colour))
                         return 0;
                     break;
                 }
