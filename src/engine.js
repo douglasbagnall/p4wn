@@ -441,17 +441,15 @@ function p4_check_castling(board, s, colour, dir, side){
     for(p = s; p < s + 3; p++){
         //bishops, rooks, queens
         for(m = dir - 1; m < dir + 2; m++){
-            e = p + m;
-            var end = (m == dir) ? 4: 8;
-            while(1){
-                E=board[e];
-                if (E){
-                    if((! E & 2) && (E & end) && ((E & 1) == colour))
-                        return 0;
-                    break;
-                }
+            e = p;
+            do{
                 e += m;
-            }
+                E=board[e];
+            } while (! E);
+            if (E == queen ||
+                (E == rook && m == dir) ||
+                (E == bishop && m != dir))
+                return 0;
         }
         //knights
         if (board[p + dir - 2] == knight ||
