@@ -52,8 +52,6 @@ function p4_get_castles_mask(s, e, colour){
     return 15 ^ mask;
 }
 
-///////////////////////////treeclimb begins
-
 
 /****treeclimber */
 function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
@@ -62,9 +60,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var i;
     var ncolour = 1 - colour;
     score = -score;
-    if (score < -P4_WIN)
-        return [score, s, e];  //if king taken, no deepening.
-    var b = P4_MIN_SCORE;     //best move starts at -infinity
     var S = board[s];
     var E = board[e];
     board[e]=S;
@@ -109,64 +104,45 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var movelist = p4_parse(state, colour, ep, castle_state, score);
     var movecount = movelist.length;
     var mv, bs, be;
+    if(count){
+        //branch nodes
+        var t;
+        count--;
+        bs = 0;
+        be = 0;
+        for(i = 0; i < movecount; i++){
+            mv = movelist[i];
+            var mscore = mv[0];
+            var ms = mv[1];
+            var me = mv[2];
+            var mep = mv[3];
 
-    if (movecount) {
-        if(count){
-            //BRANCH NODES
-            var t;
-            movelist.sort(function (a, b){
-                              return b[0] - a[0];
-                          }); //descending order
-            count--;
-            var best = movelist[0];
-            var bscore = best[0];
-            bs = best[1];
-            be = best[2];
-            var bep = best[3];
-            if (bscore < P4_WIN){
-                b=-p4_treeclimber(state, count, ncolour, bscore, bs, be,
-                                  -beta, -alpha, bep, castle_state)[0];
-                for(i = 1; i < movecount; i++){
-                    if (b>alpha)alpha=b;  //b is best
-                    mv = movelist[i];
-                    t = -p4_treeclimber(state, count, ncolour, mv[0], mv[1], mv[2],
-                                        -alpha-1, -alpha, mv[3], castle_state)[0];
-                    if ((t > alpha) && (t < beta)){
-                        t = -p4_treeclimber(state, count, ncolour,
-                                            mv[0],mv[1],mv[2],-beta,-t, mv[3], castle_state)[0];
-                    }
-                    if (t>b){
-                        b=t;
-                        bs=mv[1];
-                        be=mv[2];
-                        if(t>alpha)alpha=t;
-                        if (b > beta){
-                            break;
-                        }
-                    }
-                }
+            if (mscore > P4_WIN){ //we won! Don't look further.
+                alpha = mscore;
+                bs = ms;
+                be = me;
+                break;
             }
-            else {
-                /* score suggest king taken.
-                 Don't search further.*/
-                b = bscore;
+            t = -p4_treeclimber(state, count, ncolour, mscore, ms, me,
+                                -beta, -alpha, mep, castle_state)[0];
+            if (t > alpha){
+                alpha = t;
+                bs = ms;
+                be = me;
             }
-        }
-        else{
-            //LEAF NODES
-            b = P4_MIN_SCORE;
-            while(beta > b && --movecount != -1){
-                if(movelist[movecount][0] > b){
-                    b = movelist[movecount][0];
-                }
+            if (alpha >= beta){
+                break;
             }
         }
     }
     else{
-        /*XXX signal stalemate or something? */
-        bs = 0;
-        be = 0;
-    };
+        //leaf nodes
+        while(beta > alpha && --movecount != -1){
+            if(movelist[movecount][0] > alpha){
+                alpha = movelist[movecount][0];
+            }
+        }
+    }
     if(rs){
         board[rs]=rook;
         board[re]=0;
@@ -181,13 +157,13 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     if (S){
         piece_locations.length--;
     }
-    if (b < -1500){
+    if (alpha < -P4_WIN){
         /* make distant checkmates seem less bad than immediate ones.
          * This makes recognising real checkmate easier.
          */
-        b += 200;
+        alpha += 200;
     }
-    return [b, bs, be];
+    return [alpha, bs, be];
 }
 
 
@@ -516,10 +492,10 @@ function p4_dump_state(state){
 
 function p4_findmove(state, level){
     p4_prepare(state);
-    var t=p4_treeclimber(state, level, state.to_play, 0,
-                      P4_OFF_BOARD, P4_OFF_BOARD,
-                      P4_MIN_SCORE, P4_MAX_SCORE,
-                      state.enpassant, state.castles);
+    var t = p4_treeclimber(state, level, state.to_play, 0,
+                           P4_OFF_BOARD, P4_OFF_BOARD,
+                           P4_MIN_SCORE, P4_MAX_SCORE,
+                           state.enpassant, state.castles);
     return [t[1], t[2]];
 }
 
@@ -560,7 +536,7 @@ function p4_move(state, s, e){
      * pieces to move, which is an extreme case of stalemate.
      */
     if((E&14) == P4_KING || (s == 0 && e == 0)){
-        console.log('checkmate - got thru checks');
+        console.log('checkmate - got thru checks', s, e, E);
         return P4_MOVE_MISSED_MATE;
     }
 
