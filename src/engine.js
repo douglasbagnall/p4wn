@@ -29,6 +29,21 @@ var P4_BASE_PAWN_WEIGHTS;
 var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
 var P4_EDGE = 16;
 
+var P4_PIECE_LUT = {
+    P: 2,
+    p: 3,
+    R: 4,
+    r: 5,
+    N: 6,
+    n: 7,
+    B: 8,
+    b: 9,
+    K: 10,
+    k: 11,
+    Q: 12,
+    q: 13
+};
+
 
 function p4_get_castles_mask(s, e, colour){
     var mask = 0;
@@ -786,20 +801,6 @@ function p4_destringify_point(p){
 function p4_fen2state(fen, state){
     if (state === undefined)
         state = p4_initialise_state();
-    var BOARD_LUT = {
-        P: 2,
-        p: 3,
-        R: 4,
-        r: 5,
-        N: 6,
-        n: 7,
-        B: 8,
-        b: 9,
-        K: 10,
-        k: 11,
-        Q: 12,
-        q: 13
-    };
     var board = state.board;
     var fenbits = fen.split(' ');
     var fen_board = fenbits[0];
@@ -818,7 +819,7 @@ function p4_fen2state(fen, state){
             i -= 18;
             continue;
         }
-        var piece = BOARD_LUT[c];
+        var piece = P4_PIECE_LUT[c];
         if (piece !== undefined){
             board[i] = piece;
             i++;
