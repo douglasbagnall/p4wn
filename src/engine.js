@@ -552,6 +552,8 @@ function p4_move(state, s, e){
             var mv = p4_interpret_movestring(state, s);
             s = mv[0];
             e = mv[1];
+            if (s == 0)
+                return P4_MOVE_ILLEGAL;
             var q = mv[2];
             if (q){
                 /*XXX this should be reverted if the move is rejected */
@@ -926,12 +928,23 @@ function p4_interpret_movestring(state, str){
      */
     var FAIL = [0, 0];
     var algebraic_re = /^\s*([RNBQK]?[a-h]?[1-8]?)[ :x-]*([a-h][1-8]?)(=[RNBQ])?[!?+#e.p]*\s*$/;
-    var castle_re = /^\s*(O-O(?:-O))\s*$/;
+    var castle_re = /^\s*(O-O(-O)?)\s*$/;
     var position_re = /^[a-h][1-8]$/;
 
     var m = algebraic_re.exec(str);
     if (m == null){
-        return FAIL;
+        /*check for castling notation (O-O, O-O-O) */
+        m = castle_re.exec(str);
+        if (m){
+            s = 25 + state.to_play * 70;
+            if (m[2])/*queenside*/
+                e = s - 2;
+            else
+                e = s + 2;
+            console.log(m, s, e);
+        }
+        else
+            return FAIL;
     }
     console.log(m);
     var src = m[1];
@@ -939,7 +952,7 @@ function p4_interpret_movestring(state, str){
     var queen = m[3];
     var s, e, q;
     var moves, i;
-    if (src == '' || src === undefined){
+    if (src == '' || src == undefined){
         /* a single coordinate pawn move */
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, 'P' + dest.charAt(0));
@@ -957,6 +970,9 @@ function p4_interpret_movestring(state, str){
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, 'P' + src);
     }
+    if (s == 0)
+        return FAIL;
+
     if (queen){
         /* the chosen queen piece */
         q = P4_PIECE_LUT[queen.charAt(1)];
@@ -967,31 +983,12 @@ function p4_interpret_movestring(state, str){
 
 function p4_find_source_point(state, e, str){
     var colour = state.to_play;
-    console.log(colour);
     var piece = P4_PIECE_LUT[str.charAt(0)];
     piece |= colour;
-    var s, S, E, i;
-    var possibilities = [];
-    p4_prepare(state);
-    var p = p4_parse(state, colour,
-                     state.enpassant, state.castles, 0);
-    for (i = 0; i < p.length; i++){
-        var mv = p[i];
-        if (e == mv[2]){
-            s = mv[1];
-            if (state.board[s] == piece){
-                possibilities.push(s);
-            }
-        }
-    }
-    if (possibilities.length == 1){
-        return possibilities[0];
-    }
-    /* more than one pseudo legal move can get there.
-     * Look at the disambiguating information.
-     * XXX and at check, eventually.
-     */
+    var s, i;
+
     var row, column;
+    /* can be specified as Na, Na3, N3, and who knows, N3a? */
     for (i = 1; i < str.length; i++){
         if (/[a-h]/.test(str.charAt(i))){
             column = str.charCodeAt(i) - 96;
@@ -1001,25 +998,35 @@ function p4_find_source_point(state, e, str){
             row = 1 + parseInt(str.charAt(i));
         }
     }
-    var possibilities2 = [];
-    for (i = 0; i < possibilities.length; i++){
-        s = possibilities[i];
-        if (column !== undefined && column == s % 10)
-            continue;
-        if (row !== undefined && row == parseInt(s / 10))
-            continue;
-        var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
-                               state.enpassant, state.castles);
-        if (t[0] > P4_WIN)
-            continue;
-        possibilities2.push(s);
+    var possibilities = [];
+    p4_prepare(state);
+    var p = p4_parse(state, colour,
+                     state.enpassant, state.castles, 0);
+    for (i = 0; i < p.length; i++){
+        var mv = p[i];
+        if (e == mv[2]){
+            s = mv[1];
+            if (state.board[s] == piece &&
+                (column === undefined || column == s % 10) &&
+                (row === undefined || row == parseInt(s / 10))
+               ){
+               var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e,
+                                      P4_MIN_SCORE, P4_MAX_SCORE,
+                                      state.enpassant, state.castles);
+               if (t[0] < P4_WIN)
+                   possibilities.push(s);
+            }
+        }
     }
-    if (possibilities2.length != 1){
+    console.log("finding", str, "that goes to", e, "got", possibilities);
+
+    if (possibilities.length == 0){
+        return 0;
+    }
+    else if (possibilities.length > 1){
         console.log("p4_find_source_point seems to have failed",
                     state, e, str,
-                    possibilities,
-                    possibilities2);
-
+                    possibilities);
     }
-    return possibilities2[0];
+    return possibilities[0];
 }
