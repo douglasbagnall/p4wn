@@ -377,6 +377,54 @@ function write_controls_html(lut){
     }
 }
 
+function parse_query(query){
+    if (query === undefined)
+        query = window.location.search.substring(1);
+    if (! query) return [];
+    var args = [];
+    var re = /([^&=]+)=?([^&]*)/g;
+    while (true){
+        var match = re.exec(query);
+        if (match === null)
+            break;
+        args.push([decodeURIComponent(match[1].replace(/\+/g, " ")),
+                   decodeURIComponent(match[2].replace(/\+/g, " "))]);
+    }
+    return args;
+}
+
+function interpret_query_string(){
+    /*XXX Query arguments are not all sanitised.
+     */
+    var ATTRS = {
+        start: function(s){p4_fen2state(s, input.board_state)},
+        level: function(s){input.computer_level = parseInt(s)},
+        player: function(s){
+            var players = {
+                white: ['human', 'computer'],
+                black: ['computer', 'human'],
+                both: ['human', 'human'],
+                neither: ['computer', 'human']
+            }[s.toLowerCase()];
+            if (players !== undefined){
+                input.players = players;
+                maybe_rotate_board();
+            }
+        },
+        debug: function(s){P4_DEBUG = parseInt(s)}
+    };
+    var i;
+    var query = parse_query();
+    for (i = 0; i < query.length; i++){
+        var p = query[i];
+            var fn = ATTRS[p[0]];
+        if (fn !== undefined){
+            fn(p[1]);
+            refresh_buttons();
+        }
+    }
+}
+
 //hacky thing to make the log fit beside the board.
 function squeeze_into_box(){
     var div = document.getElementById('log');
