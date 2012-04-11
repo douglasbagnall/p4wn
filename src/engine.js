@@ -773,7 +773,7 @@ function p4_state2fen(state, reduced){
     if (state.castles){
         for (var i = 0; i < 4; i++){
             if ((state.castles >> i) & 1)
-                fen += 'KQkq'.charAt(i);
+                fen += 'QKqk'.charAt(i);
         }
     }
     else
@@ -849,7 +849,7 @@ function p4_fen2state(fen, state){
     state.to_play = (fen_toplay.toLowerCase() == 'b') ? 1 : 0;
     state.castles = 0;
     for (i = 0; i < fen_castles.length; i++){
-        var bit = {q: 8, k: 4, Q: 2, K: 1}[fen_castles.charAt(i)];
+        var bit = {k: 8, q: 4, K: 2, Q: 1}[fen_castles.charAt(i)];
         state.castles |= (bit || 0);
     }
     state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;

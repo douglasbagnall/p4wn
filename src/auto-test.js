@@ -131,7 +131,7 @@ var TESTS = [
      ],
     [
         "castling error github #5",
-        fen_moves, "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b k - 0 15",
+        fen_moves, "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b q - 0 15",
         undefined, ['O-O-O']
      ],
     [
