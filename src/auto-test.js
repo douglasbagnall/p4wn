@@ -120,6 +120,21 @@ var TESTS = [
         ['e1-g1', 'e1-c1', 'O-O', 'O-O-O']
      ],
     [
+        "castling king side disallowed",
+        fen_moves, "r6r/p3kp1p/4np2/1Bb5/3p4/P4N2/1P3PPP/R3K2R w Q - 2 18",
+        ['O-O-O'], ['O-O']
+     ],
+    [
+        "castling queen side disallowed",
+        fen_moves, "r6r/p3kp1p/4np2/1Bb5/3p4/P4N2/1P3PPP/R3K2R w K - 2 18",
+        ['O-O'], ['O-O-O']
+     ],
+    [
+        "castling error github #5",
+        fen_moves, "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b k - 0 15",
+        undefined, ['O-O-O']
+     ],
+    [
         "initial board",
         fen_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
         [['Nc3', 'e6']],

@@ -913,12 +913,14 @@ function p4_new_game(){
  *
  *  "d2-d4" "d2d4" "d4" -- moving a pawn
  *
- *  "b1-c3" "b1c3" "Nc3" -- moving a knight
+ *  "b1-c3" "b1c3" "Nc3" "N1c3" "Nbc3" "Nb1c3" -- moving a knight
  *
  *  "b1xc3" "b1xc3" "Nxc3" -- moving a knight, also happens to capture.
  *
- *  Note that for the "Nc3" (pgn format), some knowledge of the board
- *  is necessary, so the state variable is required. If it is
+ *  "O-O" "O-O-O" -- special cases for castling ("e1-c1", etc, also work)
+ *
+ *  Note that for the "Nc3" (pgn) format, some knowledge of the board
+ *  is necessary, so the state parameter is required. If it is
  *  undefined, the other forms will still work.
  */
 
