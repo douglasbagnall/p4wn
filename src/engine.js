@@ -468,6 +468,8 @@ function p4_check_castling(board, s, colour, dir, side){
      * Same side check is impossible, because the castling rook is there
      */
     E=0;
+    if (side == -1)
+        s += 2;
     while (E == 0){   //queen or rook out on other side
         s -= side;
         E=board[s];
