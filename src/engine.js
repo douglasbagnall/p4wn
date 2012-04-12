@@ -90,16 +90,11 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var rs = 0, re, rook;
     var ep_taken = 0, ep_position;
     if(piece == P4_PAWN){
-        if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){ //got to end
+        if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){
+            /*got to end; replace the pawn on board and in pieces cache */
             var promo = state.pawn_promotion[moved_colour] | moved_colour;
             board[e] = promo;
-            //update the saved piece locations list
             piece_locations[piece_locations.length - 1][0] = promo;
-            /*adjust the score accordingly
-             * XXX this isn't happening for the last ply -- it would have to go
-             * in p4_parse for that to happen.*/
-            var ds = P4_VALUES[promo] - P4_VALUES[P4_PAWN];
-            score += (moved_colour == colour) ? ds : -ds;
         }
         else if (((s ^ e) & 1) && E == 0){
             /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
@@ -305,10 +300,20 @@ function p4_prepare(state){
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
              */
-            var wp = parseInt((y >= 4 && early) * (((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
-                                                   * w_weights[i]));
-            var bp = parseInt((y <= 7 && early) * (((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
-                                                   * b_weights[i]));
+            var wp = 0, bp = 0;
+            if (early){
+                if (y >= 4)
+                    wp += parseInt((((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
+                                    * w_weights[i]));
+                if (y <= 7)
+                    bp += parseInt((((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
+                                    * b_weights[i]));
+            }
+            if (y == 9)
+                wp += P4_VALUES[state.pawn_promotion[0]] - P4_VALUES[P4_PAWN];
+            if (y == 2)
+                bp += P4_VALUES[state.pawn_promotion[1]] - P4_VALUES[P4_PAWN];
+
             wp_weights[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
             bp_weights[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
         }

@@ -44,7 +44,7 @@ var P4_DEBUG = 0;
  * XXX this is a crap way to do it.
  */
 var P4_WEIGHT_STRING = "000000000000000000000000000000000111100000123321000123553210";
-var P4_PAWN_WEIGHTS = '000012346900';  //per row - rewards advancement.
+var P4_PAWN_WEIGHTS = '000012347000';  //per row - rewards advancement.
 
 var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
