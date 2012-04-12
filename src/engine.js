@@ -310,9 +310,9 @@ function p4_prepare(state){
                                     * b_weights[i]));
             }
             if (y == 9)
-                wp += P4_VALUES[state.pawn_promotion[0]] - P4_VALUES[P4_PAWN];
+                wp += P4_VALUES[P4_QUEEN] - P4_VALUES[P4_PAWN];
             if (y == 2)
-                bp += P4_VALUES[state.pawn_promotion[1]] - P4_VALUES[P4_PAWN];
+                bp += P4_VALUES[P4_QUEEN] - P4_VALUES[P4_PAWN];
 
             wp_weights[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
             bp_weights[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
