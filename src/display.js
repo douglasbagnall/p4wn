@@ -404,7 +404,7 @@ function interpret_query_string(){
                 white: ['human', 'computer'],
                 black: ['computer', 'human'],
                 both: ['human', 'human'],
-                neither: ['computer', 'human']
+                neither: ['computer', 'computer']
             }[s.toLowerCase()];
             if (players !== undefined){
                 input.players = players;
