@@ -91,9 +91,15 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var ep_taken = 0, ep_position;
     if(piece == P4_PAWN){
         if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){ //got to end
-            board[e] = state.pawn_promotion[moved_colour] + moved_colour;
+            var promo = state.pawn_promotion[moved_colour] | moved_colour;
+            board[e] = promo;
             //update the saved piece locations list
-            piece_locations[piece_locations.length - 1][0] = board[e];
+            piece_locations[piece_locations.length - 1][0] = promo;
+            /*adjust the score accordingly
+             * XXX this isn't happening for the last ply -- it would have to go
+             * in p4_parse for that to happen.*/
+            var ds = P4_VALUES[promo] - P4_VALUES[P4_PAWN];
+            score += (moved_colour == colour) ? ds : -ds;
         }
         else if (((s ^ e) & 1) && E == 0){
             /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */

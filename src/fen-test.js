@@ -10,7 +10,8 @@ var FEN = [
     "8/8/8/8/8/4K3/5Q2/7k w - - 11 56", //stalemate, checkmate
     "rnb1r1k1/ppp2ppp/8/8/2PN4/2Nn4/P3BPPP/R3K2R w KQ - 5 14",
     "r6r/p3kp1p/4np2/1Bb5/3p4/P4N2/1P3PPP/R3K2R w KQ - 2 18", //github issue 4, castling
-    "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b k - 0 15" //github issue 5, castling
+    "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b k - 0 15", //github issue 5, castling
+    "8/p2P1N2/8/4p2k/1p2P3/1P1b2pK/P6P/n7 w - - 0 33"
 ];
 
 
