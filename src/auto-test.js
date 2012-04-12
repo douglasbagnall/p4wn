@@ -49,6 +49,13 @@ function fen_moves(fen, moves, non_moves){
             }
         }
     }
+    var state = p4_fen2state(fen);
+    var fen2 = p4_state2fen(state);
+    if (fen != fen2){
+        console.log(fen, "and", fen2, "differ");
+        tstr += 'Fen fails round trip: <i>' + fen2 + '</i> ';
+        messages.push(fen2 + " differs!");
+    }
     var success = messages.length == 0;
     var msg = (success) ? 'OK' : messages.join('<br>');
     return [success, tstr, msg];

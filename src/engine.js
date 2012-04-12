@@ -773,9 +773,10 @@ function p4_state2fen(state, reduced){
     fen += ' ' + 'wb'.charAt(state.to_play) + ' ';
     /*castling */
     if (state.castles){
-        for (var i = 0; i < 4; i++){
-            if ((state.castles >> i) & 1)
-                fen += 'QKqk'.charAt(i);
+        for (var i = 5; i >= 2; i--){
+            var j = i & 3;
+            if ((state.castles >> j) & 1)
+                fen += 'QKqk'.charAt(j);
         }
     }
     else
