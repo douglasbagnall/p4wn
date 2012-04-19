@@ -47,6 +47,7 @@ function square_clicked(square){
     else if (input.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
+	    update_promotions(state, PROMOTIONS[input.pawn_becomes]);
         var move_result = p4_move(state, input.start, square);
         if(move_result & P4_MOVE_FLAG_OK){
             display_move_text(state.moveno, input.start, square, move_result);
@@ -76,7 +77,6 @@ var auto_play_timeout_ID;
 function next_move(){
     var state = input.board_state;
     var mover = state.to_play;
-    update_promotions(state, PROMOTIONS[input.pawn_becomes]);
     if (input.players[mover] == 'computer' &&
         auto_play_timeout_ID === undefined){
         var timeout = (input.players[1 - mover] == 'computer') ? 500: 10;

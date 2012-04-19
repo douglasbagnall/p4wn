@@ -640,7 +640,7 @@ function p4_move(state, s, e){
 function p4_modify_state_for_move(state, s, e){
     var board = state.board;
     var colour = state.to_play;
-    state.history.push([s, e]);
+    state.history.push([s, e, [state.pawn_promotion[0], state.pawn_promotion[1]]]);
     var gap = e - s;
     var piece = board[s] & 14;
     var dir = (10 - 20 * colour);
@@ -704,6 +704,7 @@ function p4_jump_to_moveno(state, moveno){
     var state2 = p4_fen2state(state.beginning);
     for (i = 0; i < moveno - state2.moveno; i++){
         var m = state.history[i];
+		state2.pawn_promotion = m[2];
         p4_move(state2, m[0], m[1]);
     }
     /* copy the replayed state accross, not all that deeply, but
