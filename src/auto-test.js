@@ -61,6 +61,31 @@ function fen_moves(fen, moves, non_moves){
     return [success, tstr, msg];
 }
 
+function result_in_n(fen, result, n, depth){
+    var i;
+    var tstr = 'Fen: <i>' + fen + '</i> ';
+    var state = p4_fen2state(fen);
+    if (depth == undefined)
+        depth = 4;
+    var f = {
+        checkmate: [P4_MOVE_CHECKMATE, 0],
+        stalemate: [P4_MOVE_STALEMATE, P4_MOVE_FLAG_CHECK]
+    }[result];
+    var wanted_flags = f[0];
+    var unwanted_flags = f[1];
+    var ok = false;
+    for (i = 0; i < n * 2; i++){
+        var mv = p4_findmove(state, depth);
+        var move_result = p4_move(state, mv[0], mv[1]);
+        if ((move_result & wanted_flags) &&
+            ! (move_result & wanted_flags)){
+            ok = true;
+        }
+    }
+    return [ok, tstr, msg = ok ? 'OK' : move_result];
+}
+
+
 function new_child(element, childtag){
     var child = document.createElement(childtag);
     element.appendChild(child);
@@ -76,14 +101,20 @@ function print_result(ok, tstr, msg){
 }
 
 function main(tests){
+    var h1 = document.getElementById("heading");
+    h1.innerHTML = "Working...";
     var i;
+    var good = 0;
     for (i = 0; i < tests.length; i++){
         var t = tests[i];
         var desc = t.shift();
         var f = t.shift();
         var r = f.apply(undefined, t);
         print_result.apply(desc, r);
+        if(r[0])
+            good++;
     }
+    h1.innerHTML = "Passed " + good + " out of " + tests.length + " tests";
 }
 
 
@@ -145,6 +176,23 @@ var TESTS = [
         "initial board",
         fen_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
         [['Nc3', 'e6']],
-        [['Nd3'], ['e3', 'e4']]]
+        [['Nd3'], ['e3', 'e4']]
+    ],
+    [
+        "mate in 1",
+        result_in_n, "5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61",
+        'checkmate', 1
+    ],
+    [
+        "mate in 3",
+        result_in_n, "8/8/8/8/8/4K3/5Q2/7k w - - 11 56",
+        'checkmate', 3
+    ],
+
+
+
+
+
+
 ];
 main(TESTS);
