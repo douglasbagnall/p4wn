@@ -715,7 +715,8 @@ function p4_jump_to_moveno(state, moveno){
         moveno = state.moveno - moveno - 1;
     }
     var state2 = p4_fen2state(state.beginning);
-    for (i = 0; i < moveno - state2.moveno; i++){
+    var outstanding_moves = moveno - state2.moveno;
+    for (i = 0; i < outstanding_moves; i++){
         var m = state.history[i];
         p4_move(state2, m[0], m[1], m[2]);
     }
