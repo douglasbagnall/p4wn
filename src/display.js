@@ -137,7 +137,6 @@ function display_move_text(moveno, s, e, flags){
         msg = p4_stringify_point(s) + ((flags & P4_MOVE_FLAG_CAPTURE) ? 'x' : '-') + p4_stringify_point(e);
 
     item.innerHTML = mn + msg + tail;
-    item.id = "move_" + moveno;
     item.className = "log_move";
     item.addEventListener("click",
                           function (n){
@@ -150,11 +149,12 @@ function display_move_text(moveno, s, e, flags){
 }
 
 function goto_move(n){
+    var delta = input.board_state.moveno - n;
     p4_jump_to_moveno(input.board_state, n);
     var div = document.getElementById('log');
     var entries = div.childNodes;
-    for (var i = entries.length - 1; i >= n; i--){
-        div.removeChild(entries[i]);
+    for (var i = 0; i < delta; i++){
+        div.removeChild(div.lastChild);
     }
     refresh();
     next_move();
