@@ -708,21 +708,19 @@ function p4_modify_state_for_move(state, s, e, promotion){
 
 function p4_jump_to_moveno(state, moveno){
     console.log('jumping to move', moveno);
-    var i;
     if (moveno === undefined || moveno > state.moveno)
         moveno = state.moveno;
     else if (moveno < 0){
         moveno = state.moveno - moveno - 1;
     }
     var state2 = p4_fen2state(state.beginning);
-    var outstanding_moves = moveno - state2.moveno;
-    for (i = 0; i < outstanding_moves; i++){
-        var m = state.history[i];
+    var i = 0;
+    while (state2.moveno < moveno){
+        var m = state.history[i++];
         p4_move(state2, m[0], m[1], m[2]);
     }
     /* copy the replayed state across, not all that deeply, but
      * enough to cover, eg, held references to board. */
-
     var attr, dest;
     for (attr in state2){
         var src = state2[attr];
