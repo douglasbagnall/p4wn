@@ -13,11 +13,13 @@ var input = {
     inhand: 0,     // piece in hand (ie, during move)
     board_state: p4_new_game(),
     players: ['human', 'computer'], //[white, black] controllers
-    pawn_becomes: 0, //index into PROMOTIONS array
+    pawn_becomes: 0, //index into PROMOTION_* arrays
     computer_level: DEFAULT_LEVEL
 };
 
-var PROMOTIONS = ['queen', 'rook', 'knight', 'bishop'];
+/*the next two should match*/
+var PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
+var PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 
 function square_clicked(square){
     var state = input.board_state;
@@ -47,8 +49,8 @@ function square_clicked(square){
     else if (input.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
-	    update_promotions(state, PROMOTIONS[input.pawn_becomes]);
-        var move_result = p4_move(state, input.start, square);
+        var move_result = p4_move(state, input.start, square,
+                                  PROMOTION_INTS[input.pawn_becomes]);
         if(move_result & P4_MOVE_FLAG_OK){
             display_move_text(state.moveno, input.start, square, move_result);
             refresh();
@@ -61,16 +63,6 @@ function square_clicked(square){
         }
     }
 }
-
-function update_promotions(state, name){
-    for (var i = 0; i < 2; i++){
-        if (input.players[i] == 'human')
-            p4_set_pawn_promotion(state, i, name);
-        else
-            p4_set_pawn_promotion(state, i, undefined);
-    }
-}
-
 
 var auto_play_timeout_ID;
 
@@ -316,12 +308,12 @@ var CONTROLS = [
         }
     },
     {
-        label: 'pawn becomes <b>' + PROMOTIONS[input.pawn_becomes] + '</b>',
+        label: 'pawn becomes <b>' + PROMOTION_STRINGS[input.pawn_becomes] + '</b>',
         id: 'pawn_promotion_button',
         onclick: function(e){
-            var x = (input.pawn_becomes + 1) % PROMOTIONS.length;
+            var x = (input.pawn_becomes + 1) % PROMOTION_STRINGS.length;
             input.pawn_becomes = x;
-            e.currentTarget.innerHTML = 'pawn becomes <b>' + PROMOTIONS[x] + '</b>';
+            e.currentTarget.innerHTML = 'pawn becomes <b>' + PROMOTION_STRINGS[x] + '</b>';
         }
     },
     {

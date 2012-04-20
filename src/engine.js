@@ -70,7 +70,7 @@ function p4_get_castles_mask(s, e, colour){
 
 /****treeclimber */
 function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
-                     castle_state){
+                        castle_state, promotion){
     var board = state.board;
     var i;
     var ncolour = 1 - colour;
@@ -91,10 +91,15 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     var ep_taken = 0, ep_position;
     if(piece == P4_PAWN){
         if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){
-            /*got to end; replace the pawn on board and in pieces cache */
-            var promo = state.pawn_promotion[moved_colour] | moved_colour;
-            board[e] = promo;
-            piece_locations[piece_locations.length - 1][0] = promo;
+            /*got to end; replace the pawn on board and in pieces cache.
+             *
+             * The only time promotion is *not* undefined is the top level when
+             * a human is making a move. */
+            if (promotion === undefined)
+                promotion = P4_QUEEN;
+            promotion |= moved_colour;
+            board[e] = promotion;
+            piece_locations[piece_locations.length - 1][0] = promotion;
         }
         else if (((s ^ e) & 1) && E == 0){
             /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
@@ -535,14 +540,13 @@ function p4_findmove(state, level){
 
 
 
-/* move(s, e, queener)
+/* p4_move(s, e, promotion)
  * s, e are start and end positions
  *
- * queener is the desired pawn promotion if the move gets a pawn to
-  the other end.
-
- return value contains bitwise flags
-
+ * promotion is the desired pawn promotion if the move gets a pawn to the other
+ * end.
+ *
+ * return value contains bitwise flags
 */
 
 var P4_MOVE_FLAG_OK = 1;
@@ -557,7 +561,7 @@ var P4_MOVE_MISSED_MATE = P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
 var P4_MOVE_CHECKMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
 var P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
 
-function p4_move(state, s, e){
+function p4_move(state, s, e, promotion){
     var board = state.board;
     var colour = state.to_play;
     if (s != parseInt(s)){
@@ -567,11 +571,7 @@ function p4_move(state, s, e){
             e = mv[1];
             if (s == 0)
                 return P4_MOVE_ILLEGAL;
-            var q = mv[2];
-            if (q){
-                /*XXX this should be reverted if the move is rejected */
-                state.pawn_promotion[state.to_play] = q;
-            }
+            promotion = mv[2];
         }
         else {/*assume two point strings: 'e2', 'e4'*/
             s = p4_destringify_point(s);
@@ -617,7 +617,7 @@ function p4_move(state, s, e){
      *
     */
     var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
-                           state.enpassant, state.castles);
+                           state.enpassant, state.castles, promotion);
     var in_check = t[0] > P4_WIN;
     var is_mate = t[0] < -P4_WIN;
 
@@ -634,7 +634,7 @@ function p4_move(state, s, e){
                        0, state.castles);
     var is_check = t[0] > P4_WIN;
 
-    var flags = p4_modify_state_for_move(state, s, e);
+    var flags = p4_modify_state_for_move(state, s, e, promotion);
 
     if (is_check && is_mate){
         return flags | P4_MOVE_CHECKMATE;
@@ -648,10 +648,10 @@ function p4_move(state, s, e){
     return flags | P4_MOVE_FLAG_OK;
 }
 
-function p4_modify_state_for_move(state, s, e){
+function p4_modify_state_for_move(state, s, e, promotion){
     var board = state.board;
     var colour = state.to_play;
-    state.history.push([s, e, [state.pawn_promotion[0], state.pawn_promotion[1]]]);
+    state.history.push([s, e, promotion]);
     var gap = e - s;
     var piece = board[s] & 14;
     var dir = (10 - 20 * colour);
@@ -668,9 +668,11 @@ function p4_modify_state_for_move(state, s, e){
     if (piece == P4_PAWN){
         state.draw_timeout = 0;
         /*queening*/
-        if(board[e + dir] == P4_EDGE)
-            board[s] = state.pawn_promotion[colour] + colour;
-
+        if(board[e + dir] == P4_EDGE){
+            if (promotion === undefined)
+                promotion = P4_QUEEN;
+            board[s] = promotion | colour;
+        }
         /* setting en passant flag*/
         if(gap == 2 * dir && ((board[e - 1] & 14) == 2 ||
                               (board[e + 1] & 14) == 2))
@@ -715,10 +717,9 @@ function p4_jump_to_moveno(state, moveno){
     var state2 = p4_fen2state(state.beginning);
     for (i = 0; i < moveno - state2.moveno; i++){
         var m = state.history[i];
-		state2.pawn_promotion = m[2];
-        p4_move(state2, m[0], m[1]);
+        p4_move(state2, m[0], m[1], m[2]);
     }
-    /* copy the replayed state accross, not all that deeply, but
+    /* copy the replayed state across, not all that deeply, but
      * enough to cover, eg, held references to board. */
 
     var attr, dest;
@@ -737,23 +738,6 @@ function p4_jump_to_moveno(state, moveno){
     }
 }
 
-/* setting the promotion to undefined lets the computer choose.
- * (thus far, it always chooses queen).
- */
-function p4_set_pawn_promotion(state, colour, name){
-    var piece;
-    if (name === undefined)
-        piece = P4_QUEEN;
-    else {
-        piece = {
-            rook: P4_ROOK,
-            knight: P4_KNIGHT,
-            bishop: P4_BISHOP,
-            queen: P4_QUEEN
-        }[name.toLowerCase()] || P4_QUEEN;
-    }
-    state.pawn_promotion[colour] = piece;
-}
 
 /* write a standard FEN notation
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
@@ -911,7 +895,6 @@ function p4_initialise_state(){
     board[P4_OFF_BOARD] = 0;
     var state = {
         board: board,
-        pawn_promotion: [P4_QUEEN, P4_QUEEN],
         pweights: [_weights(), _weights()],
         kweights: [_weights(), _weights()],
         weights: [_weights(), _weights()],
