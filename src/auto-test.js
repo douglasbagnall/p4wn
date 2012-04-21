@@ -62,27 +62,26 @@ function fen_moves(fen, moves, non_moves){
 }
 
 function result_in_n(fen, result, n, depth){
-    var i;
+    var i, msg;
     var tstr = 'Fen: <i>' + fen + '</i> ';
     var state = p4_fen2state(fen);
     if (depth == undefined)
-        depth = 4;
+        depth = 3;
     var f = {
-        checkmate: [P4_MOVE_CHECKMATE, 0],
-        stalemate: [P4_MOVE_STALEMATE, P4_MOVE_FLAG_CHECK]
+        checkmate: [P4_MOVE_CHECKMATE, P4_MOVE_CHECKMATE],
+        stalemate: [P4_MOVE_STALEMATE, P4_MOVE_CHECKMATE]
     }[result];
     var wanted_flags = f[0];
-    var unwanted_flags = f[1];
+    var mask = f[1];
     var ok = false;
     for (i = 0; i < n * 2; i++){
         var mv = p4_findmove(state, depth);
         var move_result = p4_move(state, mv[0], mv[1]);
-        if ((move_result & wanted_flags) &&
-            ! (move_result & wanted_flags)){
+        if ((move_result & mask) == wanted_flags){
             ok = true;
         }
     }
-    return [ok, tstr, msg = ok ? 'OK' : move_result];
+    return [ok, tstr, msg = ok ? 'OK' : 'fails'];
 }
 
 
@@ -188,11 +187,10 @@ var TESTS = [
         result_in_n, "8/8/8/8/8/4K3/5Q2/7k w - - 11 56",
         'checkmate', 3
     ],
-
-
-
-
-
-
+    [
+        "mate in 2",
+        result_in_n, "4kb1R/1p1np1P1/2B2p2/1N1P1b2/8/5NK1/p3rP1p/8 w - - 0 31",
+        'checkmate', 2
+    ]
 ];
 main(TESTS);
