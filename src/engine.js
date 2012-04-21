@@ -49,20 +49,21 @@ function p4_get_castles_mask(s, e, colour){
     var mask = 0;
     var shift = colour * 2;
     var side = colour * 70;
-
+    var s2 = s - side;
+    var e2 = e + side;
     //wipe both our sides if king moves
-    if (s == 25 + side)
+    if (s2 == 25)
         mask |= 3 << shift;
     //wipe one side on any move from rook points
-    else if (s == 21 + side)
+    else if (s2 == 21)
         mask |= 1 << shift;
-    else if (s == 28 + side)
+    else if (s2 == 28)
         mask |= 2 << shift;
 
     //or on any move *to* opposition corners
-    if (e == 91 - side)
+    if (e2 == 91)
         mask |= 4 >> shift;
-    else if (e == 98 - side)
+    else if (e2 == 98)
         mask |= 8 >> shift;
     return 15 ^ mask;
 }
