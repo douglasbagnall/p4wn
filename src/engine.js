@@ -162,6 +162,20 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             }
             b = alpha + 1;
         }
+        if (alpha < -P4_WIN){
+            /* Whatever we do, we lose the king.
+             *
+             * But if we do nothing, what happens?
+             * If the king is OK, it is stalemate, and the score doesn't apply.
+             *
+             * So instead, for now, we use the score that a non-move would give.
+             * In some circumstances this is probably wrong, but it works for cases like
+             * 5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61
+             */
+            //XXX this test for check is suboptimal
+            alpha = -p4_treeclimber(state, count, ncolour, score, 0, 0, P4_MIN_SCORE, P4_MAX_SCORE,
+                                    state.enpassant, state.castles, promotion)[0];
+        }
     }
     else{
         //leaf nodes
