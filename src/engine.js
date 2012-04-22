@@ -824,7 +824,10 @@ function p4_fen2state(fen, state){
     var fen_enpassant = fenbits[3];
     var fen_timeout = fenbits[4];
     var fen_moveno = fenbits[5];
-
+    if (fen_timeout === undefined)
+        fen_timeout = 0;
+    if (fen_moveno === undefined)
+        fen_moveno = 1;
     //fen does Y axis backwards, X axis forwards */
     /* fragile!*/
     var i = 91;
