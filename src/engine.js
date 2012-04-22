@@ -162,7 +162,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             }
             b = alpha + 1;
         }
-        if (alpha < -P4_WIN){
+        if (alpha < -P4_WIN_NOW){
             /* Whatever we do, we lose the king.
              *
              * But if we do nothing, what happens?
@@ -203,7 +203,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         /* make distant checkmates seem less bad than immediate ones.
          * This makes recognising real checkmate easier.
          */
-        alpha += 200;
+        alpha += P4_WIN_DECAY;
     }
     return [alpha, bs, be];
 }
