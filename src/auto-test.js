@@ -1,4 +1,6 @@
-
+function fenlink(fen){
+    return '<a href="index.html?start=' + fen + '&player=both">' + fen + '</a>';
+}
 
 function run_sequence(fen, seq){
     var i, r;
@@ -25,7 +27,7 @@ function run_sequence(fen, seq){
 
 function fen_moves(fen, moves, non_moves){
     var i, j;
-    var tstr = 'Fen: <i>' + fen + '</i> ';
+    var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
     var ok = true;
     var messages = [];
     if (moves){
@@ -63,7 +65,7 @@ function fen_moves(fen, moves, non_moves){
 
 function result_in_n(fen, result, n, depth){
     var i, msg;
-    var tstr = 'Fen: <i>' + fen + '</i> ';
+    var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
     var state = p4_fen2state(fen);
     if (depth == undefined)
         depth = 3;
@@ -185,7 +187,7 @@ var TESTS = [
     [
         "mate in 3",
         result_in_n, "8/8/8/8/8/4K3/5Q2/7k w - - 11 56",
-        'checkmate', 3
+        'checkmate', 3, 5
     ],
     [
         "mate in 2",
