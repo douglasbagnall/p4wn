@@ -13,7 +13,12 @@ var FEN = [
     "r3k2Q/pp3p1p/3qp3/2pp2N1/3P4/4PP2/PP1K2PP/nNB4R b k - 0 15", //github issue 5, castling
     "8/p2P1N2/8/4p2k/1p2P3/1P1b2pK/P6P/n7 w - - 0 33",
     "4kb1R/1p1np1P1/2B2p2/1N1P1b2/8/5NK1/p3rP1p/8 w - - 0 31", //queening opportunities
-    "5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61" //mate in 1
+    "5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61", //mate in 1
+    "rn2k1nr/pp4pp/3p4/q1pP4/P1P2p1b/1b2pPRP/1P1NP1PQ/2B1KBNR w Kkq -", //incomplete FEN; stalemate
+    "5bnr/4p1pq/4Qpkr/7p/2P4P/8/PP1PPPP1/RNB1KBNR b KQ - 0 10",
+    "8/7K/8/8/8/8/R7/7k w - - 0 1",
+    "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1",
+    "rnq1nrk1/pp3pbp/6p1/3p4/3P4/5N2/PP2BPPP/R1BQK2R w KQ -"
 ];
 
 
