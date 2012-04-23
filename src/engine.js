@@ -257,9 +257,6 @@ function p4_prepare(state){
         }
     }
     var ws = material[0] - material[1];
-    var exchange_weight = [(ws > 0) * parseInt(1 + ws / P4_VALUES[P4_KNIGHT]),
-                           (ws < 0) * parseInt(1 - ws / P4_VALUES[P4_KNIGHT])
-                          ];
     state.values = [[], []];
     var material_sum = material[0] + material[1] + 2 * P4_VALUES[P4_QUEEN];
     var wmul = 2 * (material[1] + P4_VALUES[P4_QUEEN]) / material_sum;
@@ -318,20 +315,27 @@ function p4_prepare(state){
              * in deep searches. But that's OK. Heuristics are
              * heuristics.
              */
+            console.log(wmul, bmul);
             if (target_king){
-                var wdx = Math.abs(wkx - x);
-                var wdy = Math.abs(wky - y);
-                var bdx = Math.abs(bkx - x);
-                var bdy = Math.abs(bky - y);
-                if (wdx <= 3 && wdy <= 3){
-                    b_weights[i] += 5 + 3 * exchange_weight[1];
-                    bk_weights[i] += 2 * exchange_weight[1];
+                var wdx = wkx - x;
+                var wdy = wky - y;
+                var bdx = bkx - x;
+                var bdy = bky - y;
+                var wd2 = wdx * wdx + wdy * wdy + 1;
+                var bd2 = bdx * bdx + bdy * bdy + 1;
+
+                b_weights[i] += parseInt(25 * wmul / wd2);
+                bk_weights[i] += parseInt(18 * wmul / wd2);
+                w_weights[i] += parseInt(25 * bmul / bd2);
+                wk_weights[i] += parseInt(18 * bmul / bd2);
+                if (wmul < 1){//white winning
+                    bk_weights[i] += parseInt(bmul * P4_BASE_WEIGHTS[i] / wmul);
+                }
+                else if (bmul < 1){//black winning
+                    wk_weights[i] += parseInt(wmul * P4_BASE_WEIGHTS[i] / bmul);
                 }
 
-                if (bdx <= 3 && bdy <= 3){
-                    w_weights[i] += 5 + 3 * exchange_weight[0];
-                    wk_weights[i] += 2 * exchange_weight[0];
-                }
+
             }
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
@@ -548,7 +552,7 @@ function p4_dump_board(_board, name){
         console.log(name);
     var board = [];
     for (var i = 0; i < 120; i++){
-        board[i] = _board[i] == 16 ? '' : _board[i];
+        board[i] = _board[i];
     }
     for (var y = 2; y < 10; y++){
         var s = y * 10;
