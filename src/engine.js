@@ -129,7 +129,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     if(count){
         //branch nodes
         var t;
-        count--;
         bs = 0;
         be = 0;
         var b = beta;
@@ -141,15 +140,15 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             var mep = mv[3];
 
             if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = mscore;
+                alpha = P4_KING_VALUE;
                 bs = ms;
                 be = me;
                 break;
             }
-            t = -p4_treeclimber(state, count, ncolour, mscore, ms, me,
+            t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
                                 -b, -alpha, mep, castle_state)[0];
             if (t > alpha && t < beta && i != 0){
-                t = -p4_treeclimber(state, count, ncolour, mscore, ms, me,
+                t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
                                     -beta, -alpha, mep, castle_state)[0];
             }
             if (t > alpha){
@@ -162,21 +161,23 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             }
             b = alpha + 1;
         }
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But if we do nothing, what happens?
-             * If the king is OK, it is stalemate, and the score doesn't apply.
-             *
-             * So instead, for now, we use the score that a non-move would give.
-             * In some circumstances this is probably wrong, but it works for cases like
-             * 5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61
-             */
-            //XXX this test for check is suboptimal
-            var a2 = -p4_treeclimber(state, count, ncolour, 0, 0, 0, P4_MIN_SCORE, P4_MAX_SCORE,
-                                     state.enpassant, state.castles, promotion)[0];
-            if (a2 > -P4_WIN_NOW){
-                alpha = state.stalemate_scores[colour];
+
+        if (alpha < -P4_WIN){
+            /*make distant checkmate seem less bad */
+            alpha += P4_WIN_DECAY;
+            if (alpha < -P4_WIN_NOW){
+                /* Whatever we do, we lose the king.
+                 *
+                 * But if we do nothing, what happens?
+                 * If the king is OK, it is stalemate, and the score doesn't apply.
+                 */
+                //XXX this test for check is suboptimal
+                var a2 = -p4_treeclimber(state, 1, ncolour, 0, 0, 0,
+                                         P4_MIN_SCORE, P4_MAX_SCORE,
+                                         0, castle_state)[0];
+                if (a2 > -P4_WIN_NOW){
+                    alpha = state.stalemate_scores[colour];
+                }
             }
         }
     }
@@ -201,12 +202,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     board[e]=E;
     if (S){
         piece_locations.length--;
-    }
-    if (alpha < -P4_WIN){
-        /* make distant checkmates seem less bad than immediate ones.
-         * This makes recognising real checkmate easier.
-         */
-        alpha += P4_WIN_DECAY;
     }
     return [alpha, bs, be];
 }
@@ -315,7 +310,6 @@ function p4_prepare(state){
              * in deep searches. But that's OK. Heuristics are
              * heuristics.
              */
-            console.log(wmul, bmul);
             if (target_king){
                 var wdx = wkx - x;
                 var wdy = wky - y;

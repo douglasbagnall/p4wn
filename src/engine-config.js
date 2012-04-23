@@ -18,11 +18,12 @@ var P4_VALUES=[0, 0,      //Piece values
  * a bit less than the value of a king, in case someone finds a way
  * to, say, sacrifice two queens in order to checkmate.
  */
-var P4_WIN = P4_VALUES[10] >> 1;
+var P4_KING_VALUE = P4_VALUES[10];
+var P4_WIN = P4_KING_VALUE >> 1;
 
 /* every move, a winning score decreases by this much */
 var P4_WIN_DECAY = 300;
-var P4_WIN_NOW = P4_VALUES[10] - 200;
+var P4_WIN_NOW = P4_KING_VALUE - 200;
 
 /* P4_EARLINESS_WEIGHTING indicates the extent to which the game can
  * be considered just beginning.
