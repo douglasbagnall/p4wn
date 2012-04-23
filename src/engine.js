@@ -933,6 +933,9 @@ function p4_initialise_state(){
     for(var i = 0; i < 120; i++){
         var y = parseInt(i / 10);
         P4_BASE_PAWN_WEIGHTS[i] = parseInt(P4_PAWN_WEIGHTS.charAt(y), 35);
+        /*base weights happen to equal
+         * Math.max(0, parseInt(5.75 - Math.pow((x - 4.5) * (x - 4.5) + 1.4 * (y - 5.5) * (y - 5.5), 0.61)));
+         */
         P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
                                       35) & 15;
         board[i] = 16;
