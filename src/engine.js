@@ -173,8 +173,11 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
              * 5k2/8/5K2/4Q3/5P2/8/8/8 w - - 3 61
              */
             //XXX this test for check is suboptimal
-            alpha = -p4_treeclimber(state, count, ncolour, score, 0, 0, P4_MIN_SCORE, P4_MAX_SCORE,
-                                    state.enpassant, state.castles, promotion)[0];
+            var a2 = -p4_treeclimber(state, count, ncolour, 0, 0, 0, P4_MIN_SCORE, P4_MAX_SCORE,
+                                     state.enpassant, state.castles, promotion)[0];
+            if (a2 > -P4_WIN_NOW){
+                alpha = state.stalemate_scores[colour];
+            }
         }
     }
     else{
@@ -261,6 +264,9 @@ function p4_prepare(state){
     var material_sum = material[0] + material[1] + 2 * P4_VALUES[P4_QUEEN];
     var wmul = 2 * (material[1] + P4_VALUES[P4_QUEEN]) / material_sum;
     var bmul = 2 * (material[0] + P4_VALUES[P4_QUEEN]) / material_sum;
+    state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * P4_VALUES[P4_QUEEN]),
+                              parseInt(0.5 + (bmul - 1) * 2 * P4_VALUES[P4_QUEEN])];
+    console.log(state.stalemate_scores);
     for (i = 0; i < P4_VALUES.length; i++){
         var v = P4_VALUES[i];
         if (v < P4_WIN){
@@ -272,7 +278,6 @@ function p4_prepare(state){
             state.values[1][i] = v;
         }
     }
-    console.log(state.values, exchange_weight);
     var wkx = kings[0] % 10;
     var wky  = parseInt(kings[0] / 10);
     var bkx = kings[1] % 10;
@@ -356,7 +361,6 @@ function p4_prepare(state){
         w_weights[21] -= 9;
         w_weights[28] -= 9;
     }
-    p4_dump_state(state);
 }
 
 
