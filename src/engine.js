@@ -253,11 +253,26 @@ function p4_prepare(state){
                 material[colour] += P4_VALUES[piece];
         }
     }
-    var white_surplus = material[0] - material[1];
-    var white_winning = white_surplus > P4_VALUES[P4_PAWN];
-    var black_winning = white_surplus < -P4_VALUES[P4_PAWN];
-    var big_margin = parseInt(Math.abs(white_surplus) / (3 * P4_VALUES[P4_PAWN]));
-
+    var ws = material[0] - material[1];
+    var exchange_weight = [(ws > 0) * parseInt(1 + ws / P4_VALUES[P4_KNIGHT]),
+                           (ws < 0) * parseInt(1 - ws / P4_VALUES[P4_KNIGHT])
+                          ];
+    state.values = [[], []];
+    var material_sum = material[0] + material[1] + 2 * P4_VALUES[P4_QUEEN];
+    var wmul = 2 * (material[1] + P4_VALUES[P4_QUEEN]) / material_sum;
+    var bmul = 2 * (material[0] + P4_VALUES[P4_QUEEN]) / material_sum;
+    for (i = 0; i < P4_VALUES.length; i++){
+        var v = P4_VALUES[i];
+        if (v < P4_WIN){
+            state.values[0][i] = parseInt(v * wmul + 0.5);
+            state.values[1][i] = parseInt(v * bmul + 0.5);
+        }
+        else {
+            state.values[0][i] = v;
+            state.values[1][i] = v;
+        }
+    }
+    console.log(state.values, exchange_weight);
     var wkx = kings[0] % 10;
     var wky  = parseInt(kings[0] / 10);
     var bkx = kings[1] % 10;
@@ -304,17 +319,13 @@ function p4_prepare(state){
                 var bdx = Math.abs(bkx - x);
                 var bdy = Math.abs(bky - y);
                 if (wdx <= 3 && wdy <= 3){
-                    b_weights[i] += 5 + 3 * black_winning * big_margin;
-                    if (black_winning){
-                        bk_weights[i] += 5 + 3 * big_margin;
-                    }
+                    b_weights[i] += 5 + 3 * exchange_weight[1];
+                    bk_weights[i] += 2 * exchange_weight[1];
                 }
 
                 if (bdx <= 3 && bdy <= 3){
-                    w_weights[i] += 5 + 3 * white_winning * big_margin;
-                    if (white_winning){
-                        wk_weights[i] += 5 + 3 * big_margin;
-                    }
+                    w_weights[i] += 5 + 3 * exchange_weight[0];
+                    wk_weights[i] += 2 * exchange_weight[0];
                 }
             }
             /* pawns weighted toward centre at start then forwards only.
@@ -330,9 +341,9 @@ function p4_prepare(state){
                                     * b_weights[i]));
             }
             if (y == 9)
-                wp += P4_VALUES[P4_QUEEN] - P4_VALUES[P4_PAWN];
+                wp += state.values[0][P4_QUEEN] - state.values[0][P4_PAWN];
             if (y == 2)
-                bp += P4_VALUES[P4_QUEEN] - P4_VALUES[P4_PAWN];
+                bp += state.values[1][P4_QUEEN] - state.values[1][P4_PAWN];
 
             wp_weights[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
             bp_weights[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
@@ -345,6 +356,7 @@ function p4_prepare(state){
         w_weights[21] -= 9;
         w_weights[28] -= 9;
     }
+    p4_dump_state(state);
 }
 
 
@@ -364,8 +376,8 @@ function p4_parse(state, colour, ep, castle_state, score) {
     var weights = state.weights[colour];
     var pieces = state.pieces[colour];
     var plen = pieces.length;
-
     var castle_flags = (castle_state >> (colour * 2)) & 3;
+    var values = state.values[other_colour];
     for (j = 0; j < plen; j++){
         s=pieces[j][1]; // board position
         a=board[s]; //piece number
@@ -385,7 +397,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
                         e = s + moves[i];
                         E = board[e];
                         if(!E || (E&17)==other_colour){
-                            movelist[++k]=[weight + P4_VALUES[E] + weight_lut[e], s, e, 0];
+                            movelist[++k]=[weight + values[E] + weight_lut[e], s, e, 0];
                         }
                     }
                     if(is_king && castle_flags){
@@ -409,7 +421,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
                             e+=m;
                             E=board[e];
                             if(!E||(E&17)==other_colour){
-                                movelist[++k]=[weight+P4_VALUES[E]+weight_lut[e],s,e,0];
+                                movelist[++k]=[weight + values[E] + weight_lut[e], s, e, 0];
                             }
                         }while(!E);
                     }
@@ -448,12 +460,12 @@ function p4_parse(state, colour, ep, castle_state, score) {
          */
         s = ep - dir - 1;
         if (board[s] == pawn){
-            taken = P4_VALUES[board[ep - dir]];
+            taken = values[board[ep - dir]];
             movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep, 0];
         }
         s += 2;
         if (board[s] == pawn){
-            taken = P4_VALUES[board[ep - dir]];
+            taken = values[board[ep - dir]];
             movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep, 0];
         }
     }
