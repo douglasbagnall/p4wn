@@ -419,7 +419,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
                 weight=score-pweight[s];
                 e=s+dir;
                 if(!board[e]){
-                    movelist[++k]=[weight+pweight[e],s,e];
+                    movelist[++k] = [weight + pweight[e], s, e, 0];
                     /*2 square moves at start are flagged by 0 pweights weighting*/
                     var e2 = e + dir;
                     if(! pweight[s] && (!board[e2])){
