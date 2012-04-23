@@ -426,9 +426,6 @@ function p4_parse(state, colour, ep, castle_state, score) {
                         movelist[++k] = [weight + pweight[e2], s, e2, e];
                     }
                 }
-                if(ep&&(ep==e+1||ep==e-1)){
-                    movelist[++k]=[weight+pweight[e],s,ep];
-                }
                 /* +/-1 for pawn capturing */
                 E = board[--e];
                 if(E && (E & 17) == other_colour){
@@ -441,6 +438,15 @@ function p4_parse(state, colour, ep, castle_state, score) {
                 }
             }
         }
+    }
+    if(ep){
+        var pawn = P4_PAWN | colour;
+        var s = ep - dir - 1;
+        if (board[s] == pawn)
+            movelist[++k] = [score - pweight[s] + pweight[ep], s, 0];
+        s += 2;
+        if (board[s] == pawn)
+            movelist[++k] = [score - pweight[s] + pweight[ep], s, 0];
     }
     return movelist;
 }
