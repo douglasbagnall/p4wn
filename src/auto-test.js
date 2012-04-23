@@ -185,9 +185,9 @@ var TESTS = [
         'checkmate', 1
     ],
     [
-        "mate in 3",
+        "mate in 6",
         result_in_n, "8/8/8/8/8/4K3/5Q2/7k w - - 11 56",
-        'checkmate', 3, 5
+        'checkmate', 6
     ],
     [
         "mate in 2",
