@@ -429,24 +429,33 @@ function p4_parse(state, colour, ep, castle_state, score) {
                 /* +/-1 for pawn capturing */
                 E = board[--e];
                 if(E && (E & 17) == other_colour){
-                    movelist[++k]=[weight + P4_VALUES[E] + pweight[e], s, e, 0];
+                    movelist[++k]=[weight + values[E] + pweight[e], s, e, 0];
                 }
                 e += 2;
                 E = board[e];
                 if(E && (E & 17) == other_colour){
-                    movelist[++k]=[weight + P4_VALUES[E] + pweight[e], s, e, 0];
+                    movelist[++k]=[weight + values[E] + pweight[e], s, e, 0];
                 }
             }
         }
     }
     if(ep){
         var pawn = P4_PAWN | colour;
-        var s = ep - dir - 1;
-        if (board[s] == pawn)
-            movelist[++k] = [score - pweight[s] + pweight[ep], s, 0];
+        var taken;
+        /* Some repetitive calculation here could be hoisted out, but that would
+            probably slow things: the common case is no pawns waiting to capture
+            enpassant, not 2.
+         */
+        s = ep - dir - 1;
+        if (board[s] == pawn){
+            taken = P4_VALUES[board[ep - dir]];
+            movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep, 0];
+        }
         s += 2;
-        if (board[s] == pawn)
-            movelist[++k] = [score - pweight[s] + pweight[ep], s, 0];
+        if (board[s] == pawn){
+            taken = P4_VALUES[board[ep - dir]];
+            movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep, 0];
+        }
     }
     return movelist;
 }
