@@ -162,23 +162,23 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             b = alpha + 1;
         }
 
+        if (alpha < -P4_WIN_NOW){
+            /* Whatever we do, we lose the king.
+             *
+             * But if we do nothing, what happens?
+             * If the king is OK, it is stalemate, and the score doesn't apply.
+             */
+            //XXX this test for check is suboptimal
+            var a2 = -p4_treeclimber(state, 1, ncolour, 0, 0, 0,
+                                     P4_MIN_SCORE, P4_MAX_SCORE,
+                                     0, castle_state)[0];
+            if (a2 > -P4_WIN_NOW){
+                alpha = state.stalemate_scores[colour];
+            }
+        }
         if (alpha < -P4_WIN){
             /*make distant checkmate seem less bad */
             alpha += P4_WIN_DECAY;
-            if (alpha < -P4_WIN_NOW){
-                /* Whatever we do, we lose the king.
-                 *
-                 * But if we do nothing, what happens?
-                 * If the king is OK, it is stalemate, and the score doesn't apply.
-                 */
-                //XXX this test for check is suboptimal
-                var a2 = -p4_treeclimber(state, 1, ncolour, 0, 0, 0,
-                                         P4_MIN_SCORE, P4_MAX_SCORE,
-                                         0, castle_state)[0];
-                if (a2 > -P4_WIN_NOW){
-                    alpha = state.stalemate_scores[colour];
-                }
-            }
         }
     }
     else{
