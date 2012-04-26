@@ -165,14 +165,10 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         if (alpha < -P4_WIN_NOW){
             /* Whatever we do, we lose the king.
              *
-             * But if we do nothing, what happens?
-             * If the king is OK, it is stalemate, and the score doesn't apply.
+             * But is it check?
+             * If not, this is stalemate, and the score doesn't apply.
              */
-            //XXX this test for check is suboptimal
-            var a2 = -p4_treeclimber(state, 1, ncolour, 0, 0, 0,
-                                     P4_MIN_SCORE, P4_MAX_SCORE,
-                                     0, castle_state)[0];
-            if (a2 > -P4_WIN_NOW){
+            if (p4_check_check(state, colour)){
                 alpha = state.stalemate_scores[colour];
             }
         }
@@ -538,6 +534,64 @@ function p4_check_castling(board, s, colour, dir, side){
     }
     return 1;
 }
+
+function p4_check_check(state, colour){
+    var board = state.board;
+    /*find the king.  The pieces list updates from the end,
+     * so the last-most king is correctly placed.*/
+    var pieces = state.pieces[colour];
+    var p;
+    var i = pieces.length;
+    do {
+        p = pieces[--i];
+    } while (p[0] != (P4_KING | colour));
+    var s = p[1];
+    var other_colour = 1 - colour;
+    var dir = 10 - 20 * colour;
+    if (board[s + dir - 1] == (P4_PAWN | other_colour) ||
+        board[s + dir + 1] == (P4_PAWN | other_colour))
+        return true;
+    var knight_moves = P4_MOVES[P4_KNIGHT];
+    var king_moves = P4_MOVES[P4_KING];
+    var knight = P4_KNIGHT | other_colour;
+    var king = P4_KING | other_colour;
+    for (i = 0; i < 8; i++){
+        if (board[knight_moves[i]] == knight ||
+            board[king_moves[i]] == king)
+            return true;
+    }
+    var diagonal_moves = P4_MOVES[P4_BISHOP];
+    var grid_moves = P4_MOVES[P4_ROOK];
+
+    /* diag_mask ignores rook moves of queens,
+     * grid_mask ignores the bishop moves*/
+    var diag_slider = P4_BISHOP | other_colour;
+    var diag_mask = 27;
+    var grid_slider = P4_ROOK | other_colour;
+    var grid_mask = 23;
+    for (i = 0; i < 4; i++){
+        var m = diagonal_moves[i];
+        var e = s;
+        var E;
+        do {
+            e += m;
+            E = board[e];
+            if(E & diag_mask == diag_slider)
+                return true;
+        } while (!E);
+
+        m = grid_moves[i];
+        e = s;
+        do {
+            e += m;
+            E = board[e];
+            if(E & grid_mask == grid_slider)
+                return true;
+        } while (!E);
+    }
+    return false;
+}
+
 
 
 
