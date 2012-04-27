@@ -165,7 +165,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
              * But is it check?
              * If not, this is stalemate, and the score doesn't apply.
              */
-            if (p4_check_check(state, colour)){
+            if (! p4_check_check(state, colour)){
                 alpha = state.stalemate_scores[colour];
             }
         }
@@ -573,7 +573,7 @@ function p4_check_check(state, colour){
         do {
             e += m;
             E = board[e];
-            if(E & diag_mask == diag_slider)
+            if((E & diag_mask) == diag_slider)
                 return true;
         } while (!E);
 
@@ -582,7 +582,7 @@ function p4_check_check(state, colour){
         do {
             e += m;
             E = board[e];
-            if(E & grid_mask == grid_slider)
+            if((E & grid_mask) == grid_slider)
                 return true;
         } while (!E);
     }
