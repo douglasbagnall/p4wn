@@ -51,15 +51,15 @@ function square_clicked(square){
         //but is it valid?
         var move_result = p4_move(state, input.start, square,
                                   PROMOTION_INTS[input.pawn_becomes]);
-        if(move_result[0] & P4_MOVE_FLAG_OK){
+        if(move_result.ok){
             console.log(move_result[1]);
-            display_move_text(state.moveno, input.start, square, move_result[0]);
+            display_move_text(state.moveno, move_result.string);
             refresh();
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
             auto_play_timeout_ID = undefined;
-            if (! (move_result[0] & P4_MOVE_FLAG_MATE))
+            if (! (move_result.flags & P4_MOVE_FLAG_MATE))
                 next_move();
         }
     }
@@ -97,9 +97,8 @@ function computer_move(){
     }
     s = mv[0], e = mv[1];
     var move_result = p4_move(state, s, e);
-    if (move_result[0]){
-        console.log(move_result[1]);
-        display_move_text(state.moveno, s, e, move_result[0]);
+    if (move_result.ok){
+        display_move_text(state.moveno, move_result.string);
         refresh();
 
         if (! (move_result[0] & P4_MOVE_FLAG_MATE))
@@ -110,9 +109,8 @@ function computer_move(){
 }
 
 
-function display_move_text(moveno, s, e, flags){
+function display_move_text(moveno, string){
     var mn;
-    console.log(moveno, s, e, flags);
     if ((moveno & 1) == 0){
         mn = '    ';
     }
@@ -123,22 +121,6 @@ function display_move_text(moveno, s, e, flags){
     }
     var div = document.getElementById("log");
     var item = new_child(div, "div");
-
-    var tail = '';
-    if (flags & P4_MOVE_FLAG_CHECK)
-        tail = (flags & P4_MOVE_FLAG_MATE) ? ' #' : ' +';
-    else if (flags & P4_MOVE_FLAG_MATE)
-        tail = ' stalemate';
-
-    var msg;
-    if (flags & P4_MOVE_FLAG_CASTLE_QUEEN)
-        msg = 'O-O-O';
-    else if (flags & P4_MOVE_FLAG_CASTLE_KING)
-        msg = 'O-O';
-    else
-        msg = p4_stringify_point(s) + ((flags & P4_MOVE_FLAG_CAPTURE) ? 'x' : '-') + p4_stringify_point(e);
-
-    item.innerHTML = mn + msg + tail;
     item.className = "log_move";
     item.addEventListener("click",
                           function (n){
@@ -147,6 +129,7 @@ function display_move_text(moveno, s, e, flags){
                               };
                           }(moveno),
                           true);
+    item.innerHTML = mn + string;
     div.scrollTop = 999999;
 }
 

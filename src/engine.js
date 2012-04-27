@@ -665,7 +665,7 @@ function p4_move(state, s, e, promotion){
             s = mv[0];
             e = mv[1];
             if (s == 0)
-                return P4_MOVE_ILLEGAL;
+                return {flags: P4_MOVE_ILLEGAL, ok: false};
             promotion = mv[2];
         }
         else {/*assume two point strings: 'e2', 'e4'*/
@@ -684,7 +684,7 @@ function p4_move(state, s, e, promotion){
      */
     if((E&14) == P4_KING || (s == 0 && e == 0)){
         console.log('checkmate - got thru checks', s, e, E);
-        return P4_MOVE_MISSED_MATE;
+        return {flags: P4_MOVE_MISSED_MATE, ok: false};
     }
 
     /*See if this move is even slightly legal, disregarding check.
@@ -709,7 +709,7 @@ function p4_move(state, s, e, promotion){
         }
     }
     if (! legal) {
-        return P4_MOVE_ILLEGAL;
+        return {flags: P4_MOVE_ILLEGAL, ok: false};
     }
 
     /*now try the move, and see what the response is.
@@ -729,7 +729,7 @@ function p4_move(state, s, e, promotion){
 
     if (in_check) {
         console.log('in check', t);
-        return P4_MOVE_ILLEGAL;
+        return {flags: P4_MOVE_ILLEGAL, ok: false};
     }
     /* see if it is check already -- that is, if we have another move now,
      * can we get the king?
@@ -743,21 +743,26 @@ function p4_move(state, s, e, promotion){
     var flags = p4_modify_state_for_move(state, s, e, promotion);
 
     if (is_check && is_mate){
-        return flags | P4_MOVE_CHECKMATE;
+        flags |= P4_MOVE_CHECKMATE;
     }
-    if (is_check){
-        return flags | P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK;
+    else if (is_check){
+        flags |= P4_MOVE_FLAG_CHECK;
     }
-    if (is_mate){
-        return flags | P4_MOVE_STALEMATE;
+    else if (is_mate){
+        flags |= P4_MOVE_STALEMATE;
     }
-    flags |= P4_MOVE_FLAG_OK;
     var movestring = p4_move2string(s, e, S & 14, promotion, flags, co_landers);
-    return [flags, movestring];
+    console.log(s, e, movestring);
+
+    return {
+        flags: flags, 
+        string: movestring,
+        ok: true
+    };
 }
 
 function p4_move2string(s, e, piece, promotion, flags, co_landers){
-    piece = piece & 14;
+    piece &= 14;
     var FEN_LUT = '  PpRrNnBbKkQq';
     var src, dest;
     var mv;
@@ -827,7 +832,7 @@ function p4_modify_state_for_move(state, s, e, promotion){
     var gap = e - s;
     var piece = board[s] & 14;
     var dir = (10 - 20 * colour);
-    var flags = 0;
+    var flags = P4_MOVE_FLAG_OK;
     state.enpassant = 0;
     /*draw timeout: 50 moves without pawn move or capture is a draw */
     if (board[e]){

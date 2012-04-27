@@ -15,8 +15,8 @@ function run_sequence(fen, seq){
     for (i = 0; i < seq.length; i++){
         console.log([state].concat(seq[i]));
         r = p4_move.apply(undefined, [state].concat(seq[i]));
-        results.push(r);
-        if ((r & 1) == 0){
+        results.push(r.flags);
+        if ((r.flags & 1) == 0){
             break;
         }
     }
@@ -78,8 +78,8 @@ function result_in_n(fen, result, n, depth){
     var ok = false;
     for (i = 0; i < n * 2; i++){
         var mv = p4_findmove(state, depth);
-        var move_result = p4_move(state, mv[0], mv[1]);
-        if ((move_result & mask) == wanted_flags){
+        var r = p4_move(state, mv[0], mv[1]);
+        if ((r.flags & mask) == wanted_flags){
             ok = true;
         }
     }
