@@ -51,14 +51,15 @@ function square_clicked(square){
         //but is it valid?
         var move_result = p4_move(state, input.start, square,
                                   PROMOTION_INTS[input.pawn_becomes]);
-        if(move_result & P4_MOVE_FLAG_OK){
-            display_move_text(state.moveno, input.start, square, move_result);
+        if(move_result[0] & P4_MOVE_FLAG_OK){
+            console.log(move_result[1]);
+            display_move_text(state.moveno, input.start, square, move_result[0]);
             refresh();
             show_piece_in_hand(0); //blank moving
             input.inhand = 0;
             input.start = 0;
             auto_play_timeout_ID = undefined;
-            if (! (move_result & P4_MOVE_FLAG_MATE))
+            if (! (move_result[0] & P4_MOVE_FLAG_MATE))
                 next_move();
         }
     }
@@ -96,11 +97,12 @@ function computer_move(){
     }
     s = mv[0], e = mv[1];
     var move_result = p4_move(state, s, e);
-    if (move_result){
-        display_move_text(state.moveno, s, e, move_result);
+    if (move_result[0]){
+        console.log(move_result[1]);
+        display_move_text(state.moveno, s, e, move_result[0]);
         refresh();
 
-        if (! (move_result & P4_MOVE_FLAG_MATE))
+        if (! (move_result[0] & P4_MOVE_FLAG_MATE))
             next_move();
     }
     else

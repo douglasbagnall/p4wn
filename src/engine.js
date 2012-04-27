@@ -112,12 +112,9 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
     else if (piece == P4_KING && ((s-e)*(s-e)==4)){  //castling - move rook too
         rs = s - 4 + (s < e) * 7;
         re = (s + e) >> 1; //avg of s,e=rook's spot
-        rook = moved_colour + 4;
+        rook = moved_colour + P4_ROOK;
         board[rs]=0;
         board[re]=rook;
-        if (s != 25 + moved_colour * 70){
-            var _conditional_break_point = s;
-        }
         piece_locations.push([rook, re]);
     }
     if (castle_state)
@@ -690,14 +687,25 @@ function p4_move(state, s, e, promotion){
         return P4_MOVE_MISSED_MATE;
     }
 
-    /*see if this move is even slightly legal, disregarding check.*/
+    /*See if this move is even slightly legal, disregarding check.
+     *
+     * At the same time, gather information to determine whether this
+     * move needs qualifying information in the PGN representation.
+     * i.e., does 'Nc3' suffice, or is 'Nbc3', 'N1c3', or even 'Nb1c3'
+     * necessary?
+     */
+    var co_landers = [];
     var legal = false;
     p4_prepare(state);
     var p = p4_parse(state, colour, state.enpassant, state.castles, 0);
+    console.log(p);
     for (var i = 0; i < p.length; i++){
-        if (s == p[i][1] && e == p[i][2]){
-            legal = true;
-            break;
+        if (e == p[i][2]){
+            if (s == p[i][1])
+                legal = true;
+            else if (board[p[i][1]] == S){
+                co_landers.push(p[i][1]);
+            }
         }
     }
     if (! legal) {
@@ -743,7 +751,73 @@ function p4_move(state, s, e, promotion){
     if (is_mate){
         return flags | P4_MOVE_STALEMATE;
     }
-    return flags | P4_MOVE_FLAG_OK;
+    flags |= P4_MOVE_FLAG_OK;
+    var movestring = p4_move2string(s, e, S & 14, promotion, flags, co_landers);
+    return [flags, movestring];
+}
+
+function p4_move2string(s, e, piece, promotion, flags, co_landers){
+    piece = piece & 14;
+    var FEN_LUT = '  PpRrNnBbKkQq';
+    var src, dest;
+    var mv;
+    var capture = flags & P4_MOVE_FLAG_CAPTURE;
+    src = p4_stringify_point(s);
+    dest = p4_stringify_point(e);
+    if (piece == P4_PAWN){
+        if (capture){
+            mv = src.charAt(0) + 'x' + dest;
+        }
+        else
+            mv = dest;
+        if (e > 90 || e < 30){  //end row, queening
+            if (promotion === undefined)
+                promotion = P4_QUEEN;
+            mv += '=' + FEN_LUT[promotion];
+        }
+    }
+    else if (piece == P4_KING &&
+             (s-e) * (s-e) == 4) {
+        if (e < s)
+            mv = 'O-O-O';
+        else
+            mv = 'O-O';
+    }
+    else {
+        var row_qualifier = '';
+        var col_qualifier = '';
+        var pstr = FEN_LUT[piece];
+        var sx = s % 10;
+        var sy = parseInt(s / 10);
+        if (co_landers.length){
+            for (var i = 0; i < co_landers.length; i++){
+                var c = co_landers[i];
+                var cx = c % 10;
+                var cy = parseInt(c / 10);
+                if (cx == sx)/*same column, so qualify by row*/
+                    row_qualifier = src.charAt(1);
+                if (cy == sy)
+                    col_qualifier = src.charAt(0);
+            }
+            if (row_qualifier == '' && col_qualifier == ''){
+                /*no co-landers on the same rank or file, so one or the other will do.
+                 * By convention, use the column (a-h) */
+                col_qualifier = src.charAt(0);
+            }
+        }
+        mv = pstr + col_qualifier + row_qualifier + (capture ? 'x' : '') + dest;
+        console.log(mv, piece, co_landers);
+    }
+    if (flags & P4_MOVE_FLAG_CHECK){
+        if (flags & P4_MOVE_FLAG_MATE)
+            mv += '#';
+        else
+            mv += '+';
+    }
+    else if (flags & P4_MOVE_FLAG_MATE)
+        mv += ' stalemate';
+
+    return mv;
 }
 
 function p4_modify_state_for_move(state, s, e, promotion){
