@@ -165,7 +165,12 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
              * But is it check?
              * If not, this is stalemate, and the score doesn't apply.
              */
-            if (! p4_check_check(state, colour)){
+            var check = p4_check_check(state, colour);
+            var old_check = old_check_check(state, colour);
+            if (old_check != check){
+                console.log("check difference", p4_state2fen(state), check, old_check);
+            }
+            if (! check){
                 alpha = state.stalemate_scores[colour];
             }
         }
@@ -530,6 +535,13 @@ function p4_check_castling(board, s, colour, dir, side){
             return 0;
     }
     return 1;
+}
+
+function old_check_check(state, colour, castle_state){
+    var a = -p4_treeclimber(state, 0, 1 - colour, 0, 0, 0,
+                            P4_MIN_SCORE, P4_MAX_SCORE,
+                            0, castle_state)[0];
+    return (a < -P4_WIN_NOW);
 }
 
 function p4_check_check(state, colour){
