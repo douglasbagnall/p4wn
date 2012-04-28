@@ -1,5 +1,5 @@
 var ROTATE_BOARD = true;
-var LEVELS = ['stupid', 'middling', 'slow', 'slowest'];
+var LEVELS = ['stupid', 'middling', 'default', 'slow', 'slowest'];
 var DEFAULT_LEVEL = 2;
 var ADAPTIVE_LEVELS = false;
 var SQUEEZE_INTO_BOX = true;
