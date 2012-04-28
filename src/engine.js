@@ -1208,3 +1208,42 @@ function p4_find_source_point(state, e, str){
     }
     return possibilities[0];
 }
+
+
+/*random number generator based on
+ * http://burtleburtle.net/bob/rand/smallprng.html
+ */
+function p4_random_seed(state, seed){
+    seed &= 0xffffffff;
+    state.rng = (P4_USE_TYPED_ARRAYS) ? new Uint32Array() : [];
+    state.rng[0] = 0xf1ea5eed;
+    state.rng[1] = seed;
+    state.rng[2] = seed;
+    state.rng[3] = seed;
+    for (var i = 0; i < 20; i++)
+        p4_random31(state);
+}
+
+function p4_random31(state){
+    var rng = state.rng;
+    var b = rng[1];
+    var c = rng[2];
+    /* These shifts amount to rotates.
+     * Note the three-fold right shift '>>>', meaning an unsigned shift.
+     * The 0xffffffff masks are needed to keep javascript to 32bit. (supposing
+     * untyped arrays).
+     */
+    var e = rng[0] - ((b << 27) | (b >>> 5));
+    rng[0] = b ^ ((c << 17) | (c >>> 15));
+    rng[1] = (c + rng[3]) & 0xffffffff;
+    rng[2] = (rng[3] + e) & 0xffffffff;
+    rng[3] = (e + rng[0]) & 0xffffffff;
+    return rng[3] & 0x7fffffff;
+}
+
+function p4_random48(state){
+    /* avoid explicit bit operations, because they secretly convert to 32 bit */
+    var top = p4_random31(state) * 0x20000;
+    var bottom = p4_random31(state) & 0x1ffff;
+    return top + bottom;
+}
