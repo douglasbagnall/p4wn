@@ -720,43 +720,32 @@ function p4_move(state, s, e, promotion){
     }
 
     /*now try the move, and see what the response is.
-     * If the king gets taken, it is check.
      *
      * 1. Make the move, play full turn as other colour
-     * 2. If other colour can take king, this move is in check
+     *
+     * 2. If other colour can take king, this move moves into check
      *
      * 3. If other colour loses king in all moves, then this is mate
      *    (but maybe stalemate).
-     *
     */
     var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
                            state.enpassant, state.castles, promotion);
     var in_check = t[0] > P4_WIN;
     var is_mate = t[0] < -P4_WIN;
-
     if (in_check) {
         console.log('in check', t);
-        return {flags: P4_MOVE_ILLEGAL, ok: false};
+        return {flags: P4_MOVE_ILLEGAL, ok: false, string: "in check!"};
     }
-    /* see if it is check already -- that is, if we have another move now,
-     * can we get the king?
-     *
-     * NB: state.enpassant is irrelevant because it is for wrong colour
-     */
-    t = p4_treeclimber(state, 0, colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
-                       0, state.castles);
-    var is_check = t[0] > P4_WIN;
 
+    /*The move seems OK, so commit it */
     var flags = p4_modify_state_for_move(state, s, e, promotion);
 
-    if (is_check && is_mate){
-        flags |= P4_MOVE_CHECKMATE;
-    }
-    else if (is_check){
+    var is_check = p4_check_check(state, 1 - colour);
+    if (is_check){
         flags |= P4_MOVE_FLAG_CHECK;
     }
-    else if (is_mate){
-        flags |= P4_MOVE_STALEMATE;
+    if (is_mate){
+        flags |= P4_MOVE_FLAG_MATE;
     }
     var movestring = p4_move2string(s, e, S & 14, promotion, flags, co_landers);
     console.log(s, e, movestring);
