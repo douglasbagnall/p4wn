@@ -165,12 +165,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
              * But is it check?
              * If not, this is stalemate, and the score doesn't apply.
              */
-            var check = p4_check_check(state, colour);
-            var old_check = old_check_check(state, colour);
-            if (old_check != check){
-                console.log("check difference", p4_state2fen(state), check, old_check);
-            }
-            if (! check){
+            if (! p4_check_check(state, colour)){
                 alpha = state.stalemate_scores[colour];
             }
         }
@@ -767,7 +762,7 @@ function p4_move(state, s, e, promotion){
     console.log(s, e, movestring);
 
     return {
-        flags: flags, 
+        flags: flags,
         string: movestring,
         ok: true
     };
@@ -833,7 +828,6 @@ function p4_move2string(s, e, piece, promotion, flags, co_landers){
     }
     else if (flags & P4_MOVE_FLAG_MATE)
         mv += ' stalemate';
-
     return mv;
 }
 
