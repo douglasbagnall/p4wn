@@ -565,8 +565,8 @@ function p4_check_check(state, colour){
     var knight = P4_KNIGHT | other_colour;
     var king = P4_KING | other_colour;
     for (i = 0; i < 8; i++){
-        if (board[knight_moves[i]] == knight ||
-            board[king_moves[i]] == king)
+        if (board[s + knight_moves[i]] == knight ||
+            board[s + king_moves[i]] == king)
             return true;
     }
     var diagonal_moves = P4_MOVES[P4_BISHOP];
