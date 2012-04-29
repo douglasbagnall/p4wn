@@ -211,7 +211,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
  */
 
 function p4_prepare(state){
-    var i;
+    var i, j;
     var pieces = state.pieces = [[], []];
     var w_weights = state.weights[0];
     var b_weights = state.weights[1];
@@ -228,7 +228,6 @@ function p4_prepare(state){
     var earliness_weight = (moveno < P4_EARLINESS_WEIGHTING.length) ? P4_EARLINESS_WEIGHTING[moveno] : 0;
     var king_should_hide = moveno < 12;
     var early = moveno < 5;
-    var target_king = moveno > 15;
     var kings = [0, 0];
     var material = [0, 0];
     /* find the pieces first, so the king positions are known */
@@ -244,6 +243,18 @@ function p4_prepare(state){
                 material[colour] += P4_VALUES[piece];
         }
     }
+    /* Shuffle the pieces, so tied scores don't systematically favour
+       one corner of the board or the other.*/
+    for (j = 0; j < 2; j++){
+        var p = pieces[j];
+        for (i = p.length - 1; i > 0; i--){
+            var k = p4_random_int(state, i + 1);
+            var tmp = p[k];
+            p[k] = p[i];
+            p[i] = tmp;
+        }
+    }
+
     var ws = material[0] - material[1];
     state.values = [[], []];
     var material_sum = material[0] + material[1] + 2 * P4_VALUES[P4_QUEEN];
@@ -252,6 +263,7 @@ function p4_prepare(state){
     state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * P4_VALUES[P4_QUEEN]),
                               parseInt(0.5 + (bmul - 1) * 2 * P4_VALUES[P4_QUEEN])];
     console.log(state.stalemate_scores);
+    var target_king = (moveno > 15 || material_sum < 5 * P4_VALUES[P4_QUEEN]);
     for (i = 0; i < P4_VALUES.length; i++){
         var v = P4_VALUES[i];
         if (v < P4_WIN){
@@ -315,11 +327,18 @@ function p4_prepare(state){
                 bk_weights[i] += parseInt(18 * wmul / wd2);
                 w_weights[i] += parseInt(25 * bmul / bd2);
                 wk_weights[i] += parseInt(18 * bmul / bd2);
+                /*The winning side wants to add jitter to its moves, avoidingh a draw.
+                 *The losing king wants to stay in the middle*/
+                var rand = p4_random31(state);
                 if (wmul < 1){//white winning
                     bk_weights[i] += parseInt(bmul * P4_BASE_WEIGHTS[i] / wmul);
+                    w_weights[i] += rand & 1;
+                    wk_weights[i] += (rand >> 1) & 1;
                 }
                 else if (bmul < 1){//black winning
                     wk_weights[i] += parseInt(wmul * P4_BASE_WEIGHTS[i] / bmul);
+                    b_weights[i] += rand & 1;
+                    bk_weights[i] += (rand >> 1) & 1;
                 }
 
 
@@ -330,10 +349,10 @@ function p4_prepare(state){
             var wp = 0, bp = 0;
             if (early){
                 if (y >= 4)
-                    wp += parseInt((((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
+                    wp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
                                     * w_weights[i]));
                 if (y <= 7)
-                    bp += parseInt((((P4_DEBUG ? 0.5 : Math.random()) + 0.2)
+                    bp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
                                     * b_weights[i]));
             }
             if (y == 9)
@@ -1077,6 +1096,7 @@ function p4_initialise_state(){
         weights: [_weights(), _weights()],
         history: []
     };
+    p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     return state;
 }
 
@@ -1246,4 +1266,27 @@ function p4_random48(state){
     var top = p4_random31(state) * 0x20000;
     var bottom = p4_random31(state) & 0x1ffff;
     return top + bottom;
+}
+
+function p4_random_int(state, top){
+    /* uniform integer in range [0 < n < top), supposing top < 2 ** 31
+     *
+     * This method is slightly (probably pointlessly) more accurate
+     * than converting to 0-1 float, multiplying and truncating, and
+     * considerably more accurate than a simple modulus.
+     * Obviously it is a bit slower.
+     */
+    /* mask becomes one less than the next highest power of 2 */
+    var mask = top;
+    mask--;
+    mask |= mask >>> 1;
+    mask |= mask >>> 2;
+    mask |= mask >>> 4;
+    mask |= mask >>> 8;
+    mask |= mask >>> 16;
+    var r;
+    do{
+        r = p4_random31(state) & mask;
+    } while (r >= top);
+    return r;
 }
