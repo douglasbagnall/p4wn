@@ -90,7 +90,7 @@ function weights_update(delta, element){
                 hi = n;
             if (n < low)
                 low = n;
-            }
+        }
         console.log(hi, low);
         for (i = 0; i < 120; i++){
             var id = "i" + (input.orientation ? 119 - i : i);
@@ -106,7 +106,7 @@ function weights_update(delta, element){
             var id = "i" + (input.orientation ? 119 - i : i);
             var el = document.getElementById(id);
             if (el !== null)
-                el.style = undefined;
+                el.style.backgroundColor = 'inherit';
         }
     }
     if (element !== undefined)
