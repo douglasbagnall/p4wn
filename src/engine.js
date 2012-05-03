@@ -327,7 +327,7 @@ function p4_prepare(state){
                 bk_weights[i] += parseInt(18 * wmul / wd2);
                 w_weights[i] += parseInt(25 * bmul / bd2);
                 wk_weights[i] += parseInt(18 * bmul / bd2);
-                /*The winning side wants to add jitter to its moves, avoidingh a draw.
+                /*The winning side wants to add jitter to its moves, avoiding a draw.
                  *The losing king wants to stay in the middle*/
                 var rand = p4_random31(state);
                 if (wmul < 1){//white winning
