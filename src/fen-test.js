@@ -73,7 +73,12 @@ var TEST_BUTTONS = [
             parse_test();
         }
     },
-
+    {
+        label: "reset RNG",
+        onclick: function(e){
+            p4_random_seed(1);
+        }
+    },
 ];
 
 write_controls_html(TEST_BUTTONS);
