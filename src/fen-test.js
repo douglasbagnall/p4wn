@@ -60,6 +60,61 @@ function parse_test(){
     }
 }
 
+var WEIGHTS_OVERLAYS = [
+    "none", undefined, 0,
+    "W weights", 'weights', 0,
+    "B weights", 'weights', 1,
+    "W pawn weights", 'pweights', 0,
+    "B pawn weights", 'pweights', 1,
+    "W king weights", 'kweights', 0,
+    "B king weights", 'kweights', 1
+];
+
+var __weights_overlay_index = 0;
+
+function weights_update(delta, element){
+    if (delta == undefined)
+        delta = 0;
+    p4_prepare(input.board_state);
+    var i;
+    var w = WEIGHTS_OVERLAYS;
+    var j = (__weights_overlay_index + delta * 3) % w.length;
+    __weights_overlay_index = j;
+    if (w[j + 1] !== undefined){
+        var overlay = input.board_state[w[j + 1]][w[j + 2]];
+        var low = 1e999;
+        var hi = -low;
+        for (i = 0; i < 120; i++){
+            var n = overlay[i];
+            if (n > hi)
+                hi = n;
+            if (n < low)
+                low = n;
+            }
+        console.log(hi, low);
+        for (i = 0; i < 120; i++){
+            var id = "i" + (input.orientation ? 119 - i : i);
+            var el = document.getElementById(id);
+            if (el == null)
+                continue;
+            var scaled = parseInt((overlay[i] - low) / (hi - low) * 255);
+            el.style.backgroundColor = 'rgb(' + scaled +','  + scaled + ',0)';
+        }
+    }
+    else {
+        for (i = 0; i < 120; i++){
+            var id = "i" + (input.orientation ? 119 - i : i);
+            var el = document.getElementById(id);
+            if (el !== null)
+                el.style = undefined;
+        }
+    }
+    if (element !== undefined)
+        element.innerHTML = "weights overlay: " + w[j] + '</b>';
+}
+
+
+
 var TEST_BUTTONS = [
     {
         label: "speed test",
@@ -79,6 +134,17 @@ var TEST_BUTTONS = [
             p4_random_seed(1);
         }
     },
+    {
+        onclick: function(e){
+            weights_update(1, e.currentTarget);
+        },
+        refresh: function(el){
+            weights_update(0, el);
+        },
+        move_listener: function(){
+            weights_update(0);
+        }
+    }
 ];
 
 write_controls_html(TEST_BUTTONS);

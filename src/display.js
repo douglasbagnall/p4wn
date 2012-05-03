@@ -14,7 +14,8 @@ var input = {
     board_state: p4_new_game(),
     players: ['human', 'computer'], //[white, black] controllers
     pawn_becomes: 0, //index into PROMOTION_* arrays
-    computer_level: DEFAULT_LEVEL
+    computer_level: DEFAULT_LEVEL,
+    move_listeners: []
 };
 
 /*the next two should match*/
@@ -49,21 +50,33 @@ function square_clicked(square){
     else if (input.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
-        var move_result = p4_move(state, input.start, square,
-                                  PROMOTION_INTS[input.pawn_becomes]);
-        if(move_result.ok){
-            console.log(move_result[1]);
-            display_move_text(state.moveno, move_result.string);
-            refresh();
-            show_piece_in_hand(0); //blank moving
+        if(move(input.start, square,PROMOTION_INTS[input.pawn_becomes])){
+            show_piece_in_hand(0);
             input.inhand = 0;
             input.start = 0;
-            auto_play_timeout_ID = undefined;
-            if (! (move_result.flags & P4_MOVE_FLAG_MATE))
-                next_move();
         }
     }
 }
+
+function move(start, end, promotion){
+    var state = input.board_state;
+    var move_result = p4_move(state, start, end, promotion);
+    if(move_result.ok){
+        console.log(move_result[1]);
+        display_move_text(state.moveno, move_result.string);
+        refresh();
+        if (! (move_result.flags & P4_MOVE_FLAG_MATE))
+            window.setTimeout(next_move(), 1);
+    }
+    else {
+        console.log("bad move!", s, e);
+    }
+    for (var i = 0; i < input.move_listeners.length; i++){
+        input.move_listeners[i](move_result);
+    }
+    return move_result.ok;
+}
+
 
 var auto_play_timeout_ID;
 
@@ -96,16 +109,7 @@ function computer_move(){
         }
     }
     s = mv[0], e = mv[1];
-    var move_result = p4_move(state, s, e);
-    if (move_result.ok){
-        display_move_text(state.moveno, move_result.string);
-        refresh();
-
-        if (! (move_result[0] & P4_MOVE_FLAG_MATE))
-            next_move();
-    }
-    else
-        console.log("no good move!", s, e);
+    move(s, e);
 }
 
 
@@ -350,7 +354,9 @@ function write_controls_html(lut){
         span.addEventListener("click",
                               o.onclick,
                               true);
-
+        if (o.move_listener){
+            input.move_listeners.push(o.move_listener);
+        }
     }
 }
 
