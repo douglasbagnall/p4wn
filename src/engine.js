@@ -320,13 +320,13 @@ function p4_prepare(state){
                 var wdy = wky - y;
                 var bdx = bkx - x;
                 var bdy = bky - y;
-                var wd2 = wdx * wdx + wdy * wdy + 1;
-                var bd2 = bdx * bdx + bdy * bdy + 1;
+                var wd = Math.sqrt(wdx * wdx + wdy * wdy) + 1;
+                var bd = Math.sqrt(bdx * bdx + bdy * bdy) + 1;
 
-                b_weights[i] += parseInt(25 * wmul / wd2);
-                bk_weights[i] += parseInt(18 * wmul / wd2);
-                w_weights[i] += parseInt(25 * bmul / bd2);
-                wk_weights[i] += parseInt(18 * bmul / bd2);
+                b_weights[i] += parseInt(8 * wmul / wd);
+                bk_weights[i] += parseInt(8 * wmul / wd);
+                w_weights[i] += parseInt(8 * bmul / bd);
+                wk_weights[i] += parseInt(8 * bmul / bd);
                 /*The winning side wants to add jitter to its moves, avoiding a draw.
                  *The losing king wants to stay in the middle*/
                 var rand = p4_random31(state);
