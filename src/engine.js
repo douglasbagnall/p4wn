@@ -128,7 +128,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
         var t;
         bs = 0;
         be = 0;
-        var b = beta;
         for(i = 0; i < movecount; i++){
             mv = movelist[i];
             var mscore = mv[0];
@@ -143,11 +142,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -b, -alpha, mep, castle_state)[0];
-            if (t > alpha && t < beta && i != 0){
-                t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                    -beta, -alpha, mep, castle_state)[0];
-            }
+                                -beta, -alpha, mep, castle_state)[0];
             if (t > alpha){
                 alpha = t;
                 bs = ms;
@@ -156,7 +151,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
             if (alpha >= beta){
                 break;
             }
-            b = alpha + 1;
         }
 
         if (alpha < -P4_WIN_NOW){
