@@ -274,7 +274,7 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
 }
 
 var TREE_CLIMBERS = [
-    'original', p4_treeclimber,
+    'default', p4_treeclimber,
     'negamax', p4_negamax_treeclimber,
     'alphabeta', p4_alphabeta_treeclimber,
     'negascout', p4_negascout_treeclimber
