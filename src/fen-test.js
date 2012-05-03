@@ -82,23 +82,21 @@ function weights_update(delta, element){
     __weights_overlay_index = j;
     if (w[j + 1] !== undefined){
         var overlay = input.board_state[w[j + 1]][w[j + 2]];
-        var low = 1e999;
-        var hi = -low;
-        for (i = 0; i < 120; i++){
-            var n = overlay[i];
-            if (n > hi)
-                hi = n;
-            if (n < low)
-                low = n;
-        }
-        console.log(hi, low);
+        var knee = P4_VALUES[P4_PAWN];
         for (i = 0; i < 120; i++){
             var id = "i" + (input.orientation ? 119 - i : i);
             var el = document.getElementById(id);
             if (el == null)
                 continue;
-            var scaled = parseInt((overlay[i] - low) / (hi - low) * 255);
-            el.style.backgroundColor = 'rgb(' + scaled +','  + scaled + ',0)';
+            var scaled = parseInt((overlay[i]) / knee * 255);
+            if (scaled <= 255){
+                el.style.backgroundColor = 'rgb(' + scaled +','  + scaled + ',0)';
+            }
+            else {
+                console.log(scaled);
+                scaled = parseInt(Math.min(255, scaled / 4));
+                el.style.backgroundColor = 'rgb(255,255,' + scaled + ')';
+            }
         }
     }
     else {
