@@ -1235,7 +1235,7 @@ function p4_find_source_point(state, e, str){
  */
 function p4_random_seed(state, seed){
     seed &= 0xffffffff;
-    state.rng = (P4_USE_TYPED_ARRAYS) ? new Uint32Array() : [];
+    state.rng = (P4_USE_TYPED_ARRAYS) ? new Uint32Array(4) : [];
     state.rng[0] = 0xf1ea5eed;
     state.rng[1] = seed;
     state.rng[2] = seed;
