@@ -74,9 +74,10 @@ function p4_make_move(state, s, e, castle_state, promotion){
 function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                                 castle_state, promotion){
     var move = p4_make_move(state, s, e, castle_state, promotion);
+    castle_state = move.castle_state;
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, ep, move.castle_state, -score);
+    var movelist = p4_parse(state, colour, ep, castle_state, -score);
     var movecount = movelist.length;
     var mv, bs, be;
     if(count){
@@ -136,9 +137,10 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                         castle_state, promotion){
     var move = p4_make_move(state, s, e, castle_state, promotion);
+    castle_state = move.castle_state;
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, ep, move.castle_state, -score);
+    var movelist = p4_parse(state, colour, ep, castle_state, -score);
     var movecount = movelist.length;
     var mv, bs, be;
     if(count){
@@ -201,11 +203,12 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
 
 /****treeclimber */
 function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
-                        castle_state, promotion){
+                                  castle_state, promotion){
     var move = p4_make_move(state, s, e, castle_state, promotion);
+    castle_state = move.castle_state;
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, ep, move.castle_state, -score);
+    var movelist = p4_parse(state, colour, ep, castle_state, -score);
     var movecount = movelist.length;
     var mv, bs, be;
     if(count){
