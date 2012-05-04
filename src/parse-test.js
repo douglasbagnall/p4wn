@@ -5,7 +5,7 @@ Assumes engine.js function
 p4_parse(state, colour, ep, castle_state, score)
 */
 
-function p4_make_move(state, s, e, castle_state, promotion, zobrist_hash, colour){
+function p4_make_move(state, s, e, castle_state, promotion){
     var board = state.board;
     var S = board[s];
     var E = board[e];
@@ -55,34 +55,6 @@ function p4_make_move(state, s, e, castle_state, promotion, zobrist_hash, colour
     if (end_piece){
         piece_locations.push([end_piece, e]);
     }
-
-    if (zobrist_hash !== undefined){
-        var lut = state.hashes;
-        /*black to move*/
-        if (colour)
-            hash_delta += lut[99];
-        /* move the piece*/
-        hash_delta -= lut[S * 120 + s];
-        hash_delta += lut[end_piece + e];
-        /*remove the capture*/
-        if (E)
-            hash_delta -= lut[E * 120 + e];
-        /*adjust castle_state*/
-        hash_delta -= lut[old_castle_state];
-        hash_delta += lut[castle_state];
-        /*castling rook*/
-        if (rs){
-            hash_delta -= lut[rook * 120 + rs];
-            hash_delta += lut[rook * 120 + re];
-        }
-        /*enpassant uses block of values starting at 120*/
-        if(piece == P4_PAWN && (s - e) * (s - e) == 400){
-            hash_delta += lut[120 + s];
-        }
-        zobrist_hash += hash_delta;
-        hash_value = state.hash_values[zobrist_hash];
-    }
-
     return {
         castle_state: castle_state,
         undo: function(){
@@ -100,88 +72,8 @@ function p4_make_move(state, s, e, castle_state, promotion, zobrist_hash, colour
                 piece_locations.length--;
             }
         },
-        hash: zobrist_hash,
-        hash_value: hash_value
     };
 }
-
-
-function p4_zobrist_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
-                                        castle_state, promotion, zobrist_hash){
-    if (zobrist_hash === undefined)
-        zobrist_hash = 0;
-    var move = p4_make_move(state, s, e, castle_state, promotion,
-                            zobrist_hash, colour);
-    castle_state = move.castle_state;
-    if (move.hash_value){
-        move.undo();
-        if (count >= 2)
-            console.log("hit hash at level", count, move.hash, move.hash_value);
-        state.hash_hits++;
-        return [move.hash_value];
-    }
-    state.hash_misses++;
-    zobrist_hash = move.hash;
-    var i;
-    var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, ep, castle_state, -score);
-    var movecount = movelist.length;
-    var mv, bs, be;
-    if(count){
-        //branch nodes
-        var t;
-        bs = 0;
-        be = 0;
-        for(i = 0; i < movecount; i++){
-            mv = movelist[i];
-            var mscore = mv[0];
-            var ms = mv[1];
-            var me = mv[2];
-            var mep = mv[3];
-            if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE + 200 * count;
-                bs = ms;
-                be = me;
-                break;
-            }
-            t = -p4_zobrist_negamax_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                                -beta, -alpha, mep, castle_state, undefined, zobrist_hash)[0];
-            if (t > alpha){
-                alpha = t;
-                bs = ms;
-                be = me;
-            }
-        }
-
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
-             */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
-        }
-        if (alpha < -P4_WIN){
-            /*make distant checkmate seem less bad */
-            alpha += P4_WIN_DECAY;
-        }
-    }
-    else{
-        //leaf nodes
-        while(--movecount != -1){
-            if(movelist[movecount][0] > alpha){
-                alpha = movelist[movecount][0];
-            }
-        }
-    }
-    move.undo();
-    state.hash_values[zobrist_hash] = alpha;
-    return [alpha, bs, be];
-}
-
-
 
 function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, ep,
                                 castle_state, promotion){
@@ -387,7 +279,6 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
 
 var TREE_CLIMBERS = [
     'default', p4_treeclimber,
-    'zobrist negamax', p4_zobrist_negamax_treeclimber,
     'negamax', p4_negamax_treeclimber,
     'alphabeta', p4_alphabeta_treeclimber,
     'negascout', p4_negascout_treeclimber

@@ -365,11 +365,6 @@ function p4_prepare(state){
         w_weights[21] -= 9;
         w_weights[28] -= 9;
     }
-    if (P4_USE_ZOBRIST_HASH){
-        state.hash_values = {};
-        state.hash_misses = 0;
-        state.hash_hits = 0;
-    }
 }
 
 
@@ -655,7 +650,6 @@ function p4_findmove(state, level){
                            P4_OFF_BOARD, P4_OFF_BOARD,
                            P4_MIN_SCORE, P4_MAX_SCORE,
                            state.enpassant, state.castles);
-    console.log("hits", state.hash_hits, "misses", state.hash_misses);
     return [t[1], t[2]];
 }
 
@@ -1097,12 +1091,6 @@ function p4_initialise_state(){
         history: []
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
-    if (P4_USE_ZOBRIST_HASH){
-        state.hashes = [];
-        for (i = 0; i < 15 * 120; i++){
-            state.hashes[i] = p4_random48(state);
-        }
-    }
     return state;
 }
 
