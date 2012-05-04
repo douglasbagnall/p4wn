@@ -62,14 +62,14 @@ function move(start, end, promotion){
     var state = input.board_state;
     var move_result = p4_move(state, start, end, promotion);
     if(move_result.ok){
-        console.log(move_result[1]);
+        console.log(move_result);
         display_move_text(state.moveno, move_result.string);
         refresh();
         if (! (move_result.flags & P4_MOVE_FLAG_MATE))
             window.setTimeout(next_move(), 1);
     }
     else {
-        console.log("bad move!", s, e);
+        console.log("bad move!", start, end);
     }
     for (var i = 0; i < input.move_listeners.length; i++){
         input.move_listeners[i](move_result);
