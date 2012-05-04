@@ -89,7 +89,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
     var ep_taken = 0, ep_position;
     var ep = 0;
     if(piece == P4_PAWN){
-        if(board[e + (10 - 20 * moved_colour)] == P4_EDGE){
+        if((60 - e) * (60 - e) > 900){
             /*got to end; replace the pawn on board and in pieces cache.
              *
              * The only time promotion is *not* undefined is the top level when
