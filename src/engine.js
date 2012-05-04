@@ -1274,13 +1274,6 @@ function p4_random31(state){
     return rng[3] & 0x7fffffff;
 }
 
-function p4_random48(state){
-    /* avoid explicit bit operations, because they secretly convert to 32 bit */
-    var top = p4_random31(state) * 0x20000;
-    var bottom = p4_random31(state) & 0x1ffff;
-    return top + bottom;
-}
-
 function p4_random_int(state, top){
     /* uniform integer in range [0 < n < top), supposing top < 2 ** 31
      *

@@ -31,25 +31,6 @@ function test_sums(seed){
         console.log(j, (a / 255).toPrecision(4) +
                     ' sqrt(variance*12) ' + Math.sqrt(12 * variance).toPrecision(4));
     }
-    console.log("testing 48 bits, complete, and byte by byte", N, "iterations");
-    var sum48 = 0;
-    var sum48_bytes = [0, 0, 0, 0, 0, 0];
-    for (i = 0; i < N; i++){
-        n = p4_random48(state);
-        sum48 += n;
-        for (j = 0; j < 6; j++){
-            sum48_bytes[j] += n & 255;
-            n = parseInt(n / 256);
-        }
-    }
-    console.log(sum48 / (N * Math.pow(2, 48)),
-                "48 bit average (small numerical error is probable)");
-    console.log("individual bytes:");
-    for (j = 0; j < 6; j++){
-        console.log(j, (sum48_bytes[j] / (N * 255)).toPrecision(4));
-    }
-
-
 }
 
 console.log("seed 0");
