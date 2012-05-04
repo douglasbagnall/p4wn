@@ -83,10 +83,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
     var piece = S & 14;
     var moved_colour = S & 1;
     var piece_locations = state.pieces[moved_colour];
-    if (S){
-        piece_locations.push([S, e]);
-    }
-
+    piece_locations.push([S, e]);
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
     var ep_taken = 0, ep_position;
@@ -185,9 +182,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
 
     board[s]=S;
     board[e]=E;
-    if (S){
-        piece_locations.length--;
-    }
+    piece_locations.length--;
     return alpha;
 }
 
