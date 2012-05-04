@@ -17,6 +17,7 @@ var P4_MOVES = [[], [],
 
 var P4_OFF_BOARD = 120;
 
+var P4_CENTRALISING_WEIGHTS;
 var P4_BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var P4_BASE_PAWN_WEIGHTS;
 
@@ -119,6 +120,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
         board[re]=rook;
         piece_locations.push([rook, re]);
     }
+
     if (castle_state)
         castle_state &= p4_get_castles_mask(s, e, moved_colour);
 
@@ -204,18 +206,17 @@ function p4_prepare(state){
     var bp_weights = state.pweights[1];
     var wk_weights = state.kweights[0];
     var bk_weights = state.kweights[1];
-
-    /*covert state.moveno half move count to move cycle count */
+    /*convert state.moveno half move count to move cycle count */
     var moveno = state.moveno >> 1;
     var board = state.board;
 
     // high earliness_weight indicates a low move number
-    var earliness_weight = (moveno < P4_EARLINESS_WEIGHTING.length) ? P4_EARLINESS_WEIGHTING[moveno] : 0;
+    var earliness_weight = parseInt(5.9 * Math.exp(moveno * -0.07));
     var king_should_hide = moveno < 12;
     var early = moveno < 5;
     var kings = [0, 0];
     var material = [0, 0];
-    /* find the pieces first, so the king positions are known */
+    /* find the pieces, kings, and weigh material*/
     for(i = 20; i  < 100; i++){
         var a = board[i];
         var piece = a & 14;
@@ -228,6 +229,7 @@ function p4_prepare(state){
                 material[colour] += P4_VALUES[piece];
         }
     }
+
     /* Shuffle the pieces, so tied scores don't systematically favour
        one corner of the board or the other.*/
     for (j = 0; j < 2; j++){
@@ -240,18 +242,18 @@ function p4_prepare(state){
         }
     }
 
-    var ws = material[0] - material[1];
     state.values = [[], []];
-    var material_sum = material[0] + material[1] + 2 * P4_VALUES[P4_QUEEN];
-    var wmul = 2 * (material[1] + P4_VALUES[P4_QUEEN]) / material_sum;
-    var bmul = 2 * (material[0] + P4_VALUES[P4_QUEEN]) / material_sum;
-    state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * P4_VALUES[P4_QUEEN]),
-                              parseInt(0.5 + (bmul - 1) * 2 * P4_VALUES[P4_QUEEN])];
-    console.log(state.stalemate_scores);
-    var target_king = (moveno > 15 || material_sum < 5 * P4_VALUES[P4_QUEEN]);
+    var qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
+    var material_sum = material[0] + material[1] + 2 * qvalue;
+    var wmul = 2 * (material[1] + qvalue) / material_sum;
+    var bmul = 2 * (material[0] + qvalue) / material_sum;
+    state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * qvalue),
+                              parseInt(0.5 + (bmul - 1) * 2 * qvalue)];
+    console.log("scores for stalemate (W, B):", state.stalemate_scores);
+    console.log("value adjust multipliers (W, B):", wmul, bmul);
     for (i = 0; i < P4_VALUES.length; i++){
         var v = P4_VALUES[i];
-        if (v < P4_WIN){
+        if (v < P4_WIN){//i.e., not king
             state.values[0][i] = parseInt(v * wmul + 0.5);
             state.values[1][i] = parseInt(v * bmul + 0.5);
         }
@@ -265,11 +267,13 @@ function p4_prepare(state){
     var bkx = kings[1] % 10;
     var bky  = parseInt(kings[1] / 10);
 
+    var target_king = (moveno > 15 || material_sum < 5 * qvalue);
+
     for (var y = 2; y < 10; y++){
         for (var x = 1; x < 9; x++){
             i = y * 10 + x;
-            b_weights[i] = P4_BASE_WEIGHTS[i] * earliness_weight;
-            w_weights[i] = P4_BASE_WEIGHTS[i] * earliness_weight;
+            b_weights[i] = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
+            w_weights[i] = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
 
             /* encourage them off the back row */
             if (early){
@@ -307,26 +311,24 @@ function p4_prepare(state){
                 var bdy = bky - y;
                 var wd = Math.sqrt(wdx * wdx + wdy * wdy) + 1;
                 var bd = Math.sqrt(bdx * bdx + bdy * bdy) + 1;
-
+                /*(wmul < 1) <==> white winning*/
                 b_weights[i] += parseInt(8 * wmul / wd);
-                bk_weights[i] += parseInt(8 * wmul / wd);
                 w_weights[i] += parseInt(8 * bmul / bd);
-                wk_weights[i] += parseInt(8 * bmul / bd);
+                bk_weights[i] += parseInt(6000 * wmul * wmul / (wd * material_sum));
+                wk_weights[i] += parseInt(6000 * bmul * bmul / (bd * material_sum));
                 /*The winning side wants to add jitter to its moves, avoiding a draw.
                  *The losing king wants to stay in the middle*/
                 var rand = p4_random31(state);
                 if (wmul < 1){//white winning
-                    bk_weights[i] += parseInt(bmul * P4_BASE_WEIGHTS[i] / wmul);
+                    bk_weights[i] += parseInt(bmul * P4_CENTRALISING_WEIGHTS[i] / wmul);
                     w_weights[i] += rand & 1;
                     wk_weights[i] += (rand >> 1) & 1;
                 }
                 else if (bmul < 1){//black winning
-                    wk_weights[i] += parseInt(wmul * P4_BASE_WEIGHTS[i] / bmul);
+                    wk_weights[i] += parseInt(wmul * P4_CENTRALISING_WEIGHTS[i] / bmul);
                     b_weights[i] += rand & 1;
                     bk_weights[i] += (rand >> 1) & 1;
                 }
-
-
             }
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
@@ -340,6 +342,7 @@ function p4_prepare(state){
                     bp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
                                     * b_weights[i]));
             }
+            /*pawn promotion row is weighted as a queen minus a pawn. */
             if (y == 9)
                 wp += state.values[0][P4_QUEEN] - state.values[0][P4_PAWN];
             if (y == 2)
@@ -351,10 +354,10 @@ function p4_prepare(state){
     }
     if (moveno > 10 && moveno < 30){
         /* not early; pry those rooks out of their corners */
-        b_weights[91] -= 9;
-        b_weights[98] -= 9;
-        w_weights[21] -= 9;
-        w_weights[28] -= 9;
+        b_weights[91] -= 7;
+        b_weights[98] -= 7;
+        w_weights[21] -= 7;
+        w_weights[28] -= 7;
     }
 }
 
@@ -622,6 +625,7 @@ function p4_dump_state(state){
     p4_dump_board(state.kweights[0], 'w king weights');
     p4_dump_board(state.kweights[1], 'b king weights');
     p4_dump_board(state.board, 'board');
+    p4_dump_board(P4_CENTRALISING_WEIGHTS, 'centralising weights');
     var attr;
     for (attr in state){
         if (! /weights|board$/.test(attr))
@@ -1071,28 +1075,8 @@ function p4_fen2state(fen, state){
  */
 
 function p4_initialise_state(){
-    var board;
-    if (P4_USE_TYPED_ARRAYS){
-        board = new Int32Array(121);
-        P4_BASE_WEIGHTS = new Int32Array(120);
-        P4_BASE_PAWN_WEIGHTS = new Int32Array(120);
-
-    }
-    else {
-        board = [];
-        P4_BASE_WEIGHTS = [];
-        P4_BASE_PAWN_WEIGHTS = [];
-    }
     var zeros = [];
     for(var i = 0; i < 120; i++){
-        var y = parseInt(i / 10);
-        P4_BASE_PAWN_WEIGHTS[i] = parseInt(P4_PAWN_WEIGHTS.charAt(y), 35);
-        /*base weights happen to equal
-         * Math.max(0, parseInt(5.75 - Math.pow((x - 4.5) * (x - 4.5) + 1.4 * (y - 5.5) * (y - 5.5), 0.61)));
-         */
-        P4_BASE_WEIGHTS[i] = parseInt(P4_WEIGHT_STRING.charAt((i < 60) ? i : 119 - i),
-                                      35) & 15;
-        board[i] = 16;
         zeros[i] = 0;
     }
     function _weights(){
@@ -1100,7 +1084,20 @@ function p4_initialise_state(){
             return new Int32Array(120);
         return zeros.slice();
     }
+    var board = _weights();
+    P4_CENTRALISING_WEIGHTS = _weights();
+    P4_BASE_PAWN_WEIGHTS = _weights();
 
+    for(var i = 0; i < 120; i++){
+        var y = parseInt(i / 10);
+        var x = i % 10;
+        var dx = x - 4.5;
+        var dy = y - 5.5;
+        P4_CENTRALISING_WEIGHTS[i] = parseInt(7 - Math.pow((dx * dx + dy * dy) * 1.5, 0.6));
+        P4_BASE_PAWN_WEIGHTS[i] = parseInt('000012347000'.charAt(y));
+        if (y > 9 || y < 2 || x < 1 || x > 8)
+            board[i] = 16;
+    }
     board[P4_OFF_BOARD] = 0;
     var state = {
         board: board,

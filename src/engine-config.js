@@ -25,31 +25,13 @@ var P4_WIN = P4_KING_VALUE >> 1;
 var P4_WIN_DECAY = 300;
 var P4_WIN_NOW = P4_KING_VALUE - 200;
 
-/* P4_EARLINESS_WEIGHTING indicates the extent to which the game can
- * be considered just beginning.
- *
- * Essentially, it maps the decay of the weighting toward centralising
- * moves.
- */
-var P4_EARLINESS_WEIGHTING = [5,5,5,5,4,4,4,3,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1];
-
 /* P4_{MAX,MIN}_SCORE should be beyond any possible evaluated score */
 
 var P4_MAX_SCORE = 9999;    // extremes of evaluation range
 var P4_MIN_SCORE = -P4_MAX_SCORE;
 
-
 /*P4_DEBUG turns on debugging features */
 var P4_DEBUG = 0;
-
-
-/*P4_WEIGHT_STRING and P4_PAWN_WEIGHTS are used to set up weighting
- *towards the centre, and the other end, repesctively.
- *
- * XXX this is a crap way to do it.
- */
-var P4_WEIGHT_STRING = "000000000000000000000000000000000111100000123321000123553210";
-var P4_PAWN_WEIGHTS = '000012347000';  //per row - rewards advancement.
 
 var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
