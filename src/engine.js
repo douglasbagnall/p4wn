@@ -15,10 +15,24 @@ var P4_MOVES = [[], [],
                 [1,10,11,9,-1,-10,-11,-9], []
                ];
 
-var P4_OFF_BOARD = 120;
+
+/* Threshold that indicates a king has been taken. It has to be quite
+ * a bit less than the value of a king, in case someone finds a way
+ * to, say, sacrifice two queens in order to checkmate.
+ */
+var P4_KING_VALUE = P4_VALUES[10];
+var P4_WIN = P4_KING_VALUE >> 1;
+
+/* every move, a winning score decreases by this much */
+var P4_WIN_DECAY = 300;
+var P4_WIN_NOW = P4_KING_VALUE - 200;
+
+/* P4_{MAX,MIN}_SCORE should be beyond any possible evaluated score */
+
+var P4_MAX_SCORE = 9999;    // extremes of evaluation range
+var P4_MIN_SCORE = -P4_MAX_SCORE;
 
 var P4_CENTRALISING_WEIGHTS;
-var P4_BASE_WEIGHTS;    //base weights  central weighting for ordinary pieces.
 var P4_BASE_PAWN_WEIGHTS;
 
 /*piece codes:
@@ -1115,7 +1129,6 @@ function p4_initialise_state(){
         if (y > 9 || y < 2 || x < 1 || x > 8)
             board[i] = 16;
     }
-    board[P4_OFF_BOARD] = 0;
     var state = {
         board: board,
         pweights: [_weights(), _weights()],
