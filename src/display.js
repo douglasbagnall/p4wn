@@ -22,6 +22,10 @@ var input = {
 var PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
 var PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 
+var auto_play_timeout_ID;
+var next_move_timeout_ID;
+
+
 function square_clicked(square){
     var state = input.board_state;
     var board = state.board;
@@ -66,7 +70,7 @@ function move(start, end, promotion){
         display_move_text(state.moveno, move_result.string);
         refresh();
         if (! (move_result.flags & P4_MOVE_FLAG_MATE))
-            window.setTimeout(next_move(), 1);
+            next_move_timeout_ID = window.setTimeout(next_move, 1);
     }
     else {
         console.log("bad move!", start, end);
@@ -74,15 +78,33 @@ function move(start, end, promotion){
     for (var i = 0; i < input.move_listeners.length; i++){
         input.move_listeners[i](move_result);
     }
+    if (move_result.flags & P4_MOVE_FLAG_DRAW){
+        if (! input.draw_offered){
+            write_controls_html([{
+                                     id: 'offer_draw_button',
+                                     label: '<b>Draw?</b>',
+                                     onclick: function(e){
+                                         window.clearTimeout(next_move_timeout_ID);
+                                         window.clearTimeout(auto_play_timeout_ID);
+                                         refresh_buttons();
+                                         display_move_text(0, 'DRAW');
+                                         console.log(p4_state2fen(input.board_state));
+                                         auto_play_timeout_ID = undefined;
+                                         next_move_timeout_ID = undefined;
+                                     }
+                                 }]);
+            input.draw_offered = true;
+        }
+        else {
+            document.getElementById('offer_draw_button').style.color = '#c00';
+        }
+    }
+
     return move_result.ok;
 }
 
-
-var auto_play_timeout_ID;
-
 function next_move(){
-    var state = input.board_state;
-    var mover = state.to_play;
+    var mover = input.board_state.to_play;
     if (input.players[mover] == 'computer' &&
         auto_play_timeout_ID === undefined){
         var timeout = (input.players[1 - mover] == 'computer') ? 500: 10;

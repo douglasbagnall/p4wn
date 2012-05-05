@@ -242,6 +242,11 @@ function p4_prepare(state){
         }
     }
 
+    /*see whether a draw seemws likely soon*/
+    console.log(state.position_counts, state.current_repetitions);
+    var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
+    if (draw_likely)
+        console.log("draw likely", state.current_repetitions, state.draw_timeout);
     state.values = [[], []];
     var qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
     var material_sum = material[0] + material[1] + 2 * qvalue;
@@ -318,17 +323,20 @@ function p4_prepare(state){
                 wk_weights[i] += parseInt(6000 * bmul * bmul / (bd * material_sum));
                 /*The winning side wants to add jitter to its moves, avoiding a draw.
                  *The losing king wants to stay in the middle*/
-                var rand = p4_random31(state);
                 if (wmul < 1){//white winning
                     bk_weights[i] += parseInt(bmul * P4_CENTRALISING_WEIGHTS[i] / wmul);
-                    w_weights[i] += rand & 1;
-                    wk_weights[i] += (rand >> 1) & 1;
                 }
                 else if (bmul < 1){//black winning
                     wk_weights[i] += parseInt(wmul * P4_CENTRALISING_WEIGHTS[i] / bmul);
-                    b_weights[i] += rand & 1;
-                    bk_weights[i] += (rand >> 1) & 1;
                 }
+
+                if (draw_likely){
+                    var rand = p4_random31(state);
+                    ((wmul < 1) ? w_weights : b_weights)[i] += rand & 1;
+                    ((wmul < 1) ? wk_weights : bk_weights)[i] += (rand >> 1) & 1;
+                }
+
+
             }
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
@@ -693,6 +701,7 @@ var P4_MOVE_FLAG_MATE = 4;
 var P4_MOVE_FLAG_CAPTURE = 8;
 var P4_MOVE_FLAG_CASTLE_KING = 16;
 var P4_MOVE_FLAG_CASTLE_QUEEN = 32;
+var P4_MOVE_FLAG_DRAW = 64;
 
 var P4_MOVE_ILLEGAL = 0;
 var P4_MOVE_MISSED_MATE = P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
@@ -741,7 +750,6 @@ function p4_move(state, s, e, promotion){
     var legal = false;
     p4_prepare(state);
     var p = p4_parse(state, colour, state.enpassant, state.castles, 0);
-    console.log(p);
     for (var i = 0; i < p.length; i++){
         if (e == p[i][2]){
             if (s == p[i][1])
@@ -908,6 +916,14 @@ function p4_modify_state_for_move(state, s, e, promotion){
     }
     board[e] = board[s];
     board[s] = 0;
+    var shortfen = p4_state2fen(state, true);
+    var repetitions = (state.position_counts[shortfen] || 0) + 1;
+    state.position_counts[shortfen] = repetitions;
+    state.current_repetitions = repetitions;
+    if (state.draw_timeout > 100 || repetitions == 3){
+        //XXX also if material drops too low?
+        flags |= P4_MOVE_FLAG_DRAW;
+    }
     state.moveno++;
     state.to_play = 1 - colour;
     return flags;
@@ -1067,6 +1083,7 @@ function p4_fen2state(fen, state){
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     state.history = [];
     state.beginning = fen;
+    state.position_counts = {};
     return state;
 }
 
