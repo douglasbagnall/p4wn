@@ -45,7 +45,7 @@ function time_find_move(depth){
 function parse_test(){
     var state = input.board_state;
     p4_prepare(state);
-    var p = p4_parse(state, state.to_play, state.enpassant, state.castles, 0);
+    var p = p4_parse(state, state.to_play, state.enpassant, 0);
     console.log("found", p.length, "moves");
     var current_start = undefined;
     var current_piece = undefined;

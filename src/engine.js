@@ -85,8 +85,7 @@ function p4_get_castles_mask(s, e, colour){
 
 
 /****treeclimber */
-function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                        castle_state, promotion){
+function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
     var board = state.board;
     var i;
     var ncolour = 1 - colour;
@@ -135,10 +134,11 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
         piece_locations.push([rook, re]);
     }
 
-    if (castle_state)
-        castle_state &= p4_get_castles_mask(s, e, moved_colour);
+    var old_castle_state = state.castles;
+    if (old_castle_state)
+        state.castles &= p4_get_castles_mask(s, e, moved_colour);
 
-    var movelist = p4_parse(state, colour, ep, castle_state, score);
+    var movelist = p4_parse(state, colour, ep, score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -155,7 +155,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha, castle_state);
+                                -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -195,7 +195,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta,
     if (ep_position){
         board[ep_position] = ep_taken;
     }
-
+    state.castles = old_castle_state;
     board[s]=S;
     board[e]=E;
     piece_locations.length--;
@@ -385,7 +385,7 @@ function p4_prepare(state){
 
 
 
-function p4_parse(state, colour, ep, castle_state, score) {
+function p4_parse(state, colour, ep, score) {
     var board = state.board;
     var s, e;    //start and end position
     var E=0, a;       //E=piece at end place, a= piece moving
@@ -400,7 +400,7 @@ function p4_parse(state, colour, ep, castle_state, score) {
     var weights = state.weights[colour];
     var pieces = state.pieces[colour];
     var plen = pieces.length;
-    var castle_flags = (castle_state >> (colour * 2)) & 3;
+    var castle_flags = (state.castles >> (colour * 2)) & 3;
     var values = state.values[other_colour];
     for (j = 0; j < plen; j++){
         s=pieces[j][1]; // board position
@@ -561,8 +561,8 @@ function p4_check_castling(board, s, colour, dir, side){
     return 1;
 }
 
-function old_check_check(state, colour, castle_state){
-    var a = p4_findmove(state, 0, 1 - colour, 0, castle_state)[2];
+function old_check_check(state, colour){
+    var a = p4_findmove(state, 0, 1 - colour, 0)[2];
     return (a > P4_WIN_NOW);
 }
 
@@ -659,15 +659,14 @@ function p4_dump_state(state){
 
 //************************************* findmove();
 
-function p4_findmove(state, level, colour, ep, castle_state){
+function p4_findmove(state, level, colour, ep){
     p4_prepare(state);
     var board = state.board;
     if (arguments.length == 2){
         colour = state.to_play;
         ep = state.enpassant;
-        castle_state = state.castles;
     }
-    var movelist = p4_parse(state, colour, ep, castle_state, 0);
+    var movelist = p4_parse(state, colour, ep, 0);
     var alpha = P4_MIN_SCORE;
     var mv, t, i;
     var bs = 0;
@@ -685,7 +684,7 @@ function p4_findmove(state, level, colour, ep, castle_state){
             break;
         }
         t = -p4_treeclimber(state, level - 1, 1 - colour, mscore, ms, me,
-                            P4_MIN_SCORE, -alpha, castle_state);
+                            P4_MIN_SCORE, -alpha);
         if (t > alpha){
             alpha = t;
             bs = ms;
@@ -763,7 +762,7 @@ function p4_move(state, s, e, promotion){
     var co_landers = [];
     var legal = false;
     p4_prepare(state);
-    var p = p4_parse(state, colour, state.enpassant, state.castles, 0);
+    var p = p4_parse(state, colour, state.enpassant, 0);
     for (var i = 0; i < p.length; i++){
         if (e == p[i][2]){
             if (s == p[i][1])
@@ -787,7 +786,7 @@ function p4_move(state, s, e, promotion){
      *    (but maybe stalemate).
     */
     var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
-                           state.castles, promotion);
+                           promotion);
     var in_check = t > P4_WIN;
     var is_mate = t < -P4_WIN;
     if (in_check) {
@@ -1239,7 +1238,7 @@ function p4_find_source_point(state, e, str){
     var possibilities = [];
     p4_prepare(state);
     var p = p4_parse(state, colour,
-                     state.enpassant, state.castles, 0);
+                     state.enpassant, 0);
     for (i = 0; i < p.length; i++){
         var mv = p[i];
         if (e == mv[2]){
@@ -1249,8 +1248,7 @@ function p4_find_source_point(state, e, str){
                 (row === undefined || row == parseInt(s / 10))
                ){
                var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e,
-                                      P4_MIN_SCORE, P4_MAX_SCORE,
-                                      state.castles);
+                                      P4_MIN_SCORE, P4_MAX_SCORE);
                if (t < P4_WIN)
                    possibilities.push(s);
             }

@@ -2,10 +2,10 @@
 
 Assumes engine.js function
 
-p4_parse(state, colour, ep, castle_state, score)
+p4_parse(state, colour, ep, score)
 */
 
-function p4_make_move(state, s, e, castle_state, promotion){
+function p4_make_move(state, s, e, promotion){
     var board = state.board;
     var S = board[s];
     var E = board[e];
@@ -51,13 +51,13 @@ function p4_make_move(state, s, e, castle_state, promotion){
         piece_locations.push([rook, re]);
     }
 
-    if (castle_state)
-        castle_state &= p4_get_castles_mask(s, e, moved_colour);
+    var old_castle_state = state.castles;
+    if (old_castle_state)
+        state.castles &= p4_get_castles_mask(s, e, moved_colour);
 
     if (piece)
         piece_locations.push([end_piece, e]);
     return {
-        castle_state: castle_state,
         undo: function(){
             if(rs){
                 board[rs]=rook;
@@ -71,18 +71,17 @@ function p4_make_move(state, s, e, castle_state, promotion){
             board[e] = E;
             if (piece)
                 piece_locations.length--;
+            state.castles = old_castle_state;
         },
         ep: ep
     };
 }
 
-function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                castle_state, promotion){
-    var move = p4_make_move(state, s, e, castle_state, promotion);
-    castle_state = move.castle_state;
+function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
+    var move = p4_make_move(state, s, e, promotion);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, castle_state, -score);
+    var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -98,7 +97,7 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta,
                 break;
             }
             t = -p4_negamax_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                        -beta, -alpha, castle_state);
+                                        -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -133,13 +132,11 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta,
 
 
 
-function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                           castle_state, promotion){
-    var move = p4_make_move(state, s, e, castle_state, promotion);
-    castle_state = move.castle_state;
+function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
+    var move = p4_make_move(state, s, e, promotion);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, castle_state, -score);
+    var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -150,7 +147,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
         */
         if (count > 1){
             t = p4_treeclimber(state, 1, colour, score, 0, 0,
-                               alpha, beta, castle_state);
+                               alpha, beta);
             //console.log('count, t, alpha, beta', count, t, alpha, beta);
             if (t < beta)
                 beta = t;
@@ -165,7 +162,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha, castle_state);
+                                -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -203,12 +200,11 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                  castle_state, promotion){
-    var move = p4_make_move(state, s, e, castle_state, promotion);
-    castle_state = move.castle_state;
+                                  promotion){
+    var move = p4_make_move(state, s, e, promotion);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, castle_state, -score);
+    var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -224,7 +220,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha, castle_state);
+                                -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -262,12 +258,11 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
 
 /****treeclimber */
 function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                  castle_state, promotion){
-    var move = p4_make_move(state, s, e, castle_state, promotion);
-    castle_state = move.castle_state;
+                                  promotion){
+    var move = p4_make_move(state, s, e, promotion);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, castle_state, -score);
+    var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -284,10 +279,10 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -b, -alpha, castle_state);
+                                -b, -alpha);
             if (t > alpha && t < beta && i != 0){
                 t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                    -beta, -alpha, castle_state);
+                                    -beta, -alpha);
             }
             if (t > alpha){
                 alpha = t;
