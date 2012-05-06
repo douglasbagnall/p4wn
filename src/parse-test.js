@@ -145,12 +145,14 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
         /* first try a null move. This sets a decent value for beta in
            almost every situation (I think. seems to work).
         */
-        if (count > 1){
-            t = p4_treeclimber(state, 1, colour, score, 0, 0,
+        if (count >= 2){
+            t = p4_treeclimber(state, count - 2, colour, score, 0, 0,
                                alpha, beta);
             //console.log('count, t, alpha, beta', count, t, alpha, beta);
-            if (t < beta)
-                beta = t;
+            if (t > beta){
+                move.undo();
+                return beta;
+            }
         }
         for(i = 0; i < movecount; i++){
             mv = movelist[i];
