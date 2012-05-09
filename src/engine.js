@@ -15,7 +15,6 @@ var P4_MOVES = [[], [],
                 [1,10,11,9,-1,-10,-11,-9], []
                ];
 
-
 /* Threshold that indicates a king has been taken. It has to be quite
  * a bit less than the value of a king, in case someone finds a way
  * to, say, sacrifice two queens in order to checkmate.
@@ -335,23 +334,22 @@ function p4_prepare(state){
                 w_weights[i] += parseInt(8 * bmul / bd);
                 bk_weights[i] += parseInt(6000 * wmul * wmul / (wd * material_sum));
                 wk_weights[i] += parseInt(6000 * bmul * bmul / (bd * material_sum));
-                /*The winning side wants to add jitter to its moves, avoiding a draw.
-                 *The losing king wants to stay in the middle*/
+                 /*The losing king wants to stay in the middle*/
                 if (wmul < 1){//white winning
                     bk_weights[i] += parseInt(bmul * P4_CENTRALISING_WEIGHTS[i] / wmul);
                 }
                 else if (bmul < 1){//black winning
                     wk_weights[i] += parseInt(wmul * P4_CENTRALISING_WEIGHTS[i] / bmul);
                 }
-
-                if (draw_likely){
-                    var rand = p4_random31(state);
-                    ((wmul < 1) ? w_weights : b_weights)[i] += rand & 1;
-                    ((wmul < 1) ? wk_weights : bk_weights)[i] += (rand >> 1) & 1;
-                }
-
-
             }
+
+            if (draw_likely){
+                /*The winning side wants to avoid draw, so adds jitter to its weights.*/
+                var rand = p4_random31(state);
+                ((wmul < 1) ? w_weights : b_weights)[i] += rand & 3;
+                ((wmul < 1) ? wk_weights : bk_weights)[i] += (rand >> 2) & 3;
+            }
+
             /* pawns weighted toward centre at start then forwards only.
              * pawn weights are also slightly randomised, so each game is different.
              */
