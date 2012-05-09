@@ -245,16 +245,17 @@ function p4_prepare(state){
 
     /* Shuffle the pieces, so tied scores don't systematically favour
        one corner of the board or the other.*/
-    for (j = 0; j < 2; j++){
-        var p = pieces[j];
-        for (i = p.length - 1; i > 0; i--){
-            var k = p4_random_int(state, i + 1);
-            var tmp = p[k];
-            p[k] = p[i];
-            p[i] = tmp;
+    if (P4_SHUFFLE_PIECES){
+        for (j = 0; j < 2; j++){
+            var p = pieces[j];
+            for (i = p.length - 1; i > 0; i--){
+                var k = p4_random_int(state, i + 1);
+                var tmp = p[k];
+                p[k] = p[i];
+                p[i] = tmp;
+            }
         }
     }
-
     /*see whether a draw seemws likely soon*/
     console.log(state.position_counts, state.current_repetitions);
     var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);

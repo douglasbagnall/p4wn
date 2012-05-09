@@ -16,7 +16,7 @@ var P4_VALUES=[0, 0,      //Piece values
 
 /*P4_DEBUG turns on debugging features */
 var P4_DEBUG = 0;
-
+var P4_SHUFFLE_PIECES = false;
 var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
 /*use javascript typed arrays rather than plain arrays
