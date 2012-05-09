@@ -93,7 +93,7 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, 
             var ms = mv[1];
             var me = mv[2];
             if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE + 200 * count;
+                alpha = P4_KING_VALUE;
                 break;
             }
             t = -p4_negamax_treeclimber(state, count - 1, ncolour, mscore, ms, me,
@@ -160,7 +160,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
             var ms = mv[1];
             var me = mv[2];
             if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE + 200 * count;
+                alpha = P4_KING_VALUE;
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
@@ -218,7 +218,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             var ms = mv[1];
             var me = mv[2];
             if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE + 200 * count;
+                alpha = P4_KING_VALUE;
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
@@ -277,7 +277,7 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
             var ms = mv[1];
             var me = mv[2];
             if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE + 200 * count;
+                alpha = P4_KING_VALUE;
                 break;
             }
             t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
