@@ -659,6 +659,7 @@ function p4_dump_state(state){
 //************************************* findmove();
 
 function p4_findmove(state, level, colour, ep){
+    state.quiesce_counts = [0, 0];
     p4_prepare(state);
     var board = state.board;
     if (arguments.length == 2){
@@ -693,6 +694,7 @@ function p4_findmove(state, level, colour, ep){
     if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
         alpha = state.stalemate_scores[colour];
     }
+    console.log('quiesce counts', state.quiesce_counts);
     return [bs, be, alpha];
 }
 
@@ -1132,7 +1134,8 @@ function p4_initialise_state(){
         pweights: [_weights(), _weights()],
         kweights: [_weights(), _weights()],
         weights: [_weights(), _weights()],
-        history: []
+        history: [],
+        quiesce_counts: [0, 0]
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     return state;

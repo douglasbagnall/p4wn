@@ -130,15 +130,11 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, 
     return alpha;
 }
 
-
-
 function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
     var move = p4_make_move(state, s, e, promotion);
-    var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, -score);
-    var movecount = movelist.length;
-    var mv;
+    var i, mv;
+    var board = state.board;
     if(count){
         //branch nodes
         var t;
@@ -154,6 +150,8 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                 return beta;
             }
         }
+        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movecount = movelist.length;
         for(i = 0; i < movecount; i++){
             mv = movelist[i];
             var mscore = mv[0];
@@ -188,6 +186,84 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
             alpha += P4_WIN_DECAY;
         }
     }
+    else if (P4_QUIESCE){
+        var qscore;
+        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movecount = movelist.length;
+        while(--movecount >= 0){
+            mv = movelist[movecount];
+            var mscore = mv[0];
+            var ms = mv[1];
+            var me = mv[2];
+            if (mscore > alpha){
+                //console.log("start, end", ms, board[ms],  me, board[me]);
+                if(board[me]){
+                    //console.log("quiescing", score, mscore, alpha, beta);
+
+                    /*a capture*/
+                    mscore = -p4_quiesce(state, 1, ncolour, ms, me, -beta, -mscore);
+                }
+                if (mscore > alpha)
+                    alpha = mscore;
+            }
+        }
+    }
+    else{
+        //leaf nodes
+        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movecount = movelist.length;
+        while(beta > alpha && --movecount >= 0){
+            if(movelist[movecount][0] > alpha){
+                alpha = movelist[movecount][0];
+            }
+        }
+    }
+    move.undo();
+    return alpha;
+}
+
+function p4_quiesce(state, count, colour, s, e, alpha, beta,
+                    promotion){
+    if (alpha > beta)
+        return alpha;
+    var move = p4_make_move(state, s, e, promotion);
+    var i;
+    var ncolour = 1 - colour;
+    var movelist = p4_parse(state, colour, move.ep, -alpha);
+    var movecount = movelist.length;
+    var mv;
+    state.quiesce_counts[count]++;
+    if(count){
+        //branch nodes
+        var t;
+        var board = state.board;
+        for(i = 0; i < movecount; i++){
+            mv = movelist[i];
+            var mscore = mv[0];
+            var ms = mv[1];
+            var me = mv[2];
+            if (board[me] == 0)
+                continue;
+            if (mscore > P4_WIN){
+                alpha = P4_KING_VALUE;
+                break;
+            }
+            t = -p4_quiesce(state, count - 1, ncolour, ms, me, -beta, -mscore);
+            if (t > alpha){
+                alpha = t;
+            }
+            if (alpha >= beta){
+                break;
+            }
+        }
+        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
+            alpha = state.stalemate_scores[colour];
+        }
+        if (alpha < -P4_WIN){
+            /*make distant checkmate seem less bad */
+            alpha += P4_WIN_DECAY;
+        }
+    }
     else{
         //leaf nodes
         while(beta > alpha && --movecount != -1){
@@ -199,6 +275,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
     move.undo();
     return alpha;
 }
+
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
