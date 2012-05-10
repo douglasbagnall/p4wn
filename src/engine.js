@@ -397,7 +397,9 @@ function p4_parse(state, colour, ep, score) {
     var other_colour = 1 - colour;
     var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
     var k=-1;
+    var k2=-1;
     var movelist=[];
+    var captures=[];
     var weight;
     var pweight = state.pweights[colour];
     var kweights = state.kweights[colour];
@@ -424,8 +426,11 @@ function p4_parse(state, colour, ep, score) {
                     for(i = 0; i < 8; i++){
                         e = s + moves[i];
                         E = board[e];
-                        if(!E || (E&17)==other_colour){
+                        if(!E){
                             movelist[++k]=[weight + values[E] + weight_lut[e], s, e];
+                        }
+                        else if((E&17)==other_colour){
+                            captures[++k2]=[weight + values[E] + weight_lut[e], s, e];
                         }
                     }
                     if(is_king && castle_flags){
@@ -448,8 +453,11 @@ function p4_parse(state, colour, ep, score) {
                         do {
                             e+=m;
                             E=board[e];
-                            if(!E||(E&17)==other_colour){
+                            if(!E){
                                 movelist[++k]=[weight + values[E] + weight_lut[e], s, e];
+                            }
+                            else if((E&17)==other_colour){
+                                captures[++k2]=[weight + values[E] + weight_lut[e], s, e];
                             }
                         }while(!E);
                     }
@@ -469,12 +477,12 @@ function p4_parse(state, colour, ep, score) {
                 /* +/-1 for pawn capturing */
                 E = board[--e];
                 if(E && (E & 17) == other_colour){
-                    movelist[++k]=[weight + values[E] + pweight[e], s, e];
+                    captures[++k2]=[weight + values[E] + pweight[e], s, e];
                 }
                 e += 2;
                 E = board[e];
                 if(E && (E & 17) == other_colour){
-                    movelist[++k]=[weight + values[E] + pweight[e], s, e];
+                    captures[++k2]=[weight + values[E] + pweight[e], s, e];
                 }
             }
         }
@@ -489,15 +497,15 @@ function p4_parse(state, colour, ep, score) {
         s = ep - dir - 1;
         if (board[s] == pawn){
             taken = values[board[ep - dir]];
-            movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep];
+            captures[++k2] = [score - pweight[s] + pweight[ep] + taken, s, ep];
         }
         s += 2;
         if (board[s] == pawn){
             taken = values[board[ep - dir]];
-            movelist[++k] = [score - pweight[s] + pweight[ep] + taken, s, ep];
+            captures[++k2] = [score - pweight[s] + pweight[ep] + taken, s, ep];
         }
     }
-    return movelist;
+    return captures.concat(movelist);
 }
 
 
