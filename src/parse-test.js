@@ -190,22 +190,19 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
         var qscore;
         var movelist = p4_parse(state, colour, move.ep, -score);
         var movecount = movelist.length;
+        var threshold = alpha - state.best_pieces[colour];
         while(--movecount >= 0){
             mv = movelist[movecount];
             var mscore = mv[0];
             var ms = mv[1];
             var me = mv[2];
-            if (mscore > alpha){
-                //console.log("start, end", ms, board[ms],  me, board[me]);
-                if(board[me]){
+            if (mscore > threshold && board[me]){
                     //console.log("quiescing", score, mscore, alpha, beta);
-
                     /*a capture*/
-                    mscore = -p4_quiesce(state, 1, ncolour, ms, me, -beta, -mscore);
-                }
-                if (mscore > alpha)
-                    alpha = mscore;
+                mscore = -p4_quiesce(state, 1, ncolour, ms, me, -beta, -mscore);
             }
+            if (mscore > alpha)
+                alpha = mscore;
         }
     }
     else{

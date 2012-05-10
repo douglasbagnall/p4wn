@@ -230,16 +230,20 @@ function p4_prepare(state){
     var kings = [0, 0];
     var material = [0, 0];
     /* find the pieces, kings, and weigh material*/
+    var best_pieces = [0, 0];
     for(i = 20; i  < 100; i++){
         var a = board[i];
         var piece = a & 14;
         var colour = a & 1;
         if(piece){
             pieces[colour].push([a, i]);
-            if (piece == P4_KING)
+            if (piece == P4_KING){
                 kings[colour] = i;
-            else
+            }
+            else{
                 material[colour] += P4_VALUES[piece];
+                best_pieces[colour] = Math.max(best_pieces[colour], P4_VALUES[piece]);
+            }
         }
     }
 
@@ -257,7 +261,6 @@ function p4_prepare(state){
         }
     }
     /*see whether a draw seemws likely soon*/
-    console.log(state.position_counts, state.current_repetitions);
     var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
     if (draw_likely)
         console.log("draw likely", state.current_repetitions, state.draw_timeout);
@@ -281,6 +284,8 @@ function p4_prepare(state){
             state.values[1][i] = v;
         }
     }
+    state.best_pieces = [parseInt(best_pieces[0] * wmul + 0.5),
+                         parseInt(best_pieces[1] * bmul + 0.5)];
     var wkx = kings[0] % 10;
     var wky  = parseInt(kings[0] / 10);
     var bkx = kings[1] % 10;
