@@ -655,42 +655,6 @@ function p4_check_check(state, colour){
     return false;
 }
 
-
-
-
-function p4_dump_board(_board, name){
-    if (name !== undefined)
-        console.log(name);
-    var board = [];
-    for (var i = 0; i < 120; i++){
-        board[i] = _board[i];
-    }
-    for (var y = 2; y < 10; y++){
-        var s = y * 10;
-        console.log(board.slice(s + 1, s + 9));
-    }
-}
-
-function p4_dump_state(state){
-    p4_dump_board(state.weights[0], 'w weights');
-    p4_dump_board(state.weights[1], 'b weights');
-    p4_dump_board(state.pweights[0], 'w p weights');
-    p4_dump_board(state.pweights[1], 'b p weights');
-    p4_dump_board(state.kweights[0], 'w king weights');
-    p4_dump_board(state.kweights[1], 'b king weights');
-    p4_dump_board(state.board, 'board');
-    p4_dump_board(P4_CENTRALISING_WEIGHTS, 'centralising weights');
-    var attr;
-    for (attr in state){
-        if (! /weights|board$/.test(attr))
-            console.log(attr, state[attr]);
-        else
-            console.log(attr, "board array", state[attr].length);
-    }
-}
-
-//************************************* findmove();
-
 function p4_findmove(state, level, colour, ep){
     state.quiesce_counts = [0, 0];
     p4_prepare(state);
