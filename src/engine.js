@@ -212,7 +212,7 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotio
  */
 
 function p4_prepare(state){
-    var i, j;
+    var i, j, x, y;
     var pieces = state.pieces = [[], []];
     /*convert state.moveno half move count to move cycle count */
     var moveno = state.moveno >> 1;
@@ -290,6 +290,24 @@ function p4_prepare(state){
     var bkx = kings[1] % 10;
     var bky  = parseInt(kings[1] / 10);
 
+    /* find the frontmost pawns in each file */
+    var wpawn_cols = [];
+    var bpawn_cols = [];
+    for (y = 3; y < 9; y++){
+        for (x = 1; x < 9; x++){
+            i = y * 10 + x;
+            var a = board[i];
+            if ((a & 14) != P4_PAWN)
+                continue;
+            if ((a & 1) == 0){
+                wpawn_cols[x] = y;
+            }
+            else if (bpawn_cols[x] === undefined){
+                bpawn_cols[x] = y;
+            }
+        }
+    }
+    console.log(wpawn_cols, bpawn_cols);
     var target_king = (moveno >= 20 || material_sum < 5 * qvalue);
     var weights = state.weights;
     var wpawn_wt = weights[P4_PAWN];
@@ -305,8 +323,8 @@ function p4_prepare(state){
     var wking_wt = weights[P4_KING];
     var bking_wt = weights[P4_KING + 1];
 
-    for (var y = 2; y < 10; y++){
-        for (var x = 1; x < 9; x++){
+    for (y = 2; y < 10; y++){
+        for (x = 1; x < 9; x++){
             i = y * 10 + x;
             var early_centre = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
             var plateau = P4_KNIGHT_WEIGHTS[i];
@@ -373,13 +391,12 @@ function p4_prepare(state){
              */
             var wp = 0, bp = 0;
             if (early){
-                if (y >= 4)
-                    wp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
-                                    * early_centre));
-                if (y <= 7)
-                    bp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
-                                    * early_centre));
-                if (x == 4 || x == 5){
+                if (y >= 4 && y <= 7){
+                    var boost = 1 + 3 * (y == 5 || y == 6);
+                    wp += parseInt((boost + p4_random_int(state, 4)) * 0.1 * early_centre);
+                    bp += parseInt((boost + p4_random_int(state, 4)) * 0.1 * early_centre);
+                }
+                else if (x == 4 || x == 5){
                     bp -= (y == 8) * 2;
                     wp -= (y == 3) * 2;
                 }
@@ -390,8 +407,15 @@ function p4_prepare(state){
             if (y == 2)
                 bp += state.values[1][P4_QUEEN] - state.values[1][P4_PAWN];
             /*pawns in front of a castled king should stay there*/
-            wp += 4 * (y == 3 && wky == 2 && wdx * wdx <= 1);
-            bp += 4 * (y == 8 && bky == 9 && bdx * bdx <= 1);
+            wp += 4 * (y == 3 && wky == 2 && wdx * wdx <= 1 && x != 4 && x != 5);
+            bp += 4 * (y == 8 && bky == 9 && bdx * bdx <= 1 && x != 4 && x != 5);
+            /*passed pawns (having no opposing pawn in front) are encouraged. */
+            if (bpawn_cols[x] === undefined || bpawn_cols[x] < y){
+                wp += 2;
+            }
+            if (wpawn_cols[x] === undefined || wpawn_cols[x] > y){
+                bp += 2;
+            }
 
             wpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
             bpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
