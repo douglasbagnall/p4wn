@@ -416,9 +416,9 @@ function p4_prepare(state){
             if (wpawn_cols[x] === undefined || wpawn_cols[x] > y){
                 bp += 2;
             }
-
-            wpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
-            bpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
+            var get_on_with_it = Math.max(emptiness * 2, 1);
+            wpawn_wt[i] = get_on_with_it * P4_BASE_PAWN_WEIGHTS[i] + wp;
+            bpawn_wt[i] = get_on_with_it * P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
 
             if (draw_likely){
                 /*The winning side wants to avoid draw, so adds jitter to its weights.*/
