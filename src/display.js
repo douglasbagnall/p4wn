@@ -96,7 +96,15 @@ function move(start, end, promotion){
             input.draw_offered = true;
         }
         else {
-            document.getElementById('offer_draw_button').style.color = '#c00';
+            var draw_button = document.getElementById('offer_draw_button');
+            draw_button.style.display = 'inline-block';
+            draw_button.style.color = '#c00';
+        }
+    }
+    else {
+        var draw_button = document.getElementById('offer_draw_button');
+        if (draw_button !== null){
+            draw_button.style.display = 'none';
         }
     }
 
