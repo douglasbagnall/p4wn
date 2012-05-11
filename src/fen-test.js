@@ -63,12 +63,18 @@ function parse_test(){
 
 var WEIGHTS_OVERLAYS = [
     "none", undefined, 0,
-    "W weights", 'weights', 0,
-    "B weights", 'weights', 1,
-    "W pawn weights", 'pweights', 0,
-    "B pawn weights", 'pweights', 1,
-    "W king weights", 'kweights', 0,
-    "B king weights", 'kweights', 1
+    "W pawn", 'weights', 2,
+    "B pawn", 'weights', 3,
+    "W rook", 'weights', 4,
+    "B rook", 'weights', 5,
+    "W knight", 'weights', 6,
+    "B knight", 'weights', 7,
+    "W bishop", 'weights', 8,
+    "B bishop", 'weights', 9,
+    "W king", 'weights', 10,
+    "B king", 'weights', 11,
+    "W queen", 'weights', 12,
+    "B queen", 'weights', 13
 ];
 
 var __weights_overlay_index = 0;
