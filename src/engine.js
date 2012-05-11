@@ -218,8 +218,10 @@ function p4_prepare(state){
     var moveno = state.moveno >> 1;
     var board = state.board;
 
-    // high earliness_weight indicates a low move number
-    var earliness_weight = parseInt(5.9 * Math.exp(moveno * -0.07));
+    /* high earliness_weight indicates a low move number. The formula
+     * should work above moveno == 50, but this is javascript.
+     */
+    var earliness_weight = (moveno > 50) ? 0 : parseInt(6 * Math.exp(moveno * -0.07));
     var king_should_hide = moveno < 12;
     var early = moveno < 5;
     var kings = [0, 0];
