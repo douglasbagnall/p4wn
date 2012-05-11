@@ -379,7 +379,7 @@ function p4_prepare(state){
 
                 /* The losing king wants to stay in the middle, while
                    the winning king goes in for the kill.*/
-                var king_centre_wt = 5 * emptiness * P4_CENTRALISING_WEIGHTS[i];
+                var king_centre_wt = 8 * emptiness * P4_CENTRALISING_WEIGHTS[i];
                 var wm2 = wmul * wmul * wmul;
                 var bm2 = bmul * bmul * bmul;
                 bking_wt[i] += parseInt(150 * emptiness * wm2 / wd + bm2 * king_centre_wt);
