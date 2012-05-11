@@ -33,6 +33,7 @@ var P4_MIN_SCORE = -P4_MAX_SCORE;
 
 var P4_CENTRALISING_WEIGHTS;
 var P4_BASE_PAWN_WEIGHTS;
+var P4_KNIGHT_WEIGHTS;
 
 /*piece codes:
  *  piece & 2  -> single move piece (including pawn)
@@ -213,12 +214,6 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotio
 function p4_prepare(state){
     var i, j;
     var pieces = state.pieces = [[], []];
-    var w_weights = state.weights[0];
-    var b_weights = state.weights[1];
-    var wp_weights = state.pweights[0];
-    var bp_weights = state.pweights[1];
-    var wk_weights = state.kweights[0];
-    var bk_weights = state.kweights[1];
     /*convert state.moveno half move count to move cycle count */
     var moveno = state.moveno >> 1;
     var board = state.board;
@@ -260,7 +255,7 @@ function p4_prepare(state){
             }
         }
     }
-    /*see whether a draw seemws likely soon*/
+    /*does a draw seem likely soon?*/
     var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
     if (draw_likely)
         console.log("draw likely", state.current_repetitions, state.draw_timeout);
@@ -269,6 +264,7 @@ function p4_prepare(state){
     var material_sum = material[0] + material[1] + 2 * qvalue;
     var wmul = 2 * (material[1] + qvalue) / material_sum;
     var bmul = 2 * (material[0] + qvalue) / material_sum;
+    var emptiness = 4 * P4_QUEEN / material_sum;
     state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * qvalue),
                               parseInt(0.5 + (bmul - 1) * 2 * qvalue)];
     console.log("scores for stalemate (W, B):", state.stalemate_scores);
@@ -284,6 +280,7 @@ function p4_prepare(state){
             state.values[1][i] = v;
         }
     }
+    /*used for pruning quiescence search */
     state.best_pieces = [parseInt(best_pieces[0] * wmul + 0.5),
                          parseInt(best_pieces[1] * bmul + 0.5)];
     var wkx = kings[0] % 10;
@@ -291,33 +288,45 @@ function p4_prepare(state){
     var bkx = kings[1] % 10;
     var bky  = parseInt(kings[1] / 10);
 
-    var target_king = (moveno > 15 || material_sum < 5 * qvalue);
+    var target_king = (moveno >= 20 || material_sum < 5 * qvalue);
+    var weights = state.weights;
+    var wpawn_wt = weights[P4_PAWN];
+    var bpawn_wt = weights[P4_PAWN + 1];
+    var wrook_wt = weights[P4_ROOK];
+    var brook_wt = weights[P4_ROOK + 1];
+    var wknight_wt = weights[P4_KNIGHT];
+    var bknight_wt = weights[P4_KNIGHT + 1];
+    var wbishop_wt = weights[P4_BISHOP];
+    var bbishop_wt = weights[P4_BISHOP + 1];
+    var wqueen_wt = weights[P4_QUEEN];
+    var bqueen_wt = weights[P4_QUEEN + 1];
+    var wking_wt = weights[P4_KING];
+    var bking_wt = weights[P4_KING + 1];
 
     for (var y = 2; y < 10; y++){
         for (var x = 1; x < 9; x++){
             i = y * 10 + x;
-            b_weights[i] = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
-            w_weights[i] = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
+            var early_centre = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
+            var plateau = P4_KNIGHT_WEIGHTS[i];
+            /* encourage minor pieces off the back row */
+            var w_get_out = (early && y == 2) * -4;
+            var b_get_out = (early && y == 9) * -4;
+            var centre_rooks = (y == 9 || y == 2) * (x == 4 || x == 5) * earliness_weight;
 
-            /* encourage them off the back row */
-            if (early){
-                if (y == 2){
-                    w_weights[i] -= 5;
-                }
-                if (y == 9){
-                    b_weights[i] -= 5;
-                }
-            }
-            if (king_should_hide){
-                /*keep kings back on home row*/
-                if (y == 2)
-                    wk_weights[i] = 2 * earliness_weight;
-                else if (y == 9)
-                    bk_weights[i] = 2 * earliness_weight;
-            }
-            else {
-                wk_weights[i] = bk_weights[i] = 0;
-            }
+            wknight_wt[i] = parseInt(2 * plateau + early_centre * 0.3) + w_get_out;
+            bknight_wt[i] = parseInt(2 * plateau + early_centre * 0.3) + b_get_out;
+            wrook_wt[i] =  parseInt(early_centre * 0.3 + centre_rooks);
+            brook_wt[i] =  parseInt(early_centre * 0.3 + centre_rooks);
+            wbishop_wt[i] = parseInt(early_centre * 0.6 + plateau + w_get_out);
+            bbishop_wt[i] = parseInt(early_centre * 0.6 + plateau + b_get_out);
+            /*don't encourage the queen to do anything too early, then prefer the centre*/
+            var qweight = (early) ? 0 : parseInt(plateau * 0.5 + early_centre * 0.5);
+            wqueen_wt[i] = qweight;
+            bqueen_wt[i] = qweight;
+
+            /*keep kings back on home row for a while*/
+            wking_wt[i] = (king_should_hide && y == 2) * 2 * earliness_weight;
+            bking_wt[i] = (king_should_hide && y == 9) * 2 * earliness_weight;
 
             /* After a while, start going for opposite king. Just
              * attract pieces into the area so they can mill about in
@@ -328,62 +337,77 @@ function p4_prepare(state){
              * in deep searches. But that's OK. Heuristics are
              * heuristics.
              */
+            var wdx = Math.abs(wkx - x);
+            var wdy = Math.abs(wky - y);
+            var bdx = Math.abs(bkx - x);
+            var bdy = Math.abs(bky - y);
             if (target_king){
-                var wdx = wkx - x;
-                var wdy = wky - y;
-                var bdx = bkx - x;
-                var bdy = bky - y;
-                var wd = Math.sqrt(wdx * wdx + wdy * wdy) + 1;
-                var bd = Math.sqrt(bdx * bdx + bdy * bdy) + 1;
+                var wd = Math.max(Math.sqrt(wdx * wdx + wdy * wdy), 1) + 1;
+                var bd = Math.max(Math.sqrt(bdx * bdx + bdy * bdy), 1) + 1;
                 /*(wmul < 1) <==> white winning*/
-                b_weights[i] += parseInt(8 * wmul / wd);
-                w_weights[i] += parseInt(8 * bmul / bd);
-                bk_weights[i] += parseInt(6000 * wmul * wmul / (wd * material_sum));
-                wk_weights[i] += parseInt(6000 * bmul * bmul / (bd * material_sum));
-                 /*The losing king wants to stay in the middle*/
-                if (wmul < 1){//white winning
-                    bk_weights[i] += parseInt(bmul * P4_CENTRALISING_WEIGHTS[i] / wmul);
-                }
-                else if (bmul < 1){//black winning
-                    wk_weights[i] += parseInt(wmul * P4_CENTRALISING_WEIGHTS[i] / bmul);
-                }
-            }
+                bknight_wt[i] += 2 * parseInt(8 * wmul / wd);
+                wknight_wt[i] += 2 * parseInt(8 * bmul / bd);
 
-            if (draw_likely){
-                /*The winning side wants to avoid draw, so adds jitter to its weights.*/
-                var rand = p4_random31(state);
-                ((wmul < 1) ? w_weights : b_weights)[i] += rand & 3;
-                ((wmul < 1) ? wk_weights : bk_weights)[i] += (rand >> 2) & 3;
+                wrook_wt[i] += 3 * ((bdx < 2) + (bdy < 2));
+                brook_wt[i] += 3 * ((wdx < 2) + (wdy < 2));
+
+                wbishop_wt[i] += 3 * (Math.abs((bdx - bdy))  < 2);
+                bbishop_wt[i] += 3 * (Math.abs((wdx - wdy))  < 2);
+
+                wqueen_wt[i] += 2 * parseInt(8 * bmul / bd) + (bdx * bdy == 0) + (bdx - bdy == 0);
+                bqueen_wt[i] += 2 * parseInt(8 * wmul / wd) + (wdx * wdy == 0) + (wdx - wdy == 0);
+
+                /* The losing king wants to stay in the middle, while
+                   the winning king goes in for the kill.*/
+                var king_centre_wt = 5 * emptiness * P4_CENTRALISING_WEIGHTS[i];
+                var wm2 = wmul * wmul * wmul;
+                var bm2 = bmul * bmul * bmul;
+                bking_wt[i] += parseInt(150 * emptiness * wm2 / wd + bm2 * king_centre_wt);
+                wking_wt[i] += parseInt(150 * emptiness * bm2 / bd + wm2 * king_centre_wt);
             }
 
             /* pawns weighted toward centre at start then forwards only.
-             * pawn weights are also slightly randomised, so each game is different.
+             * Early pawn weights are also slightly randomised, so each game is different.
              */
             var wp = 0, bp = 0;
             if (early){
                 if (y >= 4)
                     wp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
-                                    * w_weights[i]));
+                                    * early_centre));
                 if (y <= 7)
                     bp += parseInt((((p4_random31(state)) / 0x7fffffff + 0.2)
-                                    * b_weights[i]));
+                                    * early_centre));
+                if (x == 4 || x == 5){
+                    bp -= (y == 8) * 2;
+                    wp -= (y == 3) * 2;
+                }
             }
-            /*pawn promotion row is weighted as a queen minus a pawn. */
+            /*pawn promotion row is weighted as a queen minus a pawn.*/
             if (y == 9)
                 wp += state.values[0][P4_QUEEN] - state.values[0][P4_PAWN];
             if (y == 2)
                 bp += state.values[1][P4_QUEEN] - state.values[1][P4_PAWN];
+            /*pawns in front of a castled king should stay there*/
+            wp += 4 * (y == 3 && wky == 2 && wdx * wdx <= 1);
+            bp += 4 * (y == 8 && bky == 9 && bdx * bdx <= 1);
 
-            wp_weights[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
-            bp_weights[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
+            wpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[i] + wp;
+            bpawn_wt[i] = P4_BASE_PAWN_WEIGHTS[119 - i] + bp;
+
+            if (draw_likely){
+                /*The winning side wants to avoid draw, so adds jitter to its weights.*/
+                for (j = 2 + (bmul < 1); j < 14; j+= 2){
+                    weights[j][i] += p4_random_int(state, 4);
+                }
+            }
         }
     }
     if (moveno > 10 && moveno < 30){
         /* not early; pry those rooks out of their corners */
-        b_weights[91] -= 7;
-        b_weights[98] -= 7;
-        w_weights[21] -= 7;
-        w_weights[28] -= 7;
+        brook_wt[91] -= 7;
+        brook_wt[98] -= 7;
+        wrook_wt[21] -= 7;
+        wrook_wt[28] -= 7;
     }
 }
 
@@ -401,9 +425,6 @@ function p4_parse(state, colour, ep, score) {
     var movelist=[];
     var captures=[];
     var weight;
-    var pweight = state.pweights[colour];
-    var kweights = state.kweights[colour];
-    var weights = state.weights[colour];
     var pieces = state.pieces[colour];
     var plen = pieces.length;
     var castle_flags = (state.castles >> (colour * 2)) & 3;
@@ -416,10 +437,9 @@ function p4_parse(state, colour, ep, score) {
          * old place. So check.
          */
         if (pieces[j][0]==a){
+            var weight_lut = state.weights[a];
             a &= 14;
             if(a > 2){    //non-pawns
-                var is_king = a == P4_KING;
-                var weight_lut = is_king ? kweights : weights;
                 weight = score - weight_lut[s];
                 var moves = P4_MOVES[a];
                 if(a & 2){
@@ -433,7 +453,7 @@ function p4_parse(state, colour, ep, score) {
                             captures[++k2]=[weight + values[E] + weight_lut[e], s, e];
                         }
                     }
-                    if(is_king && castle_flags){
+                    if(a == P4_KING && castle_flags){
                         if((castle_flags & 1) &&
                             (board[s-1] + board[s-2] + board[s-3] == 0) &&
                             p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
@@ -464,25 +484,25 @@ function p4_parse(state, colour, ep, score) {
                 }
             }
             else{    //pawns
-                weight=score-pweight[s];
+                weight=score-weight_lut[s];
                 e=s+dir;
                 if(!board[e]){
-                    movelist[++k] = [weight + pweight[e], s, e];
-                    /*2 square moves at start are flagged by 0 pweights weighting*/
+                    movelist[++k] = [weight + weight_lut[e], s, e];
+                    /* s * (120 - s) < 3200 true for outer two rows on either side.*/
                     var e2 = e + dir;
-                    if(! pweight[s] && (!board[e2])){
-                        movelist[++k] = [weight + pweight[e2], s, e2];
+                    if(s * (120 - s) < 3200 && (!board[e2])){
+                        movelist[++k] = [weight + weight_lut[e2], s, e2];
                     }
                 }
                 /* +/-1 for pawn capturing */
                 E = board[--e];
                 if(E && (E & 17) == other_colour){
-                    captures[++k2]=[weight + values[E] + pweight[e], s, e];
+                    captures[++k2]=[weight + values[E] + weight_lut[e], s, e];
                 }
                 e += 2;
                 E = board[e];
                 if(E && (E & 17) == other_colour){
-                    captures[++k2]=[weight + values[E] + pweight[e], s, e];
+                    captures[++k2]=[weight + values[E] + weight_lut[e], s, e];
                 }
             }
         }
@@ -497,12 +517,12 @@ function p4_parse(state, colour, ep, score) {
         s = ep - dir - 1;
         if (board[s] == pawn){
             taken = values[board[ep - dir]];
-            captures[++k2] = [score - pweight[s] + pweight[ep] + taken, s, ep];
+            captures[++k2] = [score - weight_lut[s] + weight_lut[ep] + taken, s, ep];
         }
         s += 2;
         if (board[s] == pawn){
             taken = values[board[ep - dir]];
-            captures[++k2] = [score - pweight[s] + pweight[ep] + taken, s, ep];
+            captures[++k2] = [score - weight_lut[s] + weight_lut[ep] + taken, s, ep];
         }
     }
     return captures.concat(movelist);
@@ -1114,39 +1134,48 @@ function p4_fen2state(fen, state){
     return state;
 }
 
+
+var P4__ZEROS = [];
+function p4_zero_array(){
+    if (P4_USE_TYPED_ARRAYS)
+        return new Int32Array(120);
+    if (P4_ZEROS.length == 0){
+        for(var i = 0; i < 120; i++){
+            P4_ZEROS[i] = 0;
+        }
+    }
+    return P4_ZEROS.slice();
+}
+
 /* p4_initialise_state() creates the board and initialises weight
- * arrays etc.
+ * arrays etc.  Some of this is really only needs to be once.
  */
 
 function p4_initialise_state(){
-    var zeros = [];
-    for(var i = 0; i < 120; i++){
-        zeros[i] = 0;
-    }
-    function _weights(){
-        if (P4_USE_TYPED_ARRAYS)
-            return new Int32Array(120);
-        return zeros.slice();
-    }
-    var board = _weights();
-    P4_CENTRALISING_WEIGHTS = _weights();
-    P4_BASE_PAWN_WEIGHTS = _weights();
-
+    var board = p4_zero_array();
+    P4_CENTRALISING_WEIGHTS = p4_zero_array();
+    P4_BASE_PAWN_WEIGHTS = p4_zero_array();
+    P4_KNIGHT_WEIGHTS = p4_zero_array();
     for(var i = 0; i < 120; i++){
         var y = parseInt(i / 10);
         var x = i % 10;
-        var dx = x - 4.5;
-        var dy = y - 5.5;
-        P4_CENTRALISING_WEIGHTS[i] = parseInt(7 - Math.pow((dx * dx + dy * dy) * 1.5, 0.6));
+        var dx = Math.abs(x - 4.5);
+        var dy = Math.abs(y - 5.5);
+        P4_CENTRALISING_WEIGHTS[i] = parseInt(6 - Math.pow((dx * dx + dy * dy) * 1.5, 0.6));
+         //knights have a flat topped centre (bishops too, but less so).
+        P4_KNIGHT_WEIGHTS[i] = parseInt(((dx < 2) + (dy < 2) * 1.5)
+                                        + (dx < 3) + (dy < 3)) - 2;
         P4_BASE_PAWN_WEIGHTS[i] = parseInt('000012347000'.charAt(y));
         if (y > 9 || y < 2 || x < 1 || x > 8)
             board[i] = 16;
     }
+    var weights = [];
+    for (i = 0; i < 14; i++){
+        weights[i] = p4_zero_array();
+    }
     var state = {
         board: board,
-        pweights: [_weights(), _weights()],
-        kweights: [_weights(), _weights()],
-        weights: [_weights(), _weights()],
+        weights: weights,
         history: [],
         quiesce_counts: [0, 0]
     };
