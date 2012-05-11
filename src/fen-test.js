@@ -20,7 +20,8 @@ var FEN = [
     ["rook & king", "8/7K/8/8/8/8/R7/7k w - - 0 1"],
     ["zugzwang", "8/8/p1p5/1p5p/1P5p/8/PPP2K1p/4R1rk w - - 0 1"],
     ["earlyish", "rnq1nrk1/pp3pbp/6p1/3p4/3P4/5N2/PP2BPPP/R1BQK2R w KQ -"],
-    ["checkmate in 2", "4kb2/3r1p2/2R3p1/6B1/p6P/P3p1P1/P7/5K2 w - - 0 36"]
+    ["checkmate in 2", "4kb2/3r1p2/2R3p1/6B1/p6P/P3p1P1/P7/5K2 w - - 0 36"],
+    ["“leonid's position”", "q2k2q1/2nqn2b/1n1P1n1b/2rnr2Q/1NQ1QN1Q/3Q3B/2RQR2B/Q2K2Q1 w - -"]
 ];
 
 
@@ -169,6 +170,7 @@ function write_fen_switches(){
                                       var item = new_child(div, "div");
                                       item.innerHTML = '--------';
                                       p4_fen2state(s, input.board_state);
+                                      p4_prepare(input.board_state); //so dump_state(), etc work
                                       refresh(0);
                                       var s2 = p4_state2fen(input.board_state);
                                       if (s == s2){
