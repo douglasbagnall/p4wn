@@ -6,12 +6,12 @@
  */
 
 var P4_VALUES=[0, 0,      //Piece values
-               16, 16,    //pawns
-               80, 80,    //rooks
-               48, 48,    //knights
-               48, 48,    //bishops
+               20, 20,    //pawns
+               100, 100,    //rooks
+               60, 60,    //knights
+               61, 61,    //bishops
                5000, 5000,//kings
-               144, 144,  //queens
+               180, 180,  //queens
                0];
 
 /*P4_DEBUG turns on debugging features */
