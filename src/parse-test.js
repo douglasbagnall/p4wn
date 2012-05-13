@@ -187,7 +187,6 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
         }
     }
     else if (P4_QUIESCE){
-        var qscore;
         var movelist = p4_parse(state, colour, move.ep, -score);
         var movecount = movelist.length;
         var threshold = alpha - state.best_pieces[colour];
@@ -239,8 +238,10 @@ function p4_quiesce(state, count, colour, s, e, alpha, beta,
             var mscore = mv[0];
             var ms = mv[1];
             var me = mv[2];
-            if (board[me] == 0)
-                continue;
+            if (board[me] == 0){
+                /*captures are sorted first, so we can break rather than continue*/
+                break;
+            }
             if (mscore > P4_WIN){
                 alpha = P4_KING_VALUE;
                 break;
