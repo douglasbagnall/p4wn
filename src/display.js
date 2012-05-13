@@ -18,9 +18,8 @@ var next_move_timeout_ID;
 var _p4d_proto = {};
 
 _p4d_proto.square_clicked = function(square){
-    var state = this.board_state;
-    var board = state.board;
-    var mover = state.to_play;
+    var board = this.board_state.board;
+    var mover = this.board_state.to_play;
     if (this.players[mover] == 'computer'){
         console.log("not your turn!");
         return;
@@ -32,7 +31,7 @@ _p4d_proto.square_clicked = function(square){
     }
     else if (piece && (mover == (piece & 1))){
         //clicked on player's colour, so it becomes start
-        this.start_moving_piece(square);     //dragging piece
+        this.start_moving_piece(square);
     }
     else if (this.move(this.start, square, PROMOTION_INTS[this.pawn_becomes])){
         /*If the move works, drop the piece.*/
@@ -44,12 +43,15 @@ _p4d_proto.move = function(start, end, promotion){
     var state = this.board_state;
     var move_result = p4_move(state, start, end, promotion);
     if(move_result.ok){
-        console.log(move_result);
         this.display_move_text(state.moveno, move_result.string);
         this.refresh();
         if (! (move_result.flags & P4_MOVE_FLAG_MATE)){
-            var p4d = this;
-            next_move_timeout_ID = window.setTimeout(function(){p4d.next_move();}, 1);
+            next_move_timeout_ID = window.setTimeout(
+                function(p4d){
+                    return function(){
+                        p4d.next_move();
+                    };
+                }(this), 1);
         }
     }
     else {
@@ -178,7 +180,6 @@ _p4d_proto.refresh = function(){
 };
 
 _p4d_proto.start_moving_piece = function(position){
-    console.log("starting moving", position);
     /*drop the currently held one, if any*/
     var img = this.elements.moving_img;
     if (img){
@@ -194,10 +195,12 @@ _p4d_proto.start_moving_piece = function(position){
     };
 };
 
+/*If stop_moving_piece is given a position, the moved piece will be
+ *drawn at that position, not its original position. THis is only
+ *temporary until the next refresh */
 _p4d_proto.stop_moving_piece = function(position){
-    console.log("stopping moving", position);
     var img = this.elements.moving_img;
-    if (img !== undefined){
+    if (img){
         img.style.position = 'static';
         if (position){
             var tmp = img.src;
@@ -226,7 +229,7 @@ _p4d_proto.write_board_html = function(){
     for (var y = 90; y > 10; y-=10){
         var tr = new_child(table, "tr");
         for(var x = 1;  x < 9; x++){
-            var z = y + x;
+            var i = y + x;
             var td = new_child(tr, "td");
             td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
             td.addEventListener("click",
@@ -234,11 +237,11 @@ _p4d_proto.write_board_html = function(){
                                     return function(e){
                                         p4d.square_clicked(p4d.orientation ? 119 - n : n);
                                     };
-                                }(this, z),
+                                }(this, i),
                                 true);
 
             var img = new_child(td, "img");
-            pieces[z] = img;
+            pieces[i] = img;
             img.src = IMAGE_NAMES[0];
             img.width= SQUARE_WIDTH;
             img.height= SQUARE_HEIGHT;
@@ -305,7 +308,6 @@ function p4_dump_state(state){
 
 var CONTROLS = [
     {
-        id: 'toggle_white_button',
         onclick_wrap: function(p4d){
             return function(e){
                 p4d.players[0] = (p4d.players[0] == 'human') ? 'computer' : 'human';
@@ -322,7 +324,6 @@ var CONTROLS = [
         }
     },
     {
-        id: 'toggle_black_button',
         onclick_wrap: function(p4d){
             return function(e){
                 p4d.players[1] = (p4d.players[1] == 'human') ? 'computer' : 'human';
@@ -339,7 +340,6 @@ var CONTROLS = [
         }
     },
     {
-        id: 'swap_button',
         onclick_wrap: function(p4d){
             return function(e){
                 var p = p4d.players;
@@ -362,7 +362,6 @@ var CONTROLS = [
         }
     },
     {
-        id: 'pawn_promotion_button',
         onclick_wrap: function(p4d){
             return function(e){
                 var x = (p4d.pawn_becomes + 1) % PROMOTION_STRINGS.length;
@@ -375,7 +374,6 @@ var CONTROLS = [
         }
     },
     {
-        id: 'computer_level_button',
         onclick_wrap: function(p4d){
             return function(e){
                 var x = (p4d.computer_level + 1) % LEVELS.length;
@@ -406,7 +404,6 @@ var CONTROLS = [
         debug: true
     }
 ];
-
 
 _p4d_proto.write_controls_html = function(lut){
     var div = this.elements.controls;
