@@ -29,20 +29,14 @@ _p4d_proto.square_clicked = function(square){
     if (this.start == square){
         //clicked back on previously chosen piece -- putting it down again
         this.stop_moving_piece();
-        this.start = 0;
     }
     else if (piece && (mover == (piece & 1))){
         //clicked on player's colour, so it becomes start
-        this.start = square;
         this.start_moving_piece(square);     //dragging piece
     }
-    else if (this.start){
-        // there is one in hand, so this is an attempted move
-        //but is it valid?
-        if(this.move(this.start, square, PROMOTION_INTS[this.pawn_becomes])){
-            this.stop_moving_piece(square);
-            this.start = 0;
-        }
+    else if (this.move(this.start, square, PROMOTION_INTS[this.pawn_becomes])){
+        /*If the move works, drop the piece.*/
+        this.stop_moving_piece(square);
     }
 };
 
@@ -193,6 +187,7 @@ _p4d_proto.start_moving_piece = function(position){
     img = this.elements.pieces[position];
     this.elements.moving_img = img;
     img.style.position = 'absolute';
+    this.start = position;
     document.onmousemove = function (e){
         img.style.left = (e.clientX + 1) + "px";
         img.style.top = (e.clientY - 4) + "px";
@@ -210,6 +205,7 @@ _p4d_proto.stop_moving_piece = function(position){
             this.elements.pieces[position].src = tmp;
         }
     }
+    this.start = 0;
     this.elements.moving_img = undefined;
     document.onmousemove = null;
 };
