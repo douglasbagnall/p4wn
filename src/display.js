@@ -8,15 +8,6 @@
 
 /* The routines here draw the screen and handle user interaction */
 
-var input = {
-    start: 0,     // start click - used in display.js
-    inhand: 0,     // piece in hand (ie, during move)
-    board_state: p4_new_game(),
-    players: ['human', 'computer'], //[white, black] controllers
-    pawn_becomes: 0, //index into PROMOTION_* arrays
-    computer_level: DEFAULT_LEVEL,
-    move_listeners: []
-};
 
 /*the next two should match*/
 var PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
@@ -24,76 +15,81 @@ var PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 
 var auto_play_timeout_ID;
 var next_move_timeout_ID;
+var _p4d_proto = {};
 
-
-function square_clicked(square){
-    var state = input.board_state;
+_p4d_proto.square_clicked = function(square){
+    var state = this.board_state;
     var board = state.board;
     var mover = state.to_play;
-    if (input.players[mover] == 'computer'){
+    if (this.players[mover] == 'computer'){
         console.log("not your turn!");
         return;
     }
     var piece = board[square];
-    if (input.start == square){
+    if (this.start == square){
         //clicked back on previously chosen piece -- putting it down again
-        show_piece_in_hand(0);
-        show_image(input.start, input.inhand);
-        input.inhand = 0;
-        input.start = 0;
+        this.show_piece_in_hand(0);
+        this.show_image(this.start, this.inhand);
+        this.inhand = 0;
+        this.start = 0;
     }
     else if (piece && (mover == (piece & 1))){
         //clicked on player's colour, so it becomes start
-        if (input.inhand)
-            show_image(input.start, input.inhand); //put back old piece, if any
-        input.inhand = piece;
-        input.start = square;
-        show_image(square, 0);
-        show_piece_in_hand(piece);     //dragging piece
+        if (this.inhand)
+            this.show_image(this.start, this.inhand); //put back old piece, if any
+        this.inhand = piece;
+        this.start = square;
+        this.show_image(square, 0);
+        this.show_piece_in_hand(piece);     //dragging piece
     }
-    else if (input.inhand){
+    else if (this.inhand){
         // there is one in hand, so this is an attempted move
         //but is it valid?
-        if(move(input.start, square,PROMOTION_INTS[input.pawn_becomes])){
-            show_piece_in_hand(0);
-            input.inhand = 0;
-            input.start = 0;
+        if(this.move(this.start, square, PROMOTION_INTS[this.pawn_becomes])){
+            this.show_piece_in_hand(0);
+            this.inhand = 0;
+            this.start = 0;
         }
     }
-}
+};
 
-function move(start, end, promotion){
-    var state = input.board_state;
+_p4d_proto.move = function(start, end, promotion){
+    var state = this.board_state;
     var move_result = p4_move(state, start, end, promotion);
     if(move_result.ok){
         console.log(move_result);
-        display_move_text(state.moveno, move_result.string);
-        refresh();
-        if (! (move_result.flags & P4_MOVE_FLAG_MATE))
-            next_move_timeout_ID = window.setTimeout(next_move, 1);
+        this.display_move_text(state.moveno, move_result.string);
+        this.refresh();
+        if (! (move_result.flags & P4_MOVE_FLAG_MATE)){
+            var p4d = this;
+            next_move_timeout_ID = window.setTimeout(function(){p4d.next_move();}, 1);
+        }
     }
     else {
         console.log("bad move!", start, end);
     }
-    for (var i = 0; i < input.move_listeners.length; i++){
-        input.move_listeners[i](move_result);
+    for (var i = 0; i < this.move_listeners.length; i++){
+        this.move_listeners[i](move_result);
     }
     if (move_result.flags & P4_MOVE_FLAG_DRAW){
-        if (! input.draw_offered){
+        if (! this.draw_offered){
+            var p4d = this;
             write_controls_html([{
                                      id: 'offer_draw_button',
                                      label: '<b>Draw?</b>',
-                                     onclick: function(e){
-                                         window.clearTimeout(next_move_timeout_ID);
-                                         window.clearTimeout(auto_play_timeout_ID);
-                                         refresh_buttons();
-                                         display_move_text(0, 'DRAW');
-                                         console.log(p4_state2fen(input.board_state));
-                                         auto_play_timeout_ID = undefined;
-                                         next_move_timeout_ID = undefined;
+                                     onclick_wrap: function(io){
+                                         return function(e){
+                                             window.clearTimeout(next_move_timeout_ID);
+                                             window.clearTimeout(auto_play_timeout_ID);
+                                             this.refresh_buttons();
+                                             this.display_move_text(0, 'DRAW');
+                                             console.log(p4_state2fen(p4d.board_state));
+                                             auto_play_timeout_ID = undefined;
+                                             next_move_timeout_ID = undefined;
+                                         };
                                      }
                                  }]);
-            input.draw_offered = true;
+            this.draw_offered = true;
         }
         else {
             var draw_button = document.getElementById('offer_draw_button');
@@ -107,24 +103,26 @@ function move(start, end, promotion){
             draw_button.style.display = 'none';
         }
     }
-
     return move_result.ok;
-}
+};
 
-function next_move(){
-    var mover = input.board_state.to_play;
-    if (input.players[mover] == 'computer' &&
+_p4d_proto.next_move = function(){
+    console.log(this);
+    var mover = this.board_state.to_play;
+    if (this.players[mover] == 'computer' &&
         auto_play_timeout_ID === undefined){
-        var timeout = (input.players[1 - mover] == 'computer') ? 500: 10;
-        auto_play_timeout_ID = window.setTimeout(computer_move, timeout);
+        var timeout = (this.players[1 - mover] == 'computer') ? 500: 10;
+        var p4d = this;
+        auto_play_timeout_ID = window.setTimeout(function(){p4d.computer_move();}, timeout);
     }
-}
+};
 
-function computer_move(){
+_p4d_proto.computer_move = function(){
     auto_play_timeout_ID = undefined;
-    var state = input.board_state;
+    console.log(this);
+    var state = this.board_state;
     var s, e, mv;
-    var depth = input.computer_level + 1;
+    var depth = this.computer_level + 1;
     var start_time = Date.now();
     mv = p4_findmove(state, depth);
     var delta = Date.now() - start_time;
@@ -139,11 +137,11 @@ function computer_move(){
         }
     }
     s = mv[0], e = mv[1];
-    move(s, e);
-}
+    this.move(s, e);
+};
 
 
-function display_move_text(moveno, string){
+_p4d_proto.display_move_text = function(moveno, string){
     var mn;
     if ((moveno & 1) == 0){
         mn = '    ';
@@ -153,50 +151,50 @@ function display_move_text(moveno, string){
         while(mn.length < 4)
             mn = ' ' + mn;
     }
-    var div = document.getElementById("log");
+    var div = this.elements.log;
     var item = new_child(div, "div");
     item.className = "log_move";
     item.addEventListener("click",
-                          function (n){
+                          function (p4d, n){
                               return function(e){
-                                  goto_move(n);
+                                  p4d.goto_move(n);
                               };
-                          }(moveno),
+                          }(this, moveno),
                           true);
     item.innerHTML = mn + string;
     div.scrollTop = 999999;
-}
+};
 
-function goto_move(n){
-    var delta = input.board_state.moveno - n;
-    p4_jump_to_moveno(input.board_state, n);
-    var div = document.getElementById('log');
+_p4d_proto.goto_move = function(n){
+    var delta = this.board_state.moveno - n;
+    p4_jump_to_moveno(this.board_state, n);
+    var div = this.elements.log;
     var entries = div.childNodes;
     for (var i = 0; i < delta; i++){
         div.removeChild(div.lastChild);
     }
-    refresh();
-    next_move();
-}
+    this.refresh();
+    this.next_move();
+};
 
 
 //refresh: redraw screen from board
 
-function refresh(){
+_p4d_proto.refresh = function(){
     for (var i = 20; i < 100; i++){
-        if(input.board_state.board[i] != P4_EDGE)
-            show_image(i, input.board_state.board[i]);
+        if(this.board_state.board[i] != P4_EDGE)
+            this.show_image(i, this.board_state.board[i]);
     }
-}
+};
 
-function show_image(img, piece){
-    var id = "i" + (input.orientation ? 119 - img : img);
+_p4d_proto.show_image = function(img, piece){
+    var id = "i" + (this.orientation ? 119 - img : img);
     var e = document.getElementById(id);
     if (e)
         e.src = IMAGE_NAMES[piece];
-}
+};
 
-function show_piece_in_hand(piece){
+_p4d_proto.show_piece_in_hand = function(piece){
     var im = document.getElementById('pih');
     im.src = IMAGE_NAMES[piece];
     if (piece == 0){
@@ -212,23 +210,18 @@ function show_piece_in_hand(piece){
             im.style.top = (e.clientY - 4) + "px";
         };
     }
-}
+};
 
-
-function click_closure(n){
-    return function(e){
-        square_clicked(input.orientation ? 119 - n : n);
-    };
-}
-
-function new_child(element, childtag){
+function new_child(element, childtag, className){
     var child = document.createElement(childtag);
     element.appendChild(child);
+    if (className !== undefined)
+        child.className = className;
     return child;
 }
 
-function write_board_html(){
-    var div = document.getElementById("board");
+_p4d_proto.write_board_html = function(){
+    var div = this.elements.board;
     var table = new_child(div, "table");
     for (var y = 90; y > 10; y-=10){
         var tr = new_child(table, "tr");
@@ -237,7 +230,11 @@ function write_board_html(){
             var td = new_child(tr, "td");
             td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
             td.addEventListener("click",
-                                click_closure(z),
+                                function(p4d, n){
+                                    return function(e){
+                                        p4d.square_clicked(p4d.orientation ? 119 - n : n);
+                                    };
+                                }(this, z),
                                 true);
 
             var img = new_child(td, "img");
@@ -253,25 +250,25 @@ function write_board_html(){
     pih.src = IMAGE_NAMES[0];
     pih.width= SQUARE_WIDTH;
     pih.height= SQUARE_HEIGHT;
-}
+};
 
-function refresh_buttons(){
+_p4d_proto.refresh_buttons = function(){
     for (var x in CONTROLS){
         var o = CONTROLS[x];
         if (o.refresh === undefined)
             continue;
         var e = document.getElementById(o.id);
-        o.refresh(e);
+        o.refresh.call(this, e);
     }
-}
+};
 
-function maybe_rotate_board(){
-    var p = input.players;
+_p4d_proto.maybe_rotate_board = function(){
+    var p = this.players;
     if (p[0] != p[1] && ROTATE_BOARD){
-        input.orientation = p[0] == 'computer' ? 1 : 0;
+        this.orientation = p[0] == 'computer' ? 1 : 0;
         refresh();
     }
-}
+};
 
 /*some debugging functions */
 function p4_dump_board(_board, name){
@@ -315,14 +312,16 @@ function p4_dump_state(state){
 var CONTROLS = [
     {
         id: 'toggle_white_button',
-        onclick: function(e){
-            input.players[0] = (input.players[0] == 'human') ? 'computer' : 'human';
-            refresh_buttons();
-            maybe_rotate_board();
-            next_move();
+        onclick_wrap: function(p4d){
+            return function(e){
+                p4d.players[0] = (p4d.players[0] == 'human') ? 'computer' : 'human';
+                p4d.refresh_buttons();
+                p4d.maybe_rotate_board();
+                p4d.next_move();
+            };
         },
         refresh: function(el){
-            if (input.players[0] == 'human')
+            if (this.players[0] == 'human')
                 el.innerHTML = 'white <img src="images/human.png" alt="human">';
             else
                 el.innerHTML = 'white <img src="images/computer.png" alt="computer">';
@@ -330,14 +329,16 @@ var CONTROLS = [
     },
     {
         id: 'toggle_black_button',
-        onclick: function(e){
-            input.players[1] = (input.players[1] == 'human') ? 'computer' : 'human';
-            refresh_buttons();
-            maybe_rotate_board();
-            next_move();
+        onclick_wrap: function(p4d){
+            return function(e){
+                p4d.players[1] = (p4d.players[1] == 'human') ? 'computer' : 'human';
+                p4d.refresh_buttons();
+                p4d.maybe_rotate_board();
+                p4d.next_move();
+            };
         },
         refresh: function(el){
-            if (input.players[1] == 'human')
+            if (this.players[1] == 'human')
                 el.innerHTML = 'black <img src="images/human.png" alt="human">';
             else
                 el.innerHTML = 'black <img src="images/computer.png" alt="computer">';
@@ -345,67 +346,76 @@ var CONTROLS = [
     },
     {
         id: 'swap_button',
-        onclick: function(e){
-            var p = input.players;
-            var tmp = p[0];
-            p[0] = p[1];
-            p[1] = tmp;
-            if (p[0] != p[1] && ROTATE_BOARD)
-                input.orientation = 1 - input.orientation;
+        onclick_wrap: function(p4d){
+            return function(e){
+                var p = p4d.players;
+                var tmp = p[0];
+                p[0] = p[1];
+                p[1] = tmp;
+                if (p[0] != p[1] && ROTATE_BOARD)
+                    p4d.orientation = 1 - p4d.orientation;
 
-            refresh_buttons();
-            maybe_rotate_board();
-            next_move();
+                p4d.refresh_buttons();
+                p4d.maybe_rotate_board();
+                p4d.next_move();
+            };
         },
         refresh: function(el){
-            if (input.players[0] != input.players[1])
+            if (this.players[0] != this.players[1])
                 el.innerHTML = '<b>swap</b>';
             else
                 el.innerHTML = 'swap';
         }
     },
     {
-        label: 'pawn becomes <b>' + PROMOTION_STRINGS[input.pawn_becomes] + '</b>',
         id: 'pawn_promotion_button',
-        onclick: function(e){
-            var x = (input.pawn_becomes + 1) % PROMOTION_STRINGS.length;
-            input.pawn_becomes = x;
-            e.currentTarget.innerHTML = 'pawn becomes <b>' + PROMOTION_STRINGS[x] + '</b>';
+        onclick_wrap: function(p4d){
+            return function(e){
+                var x = (p4d.pawn_becomes + 1) % PROMOTION_STRINGS.length;
+                p4d.pawn_becomes = x;
+                e.currentTarget.innerHTML = 'pawn becomes <b>' + PROMOTION_STRINGS[x] + '</b>';
+            };
+        },
+        refresh: function(el){
+            el.innerHTML = 'pawn becomes <b>' + PROMOTION_STRINGS[this.pawn_becomes] + '</b>';
         }
     },
     {
         id: 'computer_level_button',
-        onclick: function(e){
-            var x = (input.computer_level + 1) % LEVELS.length;
-            input.computer_level = x;
-            e.currentTarget.innerHTML = 'computer level: <b>' + LEVELS[x] + '</b>';
+        onclick_wrap: function(p4d){
+            return function(e){
+                var x = (p4d.computer_level + 1) % LEVELS.length;
+                p4d.computer_level = x;
+                e.currentTarget.innerHTML = 'computer level: <b>' + LEVELS[x] + '</b>';
+            };
         },
         refresh: function(el){
-            el.innerHTML = 'computer level: <b>' + LEVELS[input.computer_level] + '</b>';
+            el.innerHTML = 'computer level: <b>' + LEVELS[this.computer_level] + '</b>';
         }
     },
     {
         label: 'dump state',
-        onclick: function(e){
-            p4_dump_state(input.board_state);
+        onclick_wrap: function(p4d){
+            return function(e){
+                p4_dump_state(p4d.board_state);
+            };
         },
         debug: true
     },
     {
         label: 'dump FEN',
-        onclick: function(e){
-            console.log(p4_state2fen(input.board_state));
+        onclick_wrap: function(p4d){
+            return function(e){
+                console.log(p4_state2fen(p4d.board_state));
+            };
         },
         debug: true
     }
 ];
 
 
-function write_controls_html(lut){
-    if (lut === undefined)
-        lut = CONTROLS;
-
-    var div = document.getElementById("controls");
+_p4d_proto.write_controls_html = function(lut){
+    var div = this.elements.controls;
     for (var i = 0; i < lut.length; i++){
         var o = lut[i];
         if (o.debug && ! P4_DEBUG)
@@ -417,16 +427,16 @@ function write_controls_html(lut){
             span.innerHTML = o.label;
         }
         else {
-            o.refresh(span);
+            o.refresh.call(this, span);
         }
         span.addEventListener("click",
-                              o.onclick,
+                              o.onclick_wrap(this),
                               true);
         if (o.move_listener){
-            input.move_listeners.push(o.move_listener);
+            this.move_listeners.push(o.move_listener);
         }
     }
-}
+};
 
 function parse_query(query){
     if (query === undefined)
@@ -444,12 +454,12 @@ function parse_query(query){
     return args;
 }
 
-function interpret_query_string(){
+_p4d_proto.interpret_query_string = function(){
     /*XXX Query arguments are not all sanitised.
      */
     var ATTRS = {
-        start: function(s){p4_fen2state(s, input.board_state)},
-        level: function(s){input.computer_level = parseInt(s)},
+        start: function(s){p4_fen2state(s, this.board_state)},
+        level: function(s){this.computer_level = parseInt(s)},
         player: function(s){
             var players = {
                 white: ['human', 'computer'],
@@ -458,8 +468,8 @@ function interpret_query_string(){
                 neither: ['computer', 'computer']
             }[s.toLowerCase()];
             if (players !== undefined){
-                input.players = players;
-                maybe_rotate_board();
+                this.players = players;
+                this.maybe_rotate_board();
             }
         },
         debug: function(s){P4_DEBUG = parseInt(s)}
@@ -471,22 +481,61 @@ function interpret_query_string(){
             var fn = ATTRS[p[0]];
         if (fn !== undefined){
             fn(p[1]);
-            refresh_buttons();
+            this.refresh_buttons();
         }
     }
-}
+};
+
 
 //hacky thing to make the log fit beside the board.
-function squeeze_into_box(){
-    var div = document.getElementById('log');
+_p4d_proto.squeeze_into_box = function(){
+    var div = this.elements.log;
     div.style.height = (SQUARE_HEIGHT * 9) + 'px';
-    var div2 = document.getElementById('controls');
+    var div2 = this.elements.controls;
     div2.style.width = (SQUARE_WIDTH * 9 + 90) + 'px';
     div2.style.clear = 'both';
+};
+
+_p4d_proto.go = function(){
+    this.refresh(0);
+    this.next_move();
+};
+
+function P4wn_display(target){
+    if (this === window){
+        return new P4wn_display(target);
+    }
+    var container;
+    if (typeof(target) == 'string')
+        container = document.getElementById(target);
+    else if (target.jquery !== undefined)
+        container = target.get(0);
+    else
+        container = target;
+    var inner = new_child(container, "div", P4WN_WRAPPER_CLASS);
+    this.elements = {};
+    this.elements.board = new_child(inner, "div", P4WN_BOARD_CLASS);
+    this.elements.log = new_child(inner, "div", P4WN_LOG_CLASS);
+    this.elements.messages = new_child(inner, "div", P4WN_MESSAGES_CLASS);
+    this.elements.controls = new_child(inner, "div", P4WN_CONTROLS_CLASS);
+
+    this.start = 0;     // start click - used in display.js
+    this.inhand = 0;     // piece in hand (ie, during move)
+    this.board_state = p4_new_game();
+    this.players = ['human', 'computer']; //[white, black] controllers
+    this.pawn_becomes = 0; //index into PROMOTION_* arrays
+    this.computer_level = DEFAULT_LEVEL;
+    this.move_listeners = [];
+    return this;
 }
 
+function p4wnify(id){
+    var p4d = new P4wn_display(id);
+    p4d.write_board_html();
+    p4d.write_controls_html(CONTROLS);
+    p4d.interpret_query_string();
+    return p4d;
+}
 
-write_board_html();
-write_controls_html();
-if (SQUEEZE_INTO_BOX)
-    squeeze_into_box();
+P4wn_display.prototype = _p4d_proto;
+

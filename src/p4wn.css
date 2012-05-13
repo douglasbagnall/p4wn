@@ -9,11 +9,11 @@
   position:absolute;
 }
 
-#board {
+.p4wn-board {
   float:left;
 }
 
-#log {
+.p4wn-log {
   font-family: monospace;
   white-space: pre;
   font-size: smaller;
@@ -23,7 +23,7 @@
   height: 90%;
 }
 
-#controls{
+.p4wn-controls{
   /*clear: both;*/
 }
 

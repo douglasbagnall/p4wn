@@ -3,17 +3,16 @@
 <link rel="stylesheet" href="p4wn.css" />
 </head>
 <body>
-<div id="board"></div>
-<div id="log"></div>
-<div id="messages"></div>
-<div id="controls"></div>
+<div id="content"></div>
 <script src="engine-config.js"></script>
 <script src="engine.js"></script>
 <script src="display-config.js"></script>
 <script src="display.js"></script>
 <script>
-interpret_query_string();
-refresh(0);
-next_move();
+var game = p4wnify("content");
+if (SQUEEZE_INTO_BOX)
+    game.squeeze_into_box();
+
+game.go();
 </script>
 </body>
