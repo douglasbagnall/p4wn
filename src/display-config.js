@@ -30,4 +30,3 @@ var P4WN_BOARD_CLASS = 'p4wn-board';
 var P4WN_MESSAGES_CLASS = 'p4wn-messages';
 var P4WN_LOG_CLASS = 'p4wn-log';
 var P4WN_CONTROLS_CLASS = 'p4wn-controls';
-var P4WN_IN_HAND_CLASS = 'p4wn-pih';

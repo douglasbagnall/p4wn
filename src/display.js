@@ -28,26 +28,19 @@ _p4d_proto.square_clicked = function(square){
     var piece = board[square];
     if (this.start == square){
         //clicked back on previously chosen piece -- putting it down again
-        this.show_piece_in_hand(0);
-        this.show_image(this.start, this.inhand);
-        this.inhand = 0;
+        this.stop_moving_piece();
         this.start = 0;
     }
     else if (piece && (mover == (piece & 1))){
         //clicked on player's colour, so it becomes start
-        if (this.inhand)
-            this.show_image(this.start, this.inhand); //put back old piece, if any
-        this.inhand = piece;
         this.start = square;
-        this.show_image(square, 0);
-        this.show_piece_in_hand(piece);     //dragging piece
+        this.start_moving_piece(square);     //dragging piece
     }
-    else if (this.inhand){
+    else if (this.start){
         // there is one in hand, so this is an attempted move
         //but is it valid?
         if(this.move(this.start, square, PROMOTION_INTS[this.pawn_becomes])){
-            this.show_piece_in_hand(0);
-            this.inhand = 0;
+            this.stop_moving_piece(square);
             this.start = 0;
         }
     }
@@ -181,36 +174,46 @@ _p4d_proto.goto_move = function(n){
 //refresh: redraw screen from board
 
 _p4d_proto.refresh = function(){
+    var pieces = this.elements.pieces;
     for (var i = 20; i < 100; i++){
-        if(this.board_state.board[i] != P4_EDGE)
-            this.show_image(i, this.board_state.board[i]);
+        if(this.board_state.board[i] != P4_EDGE){
+            var j = this.orientation ? 119 - i : i;
+            pieces[j].src =  IMAGE_NAMES[this.board_state.board[i]];
+        }
     }
 };
 
-_p4d_proto.show_image = function(img, piece){
-    var id = "i" + (this.orientation ? 119 - img : img);
-    var e = document.getElementById(id);
-    if (e)
-        e.src = IMAGE_NAMES[piece];
+_p4d_proto.start_moving_piece = function(position){
+    console.log("starting moving", position);
+    /*drop the currently held one, if any*/
+    var img = this.elements.moving_img;
+    if (img){
+        img.style.position = 'static';
+    }
+    img = this.elements.pieces[position];
+    this.elements.moving_img = img;
+    img.style.position = 'absolute';
+    document.onmousemove = function (e){
+        img.style.left = (e.clientX + 1) + "px";
+        img.style.top = (e.clientY - 4) + "px";
+    };
 };
 
-_p4d_proto.show_piece_in_hand = function(piece){
-    var im = document.getElementById('pih');
-    im.src = IMAGE_NAMES[piece];
-    if (piece == 0){
-        document.onmousemove = null;         //and switch off mousemove.
-        im.style.top = '0px';
-        im.style.left = '0px';
-        im.style.visibility = 'hidden';
+_p4d_proto.stop_moving_piece = function(position){
+    console.log("stopping moving", position);
+    var img = this.elements.moving_img;
+    if (img !== undefined){
+        img.style.position = 'static';
+        if (position){
+            var tmp = img.src;
+            img.src = IMAGE_NAMES[0];
+            this.elements.pieces[position].src = tmp;
+        }
     }
-    else {
-        im.style.visibility = 'visible';
-        document.onmousemove = function (e){
-            im.style.left = (e.clientX + 1) + "px";
-            im.style.top = (e.clientY - 4) + "px";
-        };
-    }
+    this.elements.moving_img = undefined;
+    document.onmousemove = null;
 };
+
 
 function new_child(element, childtag, className){
     var child = document.createElement(childtag);
@@ -222,6 +225,7 @@ function new_child(element, childtag, className){
 
 _p4d_proto.write_board_html = function(){
     var div = this.elements.board;
+    var pieces = this.elements.pieces = [];
     var table = new_child(div, "table");
     for (var y = 90; y > 10; y-=10){
         var tr = new_child(table, "tr");
@@ -238,18 +242,12 @@ _p4d_proto.write_board_html = function(){
                                 true);
 
             var img = new_child(td, "img");
-            img.id = "i" + z;
+            pieces[z] = img;
             img.src = IMAGE_NAMES[0];
             img.width= SQUARE_WIDTH;
             img.height= SQUARE_HEIGHT;
         }
     }
-    /*piece in hand indicator */
-    var pih = new_child(document.body, 'img');
-    pih.id = 'pih';
-    pih.src = IMAGE_NAMES[0];
-    pih.width= SQUARE_WIDTH;
-    pih.height= SQUARE_HEIGHT;
 };
 
 _p4d_proto.refresh_buttons = function(){
@@ -502,7 +500,7 @@ _p4d_proto.go = function(){
 };
 
 function P4wn_display(target){
-    if (this === window){
+    if (! this instanceof P4wn_display){
         return new P4wn_display(target);
     }
     var container;
@@ -519,8 +517,7 @@ function P4wn_display(target){
     this.elements.messages = new_child(inner, "div", P4WN_MESSAGES_CLASS);
     this.elements.controls = new_child(inner, "div", P4WN_CONTROLS_CLASS);
 
-    this.start = 0;     // start click - used in display.js
-    this.inhand = 0;     // piece in hand (ie, during move)
+    this.start = 0;
     this.board_state = p4_new_game();
     this.players = ['human', 'computer']; //[white, black] controllers
     this.pawn_becomes = 0; //index into PROMOTION_* arrays
