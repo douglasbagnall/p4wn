@@ -60,38 +60,6 @@ _p4d_proto.move = function(start, end, promotion){
     for (var i = 0; i < this.move_listeners.length; i++){
         this.move_listeners[i](move_result);
     }
-    if (move_result.flags & P4_MOVE_FLAG_DRAW){
-        if (! this.draw_offered){
-            var p4d = this;
-            write_controls_html([{
-                                     id: 'offer_draw_button',
-                                     label: '<b>Draw?</b>',
-                                     onclick_wrap: function(io){
-                                         return function(e){
-                                             window.clearTimeout(next_move_timeout_ID);
-                                             window.clearTimeout(auto_play_timeout_ID);
-                                             this.refresh_buttons();
-                                             this.display_move_text(0, 'DRAW');
-                                             console.log(p4_state2fen(p4d.board_state));
-                                             auto_play_timeout_ID = undefined;
-                                             next_move_timeout_ID = undefined;
-                                         };
-                                     }
-                                 }]);
-            this.draw_offered = true;
-        }
-        else {
-            var draw_button = document.getElementById('offer_draw_button');
-            draw_button.style.display = 'inline-block';
-            draw_button.style.color = '#c00';
-        }
-    }
-    else {
-        var draw_button = document.getElementById('offer_draw_button');
-        if (draw_button !== null){
-            draw_button.style.display = 'none';
-        }
-    }
     return move_result.ok;
 };
 
@@ -250,12 +218,10 @@ _p4d_proto.write_board_html = function(){
 };
 
 _p4d_proto.refresh_buttons = function(){
-    for (var x in CONTROLS){
-        var o = CONTROLS[x];
-        if (o.refresh === undefined)
-            continue;
-        var e = document.getElementById(o.id);
-        o.refresh.call(this, e);
+    var rf = this.buttons.refreshers;
+    for (var i = 0; i < rf.length; i++){
+        var x = rf[i];
+        x[0].call(this, x[1]);
     }
 };
 
@@ -402,31 +368,68 @@ var CONTROLS = [
             };
         },
         debug: true
+    },
+    {
+        id: 'draw_button',
+        label: '<b>Draw?</b>',
+        onclick_wrap: function(p4d){
+            return function(e){
+                window.clearTimeout(next_move_timeout_ID);
+                window.clearTimeout(auto_play_timeout_ID);
+                this.refresh_buttons();
+                this.display_move_text(0, 'DRAW');
+                console.log(p4_state2fen(p4d.board_state));
+                auto_play_timeout_ID = undefined;
+                next_move_timeout_ID = undefined;
+            };
+        },
+        move_listener_wrap: function(p4d){
+            return function(move_result){
+                var draw_button = p4d.elements.draw_button;
+                if (move_result.flags & P4_MOVE_FLAG_DRAW){
+                    draw_button.style.display = 'inline-block';
+                    if (p4d.draw_offered){
+                        draw_button.style.display = 'inline-block';
+                        draw_button.style.color = '#c00';
+                    }
+                    p4d.draw_offered = true;
+                }
+                else {
+                    p4d.draw_offered = false;
+                    draw_button.style.color = 'inherit';
+                    draw_button.style.display = 'none';
+                }
+            };
+        },
+        hidden: true
     }
 ];
 
 _p4d_proto.write_controls_html = function(lut){
     var div = this.elements.controls;
+    var buttons = this.buttons;
     for (var i = 0; i < lut.length; i++){
         var o = lut[i];
         if (o.debug && ! P4_DEBUG)
             continue;
         var span = new_child(div, "span");
         span.className = 'control-button';
-        span.id = o.id || ('p4wn_button_' + i);
-        if (o.label){
-            span.innerHTML = o.label;
-        }
-        else {
-            o.refresh.call(this, span);
-        }
+        buttons.elements.push(span);
         span.addEventListener("click",
                               o.onclick_wrap(this),
                               true);
-        if (o.move_listener){
-            this.move_listeners.push(o.move_listener);
-        }
+        if (o.label)
+            span.innerHTML = o.label;
+        if (o.move_listener_wrap)
+            this.move_listeners.push(o.move_listener_wrap(this));
+        if (o.hidden)
+            span.style.display = 'none';
+        if (o.refresh)
+            buttons.refreshers.push([o.refresh, span]);
+        if (o.id)
+            this.elements[o.id] = span;
     }
+    this.refresh_buttons();
 };
 
 function parse_query(query){
@@ -515,6 +518,10 @@ function P4wn_display(target){
     this.players = ['human', 'computer']; //[white, black] controllers
     this.pawn_becomes = 0; //index into PROMOTION_* arrays
     this.computer_level = DEFAULT_LEVEL;
+    this.buttons = {
+        elements: [],
+        refreshers: []
+    }
     this.move_listeners = [];
     return this;
 }
