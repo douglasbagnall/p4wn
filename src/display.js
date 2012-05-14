@@ -108,19 +108,23 @@ _p4d_proto.display_move_text = function(moveno, string){
         while(mn.length < 4)
             mn = ' ' + mn;
     }
+    this.log(mn + string, "log_move",
+             function (p4d, n){
+                 return function(e){
+                     p4d.goto_move(n);
+                 };
+             }(this, moveno));
+};
+
+_p4d_proto.log = function(msg, klass, onclick){
     var div = this.elements.log;
     var item = new_child(div, "div");
-    item.className = "log_move";
-    item.addEventListener("click",
-                          function (p4d, n){
-                              return function(e){
-                                  p4d.goto_move(n);
-                              };
-                          }(this, moveno),
-                          true);
-    item.innerHTML = mn + string;
+    item.className = klass;
+    if (onclick !== undefined)
+        item.addEventListener("click", onclick, true);
+    item.innerHTML = msg;
     div.scrollTop = 999999;
-};
+}
 
 _p4d_proto.goto_move = function(n){
     var delta = this.board_state.moveno - n;
