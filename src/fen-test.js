@@ -25,9 +25,9 @@ var FEN = [
 ];
 
 
-function time_find_move(depth){
+function time_find_move(game, depth){
     var N = 3;
-    var state = input.board_state;
+    var state = game.board_state;
     var best = 1e999;
     for (var i = 0; i < N; i++){
         var start_time = Date.now();
@@ -38,13 +38,10 @@ function time_find_move(depth){
         if (delta < best)
             best = delta;
     }
-    var div = document.getElementById("log");
-    var item = new_child(div, "div");
-    item.innerHTML = "depth " + depth + " best of " + N + ": " + best;
+    game.log("depth " + depth + " best of " + N + ": " + best);
 }
 
-function parse_test(){
-    var state = input.board_state;
+function parse_test(state){
     p4_prepare(state);
     var p = p4_parse(state, state.to_play, state.enpassant, 0);
     console.log("found", p.length, "moves");
@@ -79,21 +76,21 @@ var WEIGHTS_OVERLAYS = [
 
 var __weights_overlay_index = 0;
 
-function weights_update(delta, element){
+function weights_update(p4d, delta, element){
     if (delta == undefined)
         delta = 0;
-    p4_prepare(input.board_state);
+    p4_prepare(p4d.board_state);
     var i;
     var w = WEIGHTS_OVERLAYS;
     var j = (__weights_overlay_index + delta * 3) % w.length;
     __weights_overlay_index = j;
+    var pieces = p4d.elements.pieces;
     if (w[j + 1] !== undefined){
-        var overlay = input.board_state[w[j + 1]][w[j + 2]];
+        var overlay = p4d.board_state[w[j + 1]][w[j + 2]];
         var knee = P4_VALUES[P4_PAWN];
         for (i = 0; i < 120; i++){
-            var id = "i" + (input.orientation ? 119 - i : i);
-            var el = document.getElementById(id);
-            if (el == null)
+            var el = pieces[p4d.orientation ? 119 - i : i];
+            if (el === undefined)
                 continue;
             var scaled = parseInt((overlay[i]) / knee * 255);
             if (scaled <= 255){
@@ -108,9 +105,8 @@ function weights_update(delta, element){
     }
     else {
         for (i = 0; i < 120; i++){
-            var id = "i" + (input.orientation ? 119 - i : i);
-            var el = document.getElementById(id);
-            if (el !== null)
+            var el = pieces[p4d.orientation ? 119 - i : i];
+            if (el !== undefined)
                 el.style.backgroundColor = 'inherit';
         }
     }
@@ -119,44 +115,51 @@ function weights_update(delta, element){
 }
 
 
-
 var TEST_BUTTONS = [
     {
         label: "speed test",
-        onclick: function(e){
-            time_find_move(4);
+        onclick_wrap: function(p4d){
+            return  function(e){
+                time_find_move(p4d, 4);
+            };
         }
     },
     {
         label: "parse test",
-        onclick: function(e){
-            parse_test();
+        onclick_wrap: function(p4d){
+            return  function(e){
+                parse_test(p4d.board_state);
+            };
         }
     },
     {
         label: "reset RNG",
-        onclick: function(e){
-            p4_random_seed(1);
+        onclick_wrap: function(p4d){
+            return  function(e){
+                p4_random_seed(p4d.state, 1);
+            };
         }
     },
     {
-        onclick: function(e){
-            weights_update(1, e.currentTarget);
+        onclick_wrap: function(p4d){
+            return function(e){
+                weights_update(p4d, 1, e.currentTarget);
+            };
         },
         refresh: function(el){
-            weights_update(0, el);
+            weights_update(this, 0, el);
         },
-        move_listener: function(){
-            weights_update(0);
+        move_listener_wrap: function(p4d){
+            return function(){
+                weights_update(p4d, 0);
+            };
         }
     }
 ];
 
-write_controls_html(TEST_BUTTONS);
-
-
-function write_fen_switches(){
-    var div = document.getElementById("fen_switch");
+function write_fen_switches(p4d){
+    var div = new_child(p4d.elements.container, "div", 'p4wn-fen-switches');
+    div.innerHTML = '<h3>Load FEN</h3>';
     for (var i = 0; i < FEN.length; i++){
         var span = new_child(div, "div");
         var fen = FEN[i];
@@ -172,27 +175,20 @@ function write_fen_switches(){
         span.addEventListener("click",
                               function(s){
                                   return function(e){
-                                      var div = document.getElementById("log");
-                                      var item = new_child(div, "div");
-                                      item.innerHTML = '--------';
-                                      p4_fen2state(s, input.board_state);
-                                      p4_prepare(input.board_state); //so dump_state(), etc work
-                                      refresh(0);
-                                      var s2 = p4_state2fen(input.board_state);
+                                      p4d.log('--------');
+                                      p4_fen2state(s, p4d.board_state);
+                                      p4_prepare(p4d.board_state); //so dump_state(), etc work
+                                      p4d.refresh(0);
+                                      var s2 = p4_state2fen(p4d.board_state);
                                       if (s == s2){
                                           console.log(s, "survives round trip");
                                       }
                                       else {
                                           console.log(s, "and", s2, "differ");
                                       }
-                                      next_move();
+                                      p4d.next_move();
                                   };
                               }(fen));
 
     }
 }
-
-write_fen_switches();
-p4_fen2state(FEN[0][1], input.board_state);
-refresh(0);
-next_move();

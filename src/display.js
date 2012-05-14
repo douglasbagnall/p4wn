@@ -380,8 +380,8 @@ var CONTROLS = [
             return function(e){
                 window.clearTimeout(next_move_timeout_ID);
                 window.clearTimeout(auto_play_timeout_ID);
-                this.refresh_buttons();
-                this.display_move_text(0, 'DRAW');
+                p4d.refresh_buttons();
+                p4d.display_move_text(0, 'DRAW');
                 console.log(p4_state2fen(p4d.board_state));
                 auto_play_timeout_ID = undefined;
                 next_move_timeout_ID = undefined;
