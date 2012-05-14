@@ -512,11 +512,14 @@ function P4wn_display(target){
         container = target;
     var inner = new_child(container, "div", P4WN_WRAPPER_CLASS);
     this.elements = {};
+    this.elements.inner = inner;
+    inner.style.height = (9 * SQUARE_HEIGHT) + 'px';
+    container.style.width = (16 * SQUARE_HEIGHT) + 'px';
+    this.elements.container = container;
     this.elements.board = new_child(inner, "div", P4WN_BOARD_CLASS);
     this.elements.log = new_child(inner, "div", P4WN_LOG_CLASS);
     this.elements.messages = new_child(inner, "div", P4WN_MESSAGES_CLASS);
-    this.elements.controls = new_child(inner, "div", P4WN_CONTROLS_CLASS);
-
+    this.elements.controls = new_child(container, "div", P4WN_CONTROLS_CLASS);
     this.start = 0;
     this.board_state = p4_new_game();
     this.players = ['human', 'computer']; //[white, black] controllers
@@ -525,7 +528,7 @@ function P4wn_display(target){
     this.buttons = {
         elements: [],
         refreshers: []
-    }
+    };
     this.move_listeners = [];
     return this;
 }

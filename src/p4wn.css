@@ -20,7 +20,7 @@
 }
 
 .p4wn-controls{
-  /*clear: both;*/
+  clear: both;
 }
 
 .control-button {
@@ -34,4 +34,8 @@
 .log_move {
   padding: 0px 7px;
   cursor: pointer;
+}
+
+.p4wn-wrapper{
+  /*border: 1px solid red;*/
 }
