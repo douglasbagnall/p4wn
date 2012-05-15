@@ -117,10 +117,18 @@ function weights_update(p4d, delta, element){
 
 var TEST_BUTTONS = [
     {
-        label: "speed test",
+        label: " 4-ply speed",
         onclick_wrap: function(p4d){
             return  function(e){
                 time_find_move(p4d, 4);
+            };
+        }
+    },
+    {
+        label: "5-ply speed",
+        onclick_wrap: function(p4d){
+            return  function(e){
+                time_find_move(p4d, 5);
             };
         }
     },
