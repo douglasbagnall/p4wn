@@ -107,7 +107,7 @@ function weights_update(p4d, delta, element){
         for (i = 0; i < 120; i++){
             var el = pieces[p4d.orientation ? 119 - i : i];
             if (el !== undefined)
-                el.style.backgroundColor = 'inherit';
+                el.style.backgroundColor = 'transparent';
         }
     }
     if (element !== undefined)
@@ -164,7 +164,7 @@ function write_fen_switches(p4d){
         var span = new_child(div, "div");
         var fen = FEN[i];
         span.id = 'fen_' + i;
-        span.className = 'control-button';
+        span.className = 'p4wn-control-button';
         if (fen.length == 2){
             span.innerHTML = '<b>' + fen[0] + '</b> ' + fen[1];
             fen = fen[1];

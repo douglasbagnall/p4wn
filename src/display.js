@@ -108,7 +108,7 @@ _p4d_proto.display_move_text = function(moveno, string){
         while(mn.length < 4)
             mn = ' ' + mn;
     }
-    this.log(mn + string, "log_move",
+    this.log(mn + string, "p4wn-log-move",
              function (p4d, n){
                  return function(e){
                      p4d.goto_move(n);
@@ -146,7 +146,7 @@ _p4d_proto.refresh = function(){
     for (var i = 20; i < 100; i++){
         if(this.board_state.board[i] != P4_EDGE){
             var j = this.orientation ? 119 - i : i;
-            pieces[j].src =  IMAGE_NAMES[this.board_state.board[i]];
+            pieces[j].src =  P4WN_IMAGE_NAMES[this.board_state.board[i]];
         }
     }
 };
@@ -203,7 +203,7 @@ _p4d_proto.write_board_html = function(){
         for(var x = 1;  x < 9; x++){
             var i = y + x;
             var td = new_child(tr, "td");
-            td.className = (x + (y / 10)) & 1 ? 'b' : 'w';
+            td.className = (x + (y / 10)) & 1 ? P4WN_BLACK_SQUARE : P4WN_WHITE_SQUARE;
             td.addEventListener("click",
                                 function(p4d, n){
                                     return function(e){
@@ -214,9 +214,9 @@ _p4d_proto.write_board_html = function(){
 
             var img = new_child(td, "img");
             pieces[i] = img;
-            img.src = IMAGE_NAMES[0];
-            img.width= SQUARE_WIDTH;
-            img.height= SQUARE_HEIGHT;
+            img.src = P4WN_IMAGE_NAMES[0];
+            img.width= P4WN_SQUARE_WIDTH;
+            img.height= P4WN_SQUARE_HEIGHT;
         }
     }
 };
@@ -417,7 +417,7 @@ _p4d_proto.write_controls_html = function(lut){
         if (o.debug && ! P4_DEBUG)
             continue;
         var span = new_child(div, "span");
-        span.className = 'control-button';
+        span.className = 'p4wn-control-button';
         buttons.elements.push(span);
         span.addEventListener("click",
                               o.onclick_wrap(this),
@@ -488,9 +488,9 @@ _p4d_proto.interpret_query_string = function(){
 //hacky thing to make the log fit beside the board.
 _p4d_proto.squeeze_into_box = function(){
     var div = this.elements.log;
-    div.style.height = (SQUARE_HEIGHT * 9) + 'px';
+    div.style.height = (P4WN_SQUARE_HEIGHT * 9) + 'px';
     var div2 = this.elements.controls;
-    div2.style.width = (SQUARE_WIDTH * 9 + 90) + 'px';
+    div2.style.width = (P4WN_SQUARE_WIDTH * 9 + 90) + 'px';
     div2.style.clear = 'both';
 };
 
@@ -513,13 +513,16 @@ function P4wn_display(target){
     var inner = new_child(container, "div", P4WN_WRAPPER_CLASS);
     this.elements = {};
     this.elements.inner = inner;
-    inner.style.height = (9 * SQUARE_HEIGHT) + 'px';
-    container.style.width = (16 * SQUARE_HEIGHT) + 'px';
+    var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
+    inner.style.height = board_height;
     this.elements.container = container;
-    this.elements.board = new_child(inner, "div", P4WN_BOARD_CLASS);
-    this.elements.log = new_child(inner, "div", P4WN_LOG_CLASS);
+    var board = this.elements.board = new_child(inner, "div", P4WN_BOARD_CLASS);
+    var log = this.elements.log = new_child(inner, "div", P4WN_LOG_CLASS);
+    log.style.height = board_height;
+    board.style.height = board_height;
     this.elements.messages = new_child(inner, "div", P4WN_MESSAGES_CLASS);
     this.elements.controls = new_child(container, "div", P4WN_CONTROLS_CLASS);
+    this.elements.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
     this.start = 0;
     this.board_state = p4_new_game();
     this.players = ['human', 'computer']; //[white, black] controllers
