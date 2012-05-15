@@ -57,24 +57,37 @@ function p4_make_move(state, s, e, promotion){
 
     if (piece)
         piece_locations.push([end_piece, e]);
+
     return {
-        undo: function(){
-            if(rs){
-                board[rs]=rook;
-                board[re]=0;
-                piece_locations.length--;
-            }
-            if (ep_position){
-                board[ep_position] = ep_taken;
-            }
-            board[s] = S;
-            board[e] = E;
-            if (piece)
-                piece_locations.length--;
-            state.castles = old_castle_state;
-        },
-        ep: ep
+        rs: rs,
+        rook: rook,
+        piece_locations: piece_locations,
+        ep_position: ep_position,
+        ep_taken: ep_taken,
+        ep: ep,
+        s: s,
+        e: e,
+        S: S,
+        E: E,
+        castles: old_castle_state
     };
+}
+
+function p4_unmake_move(state, move){
+    board = state.board;
+    if(move.rs){
+        board[move.rs] = move.rook;
+        board[move.re] = 0;
+        move.piece_locations.length--;
+    }
+    if (move.ep_position){
+        board[move.ep_position] = move.ep_taken;
+    }
+    board[move.s] = move.S;
+    board[move.e] = move.E;
+    if (move.S & 15)
+        move.piece_locations.length--;
+    state.castles = move.castles;
 }
 
 function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
@@ -329,7 +342,8 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             }
         }
     }
-    move.undo();
+    //move.undo();
+    p4_unmake_move(state, move);
     return alpha;
 }
 
