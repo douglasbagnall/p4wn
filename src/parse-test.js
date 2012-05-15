@@ -58,37 +58,37 @@ function p4_make_move(state, s, e, promotion){
     if (piece)
         piece_locations.push([end_piece, e]);
 
-    return [state,
-            piece_locations,
-            s, e, S, E,
-            ep,
-            old_castle_state,
-            rs, re, rook,
-            ep_position, ep_taken
-           ];
+    return {
+        piece_locations: piece_locations,
+        s: s,
+        e: e,
+        S: S,
+        E: E,
+        ep: ep,
+        castles: old_castle_state,
+        rs: rs,
+        re: re,
+        rook: rook,
+        ep_position: ep_position,
+        ep_taken: ep_taken
+    };
 }
 
-function p4_unmake_move(state,
-            piece_locations,
-            s, e, S, E,
-            ep,
-            old_castle_state,
-            rs, re, rook,
-            ep_position, ep_taken){
+function p4_unmake_move(state, move){
     board = state.board;
-    if(rs){
-        board[rs] = rook;
-        board[re] = 0;
-        piece_locations.length--;
+    if(move.rs){
+        board[move.rs] = move.rook;
+        board[move.re] = 0;
+        move.piece_locations.length--;
     }
-    if (ep_position){
-        board[ep_position] = ep_taken;
+    if (move.ep_position){
+        board[move.ep_position] = move.ep_taken;
     }
-    board[s] = S;
-    board[e] = E;
-    if (S & 15)
-        piece_locations.length--;
-    state.castles = old_castle_state;
+    board[move.s] = move.S;
+    board[move.e] = move.E;
+    if (move.S & 15)
+        move.piece_locations.length--;
+    state.castles = move.castles;
 }
 
 function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
@@ -344,7 +344,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
         }
     }
     //move.undo();
-    p4_unmake_move.apply(null,  move);
+    p4_unmake_move(state, move);
     return alpha;
 }
 
