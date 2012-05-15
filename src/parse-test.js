@@ -142,7 +142,7 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, 
             }
         }
     }
-    move.undo();
+    p4_unmake_move(state, move);
     return alpha;
 }
 
@@ -162,7 +162,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                                                   alpha, beta);
             //console.log('count, t, alpha, beta', count, t, alpha, beta);
             if (t > beta){
-                move.undo();
+                p4_unmake_move(state, move);
                 return beta;
             }
         }
@@ -202,7 +202,78 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
             alpha += P4_WIN_DECAY;
         }
     }
-    else if (P4_QUIESCE){
+    else{
+        //leaf nodes
+        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movecount = movelist.length;
+        while(beta > alpha && --movecount >= 0){
+            if(movelist[movecount][0] > alpha){
+                alpha = movelist[movecount][0];
+            }
+        }
+    }
+    p4_unmake_move(state, move);
+    return alpha;
+}
+
+function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score, s, e,
+                                                     alpha, beta, promotion){
+    var move = p4_make_move(state, s, e, promotion);
+    var ncolour = 1 - colour;
+    var i, mv;
+    var board = state.board;
+    if(count){
+        //branch nodes
+        var t;
+        /* first try a null move. This sets a decent value for beta in
+           almost every situation (I think. seems to work).
+        */
+        if (count >= 2){
+            t = p4_nullmove_alphabeta_quiescing_treeclimber(state, count - 2, colour, score, 0, 0,
+                                                            alpha, beta);
+            //console.log('count, t, alpha, beta', count, t, alpha, beta);
+            if (t > beta){
+                p4_unmake_move(state, move);
+                return beta;
+            }
+        }
+        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movecount = movelist.length;
+        for(i = 0; i < movecount; i++){
+            mv = movelist[i];
+            var mscore = mv[0];
+            var ms = mv[1];
+            var me = mv[2];
+            if (mscore > P4_WIN){ //we won! Don't look further.
+                alpha = P4_KING_VALUE;
+                break;
+            }
+            t = -p4_nullmove_alphabeta_quiescing_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                                             -beta, -alpha);
+            if (t > alpha){
+                alpha = t;
+            }
+            if (alpha >= beta){
+                break;
+            }
+        }
+
+        if (alpha < -P4_WIN_NOW){
+            /* Whatever we do, we lose the king.
+             *
+             * But is it check?
+             * If not, this is stalemate, and the score doesn't apply.
+             */
+            if (! p4_check_check(state, colour)){
+                alpha = state.stalemate_scores[colour];
+            }
+        }
+        if (alpha < -P4_WIN){
+            /*make distant checkmate seem less bad */
+            alpha += P4_WIN_DECAY;
+        }
+    }
+    else{
         var movelist = p4_parse(state, colour, move.ep, -score);
         var movecount = movelist.length;
         var threshold = alpha - state.best_pieces[colour];
@@ -220,17 +291,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                 alpha = mscore;
         }
     }
-    else{
-        //leaf nodes
-        var movelist = p4_parse(state, colour, move.ep, -score);
-        var movecount = movelist.length;
-        while(beta > alpha && --movecount >= 0){
-            if(movelist[movecount][0] > alpha){
-                alpha = movelist[movecount][0];
-            }
-        }
-    }
-    move.undo();
+    p4_unmake_move(state, move);
     return alpha;
 }
 
@@ -286,7 +347,7 @@ function p4_quiesce(state, count, colour, s, e, alpha, beta,
             }
         }
     }
-    move.undo();
+    p4_unmake_move(state, move);
     return alpha;
 }
 
@@ -312,8 +373,8 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
                 alpha = P4_KING_VALUE;
                 break;
             }
-            t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha);
+            t = -p4_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                          -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -345,12 +406,10 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             }
         }
     }
-    //move.undo();
     p4_unmake_move(state, move);
     return alpha;
 }
 
-/****treeclimber */
 function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta,
                                   promotion){
     var move = p4_make_move(state, s, e, promotion);
@@ -372,11 +431,11 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
                 alpha = P4_KING_VALUE;
                 break;
             }
-            t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -b, -alpha);
+            t = -p4_negascout_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                          -b, -alpha);
             if (t > alpha && t < beta && i != 0){
-                t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                    -beta, -alpha);
+                t = -p4_negascout_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                              -beta, -alpha);
             }
             if (t > alpha){
                 alpha = t;
@@ -410,7 +469,7 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
             }
         }
     }
-    move.undo();
+    p4_unmake_move(state, move);
     return alpha;
 }
 
@@ -421,6 +480,7 @@ function add_extra_searches(p4d){
         'default', p4_treeclimber,
         'negamax', p4_negamax_treeclimber,
         'nullmove', p4_nullmove_alphabeta_treeclimber,
+        'nullmove/quiesce', p4_nullmove_alphabeta_quiescing_treeclimber,
         'alphabeta', p4_alphabeta_treeclimber,
         'negascout', p4_negascout_treeclimber
     ];
