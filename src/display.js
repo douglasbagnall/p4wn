@@ -380,7 +380,7 @@ var CONTROLS = [
                 window.clearTimeout(next_move_timeout_ID);
                 window.clearTimeout(auto_play_timeout_ID);
                 p4d.refresh_buttons();
-                p4d.display_move_text(0, 'DRAW');
+                p4d.log('DRAW');
                 console.log(p4_state2fen(p4d.board_state));
                 auto_play_timeout_ID = undefined;
                 next_move_timeout_ID = undefined;
@@ -483,18 +483,8 @@ _p4d_proto.interpret_query_string = function(){
     }
 };
 
-
-//hacky thing to make the log fit beside the board.
-_p4d_proto.squeeze_into_box = function(){
-    var div = this.elements.log;
-    div.style.height = (P4WN_SQUARE_HEIGHT * 9) + 'px';
-    var div2 = this.elements.controls;
-    div2.style.width = (P4WN_SQUARE_WIDTH * 9 + 90) + 'px';
-    div2.style.clear = 'both';
-};
-
 _p4d_proto.go = function(){
-    this.refresh(0);
+    this.refresh();
     this.next_move();
 };
 
