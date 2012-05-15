@@ -19,14 +19,7 @@
 <a href="/unicode/">unicode</a>
 <a href="/sven/">tidy</a>
 
-<div id="chessboard">
-<div id="board"></div>
-<div id="log"></div>
-<div id="messages"></div>
-<div id="controls"></div>
-</div>
-
-
+<div id="chessboard"></div>
 </div>
 
 <div class="main">
@@ -161,14 +154,17 @@ width="210" height="62" border="0" alt="SF logo" style="padding:0px 10px;" />
 
 </div>
 
-<img src="images/empty.gif" id="pih" width="20" height="32" alt="" />
-
-<script src="engine.js"></script>
+<script src="engine-config.js"></script>
 <script src="display-config.js"></script>
 <script>
 P4WN_SQUARE_WIDTH = 18;
 P4WN_SQUARE_HEIGHT = 18;
 </script>
+<script src="engine.js"></script>
 <script src="display.js"></script>
+<script>
+var game = p4wnify("chessboard");
+game.next_move();
+</script>
 </body>
 </html>
