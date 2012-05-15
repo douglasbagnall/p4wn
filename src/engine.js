@@ -707,8 +707,8 @@ function p4_findmove(state, level, colour, ep){
             be = me;
             break;
         }
-        t = -p4_treeclimber(state, level - 1, 1 - colour, mscore, ms, me,
-                            P4_MIN_SCORE, -alpha);
+        t = -state.treeclimber(state, level - 1, 1 - colour, mscore, ms, me,
+                               P4_MIN_SCORE, -alpha);
         if (t > alpha){
             alpha = t;
             bs = ms;
@@ -1168,7 +1168,8 @@ function p4_initialise_state(){
         board: board,
         weights: weights,
         history: [],
-        quiesce_counts: [0, 0]
+        quiesce_counts: [0, 0],
+        treeclimber: p4_treeclimber
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     return state;

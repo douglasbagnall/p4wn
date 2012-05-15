@@ -158,8 +158,8 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
            almost every situation (I think. seems to work).
         */
         if (count >= 2){
-            t = p4_treeclimber(state, count - 2, colour, score, 0, 0,
-                               alpha, beta);
+            t = p4_nullmove_alphabeta_treeclimber(state, count - 2, colour, score, 0, 0,
+                                                  alpha, beta);
             //console.log('count, t, alpha, beta', count, t, alpha, beta);
             if (t > beta){
                 move.undo();
@@ -177,8 +177,8 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                 alpha = P4_KING_VALUE;
                 break;
             }
-            t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha);
+            t = -p4_nullmove_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                                   -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -433,7 +433,7 @@ function add_extra_searches(p4d){
                 return function(e){
                     var x = (TREE_CLIMBER_INDEX + 2) % TREE_CLIMBERS.length;
                     TREE_CLIMBER_INDEX = x;
-                    p4_treeclimber = TREE_CLIMBERS[x + 1];
+                    p4d.board_state.treeclimber = TREE_CLIMBERS[x + 1];
                     e.currentTarget.innerHTML = 'search function: <b>' + TREE_CLIMBERS[TREE_CLIMBER_INDEX] + '</b>';
                     p4d.log("using " + TREE_CLIMBERS[TREE_CLIMBER_INDEX]);
                 };
