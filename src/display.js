@@ -483,11 +483,6 @@ _p4d_proto.interpret_query_string = function(){
     }
 };
 
-_p4d_proto.go = function(){
-    this.refresh();
-    this.next_move();
-};
-
 function P4wn_display(target){
     if (! this instanceof P4wn_display){
         return new P4wn_display(target);
@@ -530,6 +525,7 @@ function p4wnify(id){
     p4d.write_board_html();
     p4d.write_controls_html(CONTROLS);
     p4d.interpret_query_string();
+    p4d.refresh();
     return p4d;
 }
 
