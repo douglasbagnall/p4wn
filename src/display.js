@@ -84,7 +84,7 @@ _p4d_proto.computer_move = function(){
     mv = p4_findmove(state, depth);
     var delta = Date.now() - start_time;
     console.log("findmove took", delta);
-    if (ADAPTIVE_LEVELS && depth > 2){
+    if (P4WN_ADAPTIVE_LEVELS && depth > 2){
         var min_time = 25 * depth;
         while (delta < min_time){
             depth++;
@@ -230,7 +230,7 @@ _p4d_proto.refresh_buttons = function(){
 
 _p4d_proto.maybe_rotate_board = function(){
     var p = this.players;
-    if (p[0] != p[1] && ROTATE_BOARD){
+    if (p[0] != p[1] && P4WN_ROTATE_BOARD){
         this.orientation = p[0] == 'computer' ? 1 : 0;
         refresh();
     }
@@ -315,7 +315,7 @@ var CONTROLS = [
                 var tmp = p[0];
                 p[0] = p[1];
                 p[1] = tmp;
-                if (p[0] != p[1] && ROTATE_BOARD)
+                if (p[0] != p[1] && P4WN_ROTATE_BOARD)
                     p4d.orientation = 1 - p4d.orientation;
 
                 p4d.refresh_buttons();
@@ -345,13 +345,13 @@ var CONTROLS = [
     {
         onclick_wrap: function(p4d){
             return function(e){
-                var x = (p4d.computer_level + 1) % LEVELS.length;
+                var x = (p4d.computer_level + 1) % P4WN_LEVELS.length;
                 p4d.computer_level = x;
-                e.currentTarget.innerHTML = 'computer level: <b>' + LEVELS[x] + '</b>';
+                e.currentTarget.innerHTML = 'computer level: <b>' + P4WN_LEVELS[x] + '</b>';
             };
         },
         refresh: function(el){
-            el.innerHTML = 'computer level: <b>' + LEVELS[this.computer_level] + '</b>';
+            el.innerHTML = 'computer level: <b>' + P4WN_LEVELS[this.computer_level] + '</b>';
         }
     },
     {
@@ -511,7 +511,7 @@ function P4wn_display(target){
     this.board_state = p4_new_game();
     this.players = ['human', 'computer']; //[white, black] controllers
     this.pawn_becomes = 0; //index into PROMOTION_* arrays
-    this.computer_level = DEFAULT_LEVEL;
+    this.computer_level = P4WN_DEFAULT_LEVEL;
     this.buttons = {
         elements: [],
         refreshers: []
