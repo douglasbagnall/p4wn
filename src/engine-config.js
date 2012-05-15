@@ -23,4 +23,4 @@ var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1
  * (faster in some browsers, unsupported in others, possibly slower elsewhere) */
 var P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
 
-var P4_QUIESCE = true;
+var P4_QUIESCE = false;
