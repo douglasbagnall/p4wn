@@ -153,32 +153,31 @@ _p4d_proto.refresh = function(){
 
 _p4d_proto.start_moving_piece = function(position){
     /*drop the currently held one, if any*/
-    var img = this.elements.moving_img;
-    if (img){
-        img.style.position = 'static';
-    }
-    img = this.elements.pieces[position];
+    this.stop_moving_piece();
+    var img = this.elements.pieces[position];
     this.elements.moving_img = img;
     img.style.position = 'absolute';
+    var yoffset = parseInt(P4WN_SQUARE_HEIGHT / 2);
+    if (window.event){
+        img.style.left = (window.event.clientX + 1) + "px";
+        img.style.top = (window.event.clientY - yoffset) + "px";
+    }
     this.start = position;
     document.onmousemove = function (e){
         img.style.left = (e.clientX + 1) + "px";
-        img.style.top = (e.clientY - 4) + "px";
+        img.style.top = (e.clientY - yoffset) + "px";
     };
 };
 
 /*If stop_moving_piece is given a position, the moved piece will be
  *drawn at that position, not its original position. THis is only
  *temporary until the next refresh */
-_p4d_proto.stop_moving_piece = function(position){
+_p4d_proto.stop_moving_piece = function(){
     var img = this.elements.moving_img;
     if (img){
         img.style.position = 'static';
-        if (position){
-            var tmp = img.src;
-            img.src = IMAGE_NAMES[0];
-            this.elements.pieces[position].src = tmp;
-        }
+        img.style.left = "auto";
+        img.style.top = "auto";
     }
     this.start = 0;
     this.elements.moving_img = undefined;
