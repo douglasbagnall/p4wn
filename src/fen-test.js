@@ -26,10 +26,12 @@ var FEN = [
 
 
 function time_find_move(game, depth){
-    var N = 3;
+    var N = 7, i;
+    var max_milliseconds = 10000;
     var state = game.board_state;
     var best = 1e999;
-    for (var i = 0; i < N; i++){
+    var start_run = Date.now();
+    for (i = 0; i < N; i++){
         var start_time = Date.now();
         var mv = p4_findmove(state, depth);
         var end_time = Date.now();
@@ -37,8 +39,12 @@ function time_find_move(game, depth){
         console.log("depth", depth, "run", i, "took", delta);
         if (delta < best)
             best = delta;
+        if (end_time - start_run > max_milliseconds){
+            i++;
+            break;
+        }
     }
-    game.log("depth " + depth + " best of " + N + ": " + best);
+    game.log("depth " + depth + " best of " + i + ": " + best);
 }
 
 function parse_test(state){

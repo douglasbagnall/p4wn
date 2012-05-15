@@ -59,6 +59,8 @@ function p4_make_move(state, s, e, promotion){
         piece_locations.push([end_piece, e]);
 
     return {
+        /*some of these (e.g. rook) could be recalculated during
+         * unmake, possibly more cheaply. */
         piece_locations: piece_locations,
         s: s,
         e: e,
@@ -433,6 +435,7 @@ function add_extra_searches(p4d){
                     TREE_CLIMBER_INDEX = x;
                     p4_treeclimber = TREE_CLIMBERS[x + 1];
                     e.currentTarget.innerHTML = 'search function: <b>' + TREE_CLIMBERS[TREE_CLIMBER_INDEX] + '</b>';
+                    p4d.log("using " + TREE_CLIMBERS[TREE_CLIMBER_INDEX]);
                 };
             },
             refresh: function(el){
