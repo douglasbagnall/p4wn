@@ -133,6 +133,14 @@ var TEST_BUTTONS = [
         }
     },
     {
+        label: "6-ply speed",
+        onclick_wrap: function(p4d){
+            return  function(e){
+                time_find_move(p4d, 6);
+            };
+        }
+    },
+    {
         label: "parse test",
         onclick_wrap: function(p4d){
             return  function(e){
