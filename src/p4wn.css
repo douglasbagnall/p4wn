@@ -27,7 +27,7 @@
   white-space: pre;
   font-size: smaller;
   overflow: auto;
-  width: 12em;
+  max-width: 14em;
   height: 90%;
   /*border:1px solid blue;*/
 }
