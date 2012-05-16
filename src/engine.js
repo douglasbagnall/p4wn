@@ -1367,10 +1367,10 @@ function p4_find_source_point(state, e, str){
                 (column === undefined || column == s % 10) &&
                 (row === undefined || row == parseInt(s / 10))
                ){
-               var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e,
-                                      P4_MIN_SCORE, P4_MAX_SCORE);
-               if (t < P4_WIN)
-                   possibilities.push(s);
+                   var change = p4_make_move(state, mv[1], mv[2]);
+                   if (! p4_check_check(state, colour))
+                       possibilities.push(s);
+                   p4_unmake_move(state, change);
             }
         }
     }
