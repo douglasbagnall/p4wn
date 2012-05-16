@@ -822,8 +822,6 @@ function p4_unmake_move(state, move){
     state.castles = move.castles;
 }
 
-
-
 /* p4_move(s, e, promotion)
  * s, e are start and end positions
  *
@@ -849,6 +847,7 @@ var P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
 function p4_move(state, s, e, promotion){
     var board = state.board;
     var colour = state.to_play;
+    var other_colour = 1 - colour;
     if (s != parseInt(s)){
         if (e === undefined){
             var mv = p4_interpret_movestring(state, s);
@@ -874,7 +873,7 @@ function p4_move(state, s, e, promotion){
      */
     if((E&14) == P4_KING || (s == 0 && e == 0)){
         console.log('checkmate - got thru checks', s, e, E);
-        return {flags: P4_MOVE_MISSED_MATE, ok: false};
+        return {flags: P4_MOVE_MISSED_MATE, ok: false, string: "checkmate"};
     }
 
     /*See if this move is even slightly legal, disregarding check.
@@ -884,54 +883,91 @@ function p4_move(state, s, e, promotion){
      * i.e., does 'Nc3' suffice, or is 'Nbc3', 'N1c3', or even 'Nb1c3'
      * necessary?
      */
-    var co_landers = [];
+    var i;
     var legal = false;
     p4_prepare(state);
-    var p = p4_parse(state, colour, state.enpassant, 0);
-    for (var i = 0; i < p.length; i++){
-        if (e == p[i][2]){
-            if (s == p[i][1])
-                legal = true;
-            else if (board[p[i][1]] == S){
-                co_landers.push(p[i][1]);
-            }
+    var moves = p4_parse(state, colour, state.enpassant, 0);
+    for (i = 0; i < moves.length; i++){
+        if (e == moves[i][2] && s == moves[i][1]){
+            legal = true;
+            break;
         }
     }
     if (! legal) {
         return {flags: P4_MOVE_ILLEGAL, ok: false};
     }
 
-    /*now try the move, and see what the response is.
-     *
-     * 1. Make the move, play full turn as other colour
-     *
-     * 2. If other colour can take king, this move moves into check
-     *
-     * 3. If other colour loses king in all moves, then this is mate
-     *    (but maybe stalemate).
-    */
-    var t = p4_treeclimber(state, 1, 1 - colour, 0, s, e, P4_MIN_SCORE, P4_MAX_SCORE,
-                           promotion);
-    var in_check = t > P4_WIN;
-    var is_mate = t < -P4_WIN;
-    if (in_check) {
-        console.log('in check', t);
+    /*Try the move, and see what the response is.*/
+    var changes = p4_make_move(state, s, e, promotion);
+
+    /*is it check? */
+    if (p4_check_check(state, colour)){
+        p4_unmake_move(state, changes);
+        console.log('in check', changes);
         return {flags: P4_MOVE_ILLEGAL, ok: false, string: "in check!"};
     }
+    /*The move is known to be legal. We won't be undoing it.*/
 
-    /*The move seems OK, so commit it */
-    var flags = p4_modify_state_for_move(state, s, e, promotion);
+    var flags = P4_MOVE_FLAG_OK;
 
-    var is_check = p4_check_check(state, 1 - colour);
-    if (is_check){
+    state.enpassant = changes.ep;
+    state.history.push([s, e, promotion]);
+
+    /*draw timeout: 50 moves without pawn move or capture is a draw */
+    if (changes.E || changes.ep_position){
+        state.draw_timeout = 0;
+        flags |= P4_MOVE_FLAG_CAPTURE;
+    }
+    else if (S & 14 == P4_PAWN){
+        state.draw_timeout = 0;
+    }
+    else{
+        state.draw_timeout++;
+    }
+    if (changes.rs){
+        flags |= (s > e) ? P4_MOVE_FLAG_CASTLE_QUEEN : P4_MOVE_FLAG_CASTLE_KING;
+    }
+    var shortfen = p4_state2fen(state, true);
+    var repetitions = (state.position_counts[shortfen] || 0) + 1;
+    state.position_counts[shortfen] = repetitions;
+    state.current_repetitions = repetitions;
+    if (state.draw_timeout > 100 || repetitions == 3){
+        //XXX also if material drops too low?
+        flags |= P4_MOVE_FLAG_DRAW;
+    }
+    state.moveno++;
+    state.to_play = other_colour;
+
+    if (p4_check_check(state, other_colour)){
         flags |= P4_MOVE_FLAG_CHECK;
     }
-    if (is_mate){
-        flags |= P4_MOVE_FLAG_MATE;
+    /* check for (state|check)mate, by seeing if there is a move for
+     * the other side that doesn't result in check. (In other words,
+     * reduce the pseudo-legal-move list down to a legal-move list,
+     * and check it isn't empty).
+     *
+     * We don't need to p4_prepare because other colour pieces can't
+     * have moved (just disappeared) since previous call. Also,
+     * setting the promotion piece is unnecessary, because all
+     * promotions block check equally well.
+    */
+    var is_mate = true;
+    var replies = p4_parse(state, other_colour, changes.ep, 0);
+    for (i = 0; i < replies.length; i++){
+        var m = replies[i];
+        var change2 = p4_make_move(state, m[1], m[2]);
+        var check = p4_check_check(state, other_colour);
+        p4_unmake_move(state, change2);
+        if (!check){
+            is_mate = false;
+            break;
+        }
     }
-    var movestring = p4_move2string(s, e, S & 14, promotion, flags, co_landers);
-    console.log(s, e, movestring);
+    if (is_mate)
+        flags |= P4_MOVE_FLAG_MATE;
 
+    var movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
+    console.log(s, e, movestring);
     return {
         flags: flags,
         string: movestring,
@@ -939,12 +975,14 @@ function p4_move(state, s, e, promotion){
     };
 }
 
-function p4_move2string(s, e, piece, promotion, flags, co_landers){
-    piece &= 14;
+
+function p4_move2string(state, s, e, S, promotion, flags, moves){
+    var piece = S & 14;
     var FEN_LUT = '  PpRrNnBbKkQq';
     var src, dest;
-    var mv;
+    var mv, i;
     var capture = flags & P4_MOVE_FLAG_CAPTURE;
+
     src = p4_stringify_point(s);
     dest = p4_stringify_point(e);
     if (piece == P4_PAWN){
@@ -972,8 +1010,19 @@ function p4_move2string(s, e, piece, promotion, flags, co_landers){
         var pstr = FEN_LUT[piece];
         var sx = s % 10;
         var sy = parseInt(s / 10);
+
+        /* find any other pseudo-legal moves that would put the same
+         * piece in the same place, for which we'd need
+         * disambiguation. */
+        var co_landers = [];
+        for (i = 0; i < moves.length; i++){
+            var m = moves[i];
+            if (e == m[2] && s != m[1] && state.board[m[1]] == S){
+                co_landers.push(m[1]);
+            }
+        }
         if (co_landers.length){
-            for (var i = 0; i < co_landers.length; i++){
+            for (i = 0; i < co_landers.length; i++){
                 var c = co_landers[i];
                 var cx = c % 10;
                 var cy = parseInt(c / 10);
@@ -1000,71 +1049,6 @@ function p4_move2string(s, e, piece, promotion, flags, co_landers){
     else if (flags & P4_MOVE_FLAG_MATE)
         mv += ' stalemate';
     return mv;
-}
-
-function p4_modify_state_for_move(state, s, e, promotion){
-    var board = state.board;
-    var colour = state.to_play;
-    state.history.push([s, e, promotion]);
-    var gap = e - s;
-    var piece = board[s] & 14;
-    var dir = (10 - 20 * colour);
-    var flags = P4_MOVE_FLAG_OK;
-    state.enpassant = 0;
-    /*draw timeout: 50 moves without pawn move or capture is a draw */
-    if (board[e]){
-        state.draw_timeout = 0;
-        flags |= P4_MOVE_FLAG_CAPTURE;
-    }
-    else{
-        state.draw_timeout++;
-    }
-    if (piece == P4_PAWN){
-        state.draw_timeout = 0;
-        /*queening*/
-        if(board[e + dir] == P4_EDGE){
-            if (promotion === undefined)
-                promotion = P4_QUEEN;
-            board[s] = promotion | colour;
-        }
-        /* setting en passant flag*/
-        if(gap == 2 * dir && ((board[e - 1] & 14) == 2 ||
-                              (board[e + 1] & 14) == 2))
-            state.enpassant = s + dir;
-
-        /*taking en passant*/
-        if(!board[e] && gap % 10){
-            board[e] = board[e - dir];
-            board[e - dir] = 0;
-            flags |= P4_MOVE_FLAG_CAPTURE;
-        }
-    }
-    else if(piece == P4_KING && gap * gap == 4){  //castling - move rook too
-        var rs = s - 4 + (s < e) * 7;
-        var re = (s + e) >> 1;
-        board[re] = board[rs];
-        board[rs] = 0;
-        console.log("castling", s, e, gap, s + gap / 2, re);
-        flags |= (s > e) ? P4_MOVE_FLAG_CASTLE_QUEEN : P4_MOVE_FLAG_CASTLE_KING;
-    }
-
-    if (state.castles){
-        state.castles &= p4_get_castles_mask(s, e, colour);
-        console.debug("castle state", state.castles);
-    }
-    board[e] = board[s];
-    board[s] = 0;
-    var shortfen = p4_state2fen(state, true);
-    var repetitions = (state.position_counts[shortfen] || 0) + 1;
-    state.position_counts[shortfen] = repetitions;
-    state.current_repetitions = repetitions;
-    if (state.draw_timeout > 100 || repetitions == 3){
-        //XXX also if material drops too low?
-        flags |= P4_MOVE_FLAG_DRAW;
-    }
-    state.moveno++;
-    state.to_play = 1 - colour;
-    return flags;
 }
 
 
