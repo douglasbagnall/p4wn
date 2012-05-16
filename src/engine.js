@@ -465,9 +465,9 @@ function p4_parse(state, colour, ep, score) {
          */
         if (pieces[j][0]==a){
             var weight_lut = all_weights[a];
+            weight = score - weight_lut[s];
             a &= 14;
             if(a > 2){    //non-pawns
-                weight = score - weight_lut[s];
                 var moves = P4_MOVES[a];
                 if(a & 2){
                     for(i = 0; i < 8; i++){
@@ -511,7 +511,6 @@ function p4_parse(state, colour, ep, score) {
                 }
             }
             else{    //pawns
-                weight=score-weight_lut[s];
                 e=s+dir;
                 if(!board[e]){
                     movelist[++k] = [weight + weight_lut[e], s, e];
