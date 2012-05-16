@@ -13,8 +13,6 @@
 var PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
 var PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 
-var auto_play_timeout_ID;
-var next_move_timeout_ID;
 var _p4d_proto = {};
 
 _p4d_proto.square_clicked = function(square){
@@ -46,7 +44,7 @@ _p4d_proto.move = function(start, end, promotion){
         this.display_move_text(state.moveno, move_result.string);
         this.refresh();
         if (! (move_result.flags & P4_MOVE_FLAG_MATE)){
-            next_move_timeout_ID = window.setTimeout(
+            this.next_move_timeout_ID = window.setTimeout(
                 function(p4d){
                     return function(){
                         p4d.next_move();
@@ -67,15 +65,15 @@ _p4d_proto.next_move = function(){
     console.log(this);
     var mover = this.board_state.to_play;
     if (this.players[mover] == 'computer' &&
-        auto_play_timeout_ID === undefined){
+        this.auto_play_timeout_ID === undefined){
         var timeout = (this.players[1 - mover] == 'computer') ? 500: 10;
         var p4d = this;
-        auto_play_timeout_ID = window.setTimeout(function(){p4d.computer_move();}, timeout);
+        this.auto_play_timeout_ID = window.setTimeout(function(){p4d.computer_move();}, timeout);
     }
 };
 
 _p4d_proto.computer_move = function(){
-    auto_play_timeout_ID = undefined;
+    this.auto_play_timeout_ID = undefined;
     console.log(this);
     var state = this.board_state;
     var s, e, mv;
@@ -377,13 +375,13 @@ var CONTROLS = [
         label: '<b>Draw?</b>',
         onclick_wrap: function(p4d){
             return function(e){
-                window.clearTimeout(next_move_timeout_ID);
-                window.clearTimeout(auto_play_timeout_ID);
+                window.clearTimeout(p4d.next_move_timeout_ID);
+                window.clearTimeout(p4d.auto_play_timeout_ID);
                 p4d.refresh_buttons();
                 p4d.log('DRAW');
                 console.log(p4_state2fen(p4d.board_state));
-                auto_play_timeout_ID = undefined;
-                next_move_timeout_ID = undefined;
+                p4d.auto_play_timeout_ID = undefined;
+                p4d.next_move_timeout_ID = undefined;
             };
         },
         move_listener_wrap: function(p4d){

@@ -5,7 +5,7 @@ var P4WN_ADAPTIVE_LEVELS = false;
 
 var P4WN_IMAGE_NAMES = [
     'images/empty.gif',
-    'images/empty.gif',   // 1 is unused
+    '',   // 1 is unused
     'images/white_pawn.gif',
     'images/black_pawn.gif',
     'images/white_rook.gif',
