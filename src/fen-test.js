@@ -182,10 +182,10 @@ var TEST_BUTTONS = [
 ];
 
 function write_fen_switches(p4d){
-    var div = new_child(p4d.elements.container, "div", 'p4wn-fen-switches');
+    var div = p4d_new_child(p4d.elements.container, "div", 'p4wn-fen-switches');
     div.innerHTML = '<h3>Load FEN</h3>';
     for (var i = 0; i < FEN.length; i++){
-        var span = new_child(div, "div");
+        var span = p4d_new_child(div, "div");
         var fen = FEN[i];
         span.id = 'fen_' + i;
         span.className = 'p4wn-control-button';
