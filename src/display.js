@@ -475,7 +475,7 @@ _p4d_proto.interpret_query_string = function(){
         var p = query[i];
             var fn = ATTRS[p[0]];
         if (fn !== undefined){
-            fn(p[1]);
+            fn.call(this, p[1]);
             this.refresh_buttons();
         }
     }
