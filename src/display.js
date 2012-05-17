@@ -389,11 +389,11 @@ var CONTROLS = [
                 var draw_button = p4d.elements.draw_button;
                 if (move_result.flags & P4_MOVE_FLAG_DRAW){
                     draw_button.style.display = 'inline-block';
-                    if (p4d.draw_offered){
-                        draw_button.style.display = 'inline-block';
+                    if (p4d.draw_offered || p4d.draw_offers > 5){
                         draw_button.style.color = '#c00';
                     }
                     p4d.draw_offered = true;
+                    p4d.draw_offers ++;
                 }
                 else {
                     p4d.draw_offered = false;
@@ -506,6 +506,7 @@ function P4wn_display(target){
     this.elements.controls = new_child(container, "div", P4WN_CONTROLS_CLASS);
     this.elements.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
     this.start = 0;
+    this.draw_offers = 0;
     this.board_state = p4_new_game();
     this.players = ['human', 'computer']; //[white, black] controllers
     this.pawn_becomes = 0; //index into PROMOTION_* arrays
