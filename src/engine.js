@@ -1173,23 +1173,27 @@ function p4_fen2state(fen, state){
     if (fen_moveno === undefined)
         fen_moveno = 1;
     //fen does Y axis backwards, X axis forwards */
-    /* fragile!*/
-    var i = 91;
+    var y = 90;
+    var x = 1;
+    var i;
     for (var j = 0; j < fen_board.length; j++){
         var c = fen_board.charAt(j);
         if (c == '/'){
-            i -= 18;
+            x = 1;
+            y -= 10;
+            if (y < 20)
+                break;
             continue;
         }
         var piece = P4_PIECE_LUT[c];
-        if (piece !== undefined){
-            board[i] = piece;
-            i++;
+        if (piece && x < 9){
+            board[y + x] = piece;
+            x++;
         }
         else {
-            var end = i + parseInt(c);
-            for (; i < end; i++){
-                board[i] = 0;
+            var end = Math.min(x + parseInt(c), 9);
+            for (; x < end; x++){
+                board[y + x] = 0;
             }
         }
     }
