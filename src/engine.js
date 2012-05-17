@@ -60,9 +60,8 @@ var P4_PIECE_LUT = {
 };
 
 
-function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                  promotion){
-    var move = p4_make_move(state, s, e, promotion);
+function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -score);
@@ -697,12 +696,7 @@ function p4_make_move(state, s, e, promotion){
     var ep = 0;
     if(piece == P4_PAWN){
         if((60 - e) * (60 - e) > 900){
-            /*got to end; replace the pawn on board and in pieces cache.
-             *
-             * The only time promotion is *not* undefined is the top level when
-             * a human is making a move. */
-            if (promotion === undefined)
-                promotion = P4_QUEEN;
+            /*got to end; replace the pawn on board and in pieces cache.*/
             promotion |= moved_colour;
             board[e] = promotion;
             end_piece = promotion;
@@ -828,6 +822,8 @@ function p4_move(state, s, e, promotion){
             e = p4_destringify_point(e);
         }
     }
+    if (promotion === undefined)
+        promotion = P4_QUEEN;
     var E=board[e];
     var S=board[s];
 
@@ -921,7 +917,7 @@ function p4_move(state, s, e, promotion){
     var replies = p4_parse(state, other_colour, changes.ep, 0);
     for (i = 0; i < replies.length; i++){
         var m = replies[i];
-        var change2 = p4_make_move(state, m[1], m[2]);
+        var change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
         var check = p4_check_check(state, other_colour);
         p4_unmake_move(state, change2);
         if (!check){
@@ -1334,7 +1330,7 @@ function p4_find_source_point(state, e, str){
                 (column === undefined || column == s % 10) &&
                 (row === undefined || row == parseInt(s / 10))
                ){
-                   var change = p4_make_move(state, mv[1], mv[2]);
+                   var change = p4_make_move(state, mv[1], mv[2], P4_QUEEN);
                    if (! p4_check_check(state, colour))
                        possibilities.push(s);
                    p4_unmake_move(state, change);

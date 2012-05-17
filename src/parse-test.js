@@ -6,8 +6,8 @@ p4_parse(state, colour, ep, score)
 */
 
 
-function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
-    var move = p4_make_move(state, s, e, promotion);
+function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta){
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -score);
@@ -59,8 +59,8 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta, 
     return alpha;
 }
 
-function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
-    var move = p4_make_move(state, s, e, promotion);
+function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var ncolour = 1 - colour;
     var i, mv;
     var board = state.board;
@@ -130,8 +130,8 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
 }
 
 function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score, s, e,
-                                                     alpha, beta, promotion){
-    var move = p4_make_move(state, s, e, promotion);
+                                                     alpha, beta){
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var ncolour = 1 - colour;
     var i, mv;
     var board = state.board;
@@ -208,11 +208,10 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
     return alpha;
 }
 
-function p4_quiesce(state, count, colour, s, e, alpha, beta,
-                    promotion){
+function p4_quiesce(state, count, colour, s, e, alpha, beta){
     if (alpha > beta)
         return alpha;
-    var move = p4_make_move(state, s, e, promotion);
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -alpha);
@@ -266,9 +265,8 @@ function p4_quiesce(state, count, colour, s, e, alpha, beta,
 
 
 
-function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta,
-                                  promotion){
-    var move = p4_make_move(state, s, e, promotion);
+function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta){
+    var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -score);
