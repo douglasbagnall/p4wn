@@ -221,7 +221,6 @@ function p4_prepare(state){
             }
         }
     }
-    console.log(wpawn_cols, bpawn_cols);
     var target_king = (moveno >= 20 || material_sum < 5 * qvalue);
     var weights = state.weights;
     var wpawn_wt = weights[P4_PAWN];
@@ -934,7 +933,7 @@ function p4_move(state, s, e, promotion){
         flags |= P4_MOVE_FLAG_MATE;
 
     var movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
-    console.log(s, e, movestring);
+    console.log("successful move", s, e, movestring, flags);
     return {
         flags: flags,
         string: movestring,
@@ -1004,7 +1003,6 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
             }
         }
         mv = pstr + col_qualifier + row_qualifier + (capture ? 'x' : '') + dest;
-        console.log(mv, piece, co_landers);
     }
     if (flags & P4_MOVE_FLAG_CHECK){
         if (flags & P4_MOVE_FLAG_MATE)
@@ -1268,12 +1266,10 @@ function p4_interpret_movestring(state, str){
                 e = s - 2;
             else
                 e = s + 2;
-            console.log(m, s, e);
         }
         else
             return FAIL;
     }
-    console.log(m);
     var src = m[1];
     var dest = m[2];
     var queen = m[3];
