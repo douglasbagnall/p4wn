@@ -60,29 +60,6 @@ var P4_PIECE_LUT = {
 };
 
 
-function p4_get_castles_mask(s, e, colour){
-    var mask = 0;
-    var shift = colour * 2;
-    var side = colour * 70;
-    var s2 = s - side;
-    var e2 = e + side;
-    //wipe both our sides if king moves
-    if (s2 == 25)
-        mask |= 3 << shift;
-    //wipe one side on any move from rook points
-    else if (s2 == 21)
-        mask |= 1 << shift;
-    else if (s2 == 28)
-        mask |= 2 << shift;
-
-    //or on any move *to* opposition corners
-    if (e2 == 91)
-        mask |= 4 >> shift;
-    else if (e2 == 98)
-        mask |= 8 >> shift;
-    return 15 ^ mask;
-}
-
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
                                   promotion){
     var move = p4_make_move(state, s, e, promotion);
@@ -752,8 +729,27 @@ function p4_make_move(state, s, e, promotion){
     }
 
     var old_castle_state = state.castles;
-    if (old_castle_state)
-        state.castles &= p4_get_castles_mask(s, e, moved_colour);
+    if (old_castle_state){
+        var mask = 0;
+        var shift = moved_colour * 2;
+        var side = moved_colour * 70;
+        var s2 = s - side;
+        var e2 = e + side;
+        //wipe both our sides if king moves
+        if (s2 == 25)
+            mask |= 3 << shift;
+        //wipe one side on any move from rook points
+        else if (s2 == 21)
+            mask |= 1 << shift;
+        else if (s2 == 28)
+            mask |= 2 << shift;
+        //or on any move *to* opposition corners
+        if (e2 == 91)
+            mask |= 4 >> shift;
+        else if (e2 == 98)
+            mask |= 8 >> shift;
+        state.castles &= ~mask;
+    }
 
     if (piece)
         piece_locations.push([end_piece, e]);
