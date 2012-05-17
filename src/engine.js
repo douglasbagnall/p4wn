@@ -1031,8 +1031,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
             mv += '=' + FEN_LUT[promotion];
         }
     }
-    else if (piece == P4_KING &&
-             (s-e) * (s-e) == 4) {
+    else if (piece == P4_KING && (s-e) * (s-e) == 4) {
         if (e < s)
             mv = 'O-O-O';
         else
@@ -1352,7 +1351,7 @@ function p4_interpret_movestring(state, str){
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, 'P' + dest.charAt(0));
     }
-    else if ('RNBQK'.indexOf(src.charAt(0)) != -1){
+    else if (/^[RNBQK]/.test(src)){
         /*pgn format*/
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, src);
@@ -1385,12 +1384,13 @@ function p4_find_source_point(state, e, str){
     var row, column;
     /* can be specified as Na, Na3, N3, and who knows, N3a? */
     for (i = 1; i < str.length; i++){
-        if (/[a-h]/.test(str.charAt(i))){
+        var c = str.charAt(i);
+        if (/[a-h]/.test(c)){
             column = str.charCodeAt(i) - 96;
         }
-        else if (/[1-8]/.test(str.charAt(i))){
+        else if (/[1-8]/.test(c)){
             /*row goes 2 - 9 */
-            row = 1 + parseInt(str.charAt(i));
+            row = 1 + parseInt(c);
         }
     }
     var possibilities = [];
