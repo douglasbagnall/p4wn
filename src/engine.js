@@ -554,6 +554,32 @@ function p4_parse(state, colour, ep, score) {
     return captures.concat(movelist);
 }
 
+/*Explaining the bit tricks used in check_castling and check_check:
+ *
+ * in binary:    16 8 4 2 1
+ *   empty
+ *   pawn               1 c
+ *   rook             1   c
+ *   knight           1 1 c
+ *   bishop         1     c
+ *   king           1   1 c
+ *   queen          1 1   c
+ *   wall         1
+ *
+ * so:
+ *
+ * piece & (16 | 4 | 2 | 1) is:
+ *  2 + c  for kings and pawns
+ *  4 + c  for rooks and queens
+ *  6 + c  for knights
+ *  0 + c  for bishops
+ * 16      for walls
+ *
+ * thus:
+ * ((piece & 23) == 4 | colour) separates the rooks and queens out
+ * from the rest.
+ * ((piece & 27) == 8 | colour) does the same for queens and bishops.
+ */
 
 /* check_castling
  *
@@ -567,55 +593,64 @@ function p4_check_castling(board, s, colour, dir, side){
     var e;
     var E;
     var m, p;
-    var pawn = colour + 2;
-    var rook = colour + 4;
-    var knight = colour + 6;
-    var bishop = colour + 8;
-    var queen = colour + P4_QUEEN;
-    var king = colour + P4_KING;
+    var knight = colour + P4_KNIGHT;
+    var diag_slider = P4_BISHOP | colour;
+    var diag_mask = 27;
+    var grid_slider = P4_ROOK | colour;
+    var king_pawn = 2 | colour;
+    var grid_mask = 23;
 
     /* go through 3 positions, checking for check in each
      */
     for(p = s; p < s + 3; p++){
         //bishops, rooks, queens
-        for(m = dir - 1; m < dir + 2; m++){
-            e = p;
-            do{
-                e += m;
-                E=board[e];
-            } while (! E);
-            if (E == queen ||
-                (E == rook && m == dir) ||
-                (E == bishop && m != dir))
-                return 0;
-        }
-        //knights
+        e = p;
+        do{
+            e += dir;
+            E=board[e];
+        } while (! E);
+        if((E & grid_mask) == grid_slider)
+            return 0;
+        e = p;
+        var delta = dir - 1;
+        do{
+            e += delta;
+            E=board[e];
+        } while (! E);
+        if((E & diag_mask) == diag_slider)
+            return 0;
+        e = p;
+        delta += 2;
+        do{
+            e += delta;
+            E=board[e];
+        } while (! E);
+        if((E & diag_mask) == diag_slider)
+            return 0;
+        /*knights on row 7. (row 6 is handled below)*/
         if (board[p + dir - 2] == knight ||
-            board[p + dir + 2] == knight ||
-            board[p + 2 * dir + 1] == knight ||
-            board[p + 2 * dir - 1] == knight)
+            board[p + dir + 2] == knight)
             return 0;
     }
 
     /* a pawn or king in any of 5 positions on row 7.
-     *(though some of those involve impossible king-king contact) */
+     * or a knight on row 6. */
     for(p = s + dir - 1; p < s + dir + 4; p++){
-        E = board[p];
-        if(E == pawn || E == king)
+        E = board[p] & grid_mask;
+        if(E == king_pawn || board[p + dir] == knight)
             return 0;
     }
     /* scan back row for rooks, queens on the other side.
      * Same side check is impossible, because the castling rook is there
      */
-    E=0;
-    if (side == -1)
-        s += 2;
-    while (E == 0){   //queen or rook out on other side
-        s -= side;
-        E=board[s];
-        if(E == rook || E == queen)
-            return 0;
-    }
+    e = (side < 0) ? s + 2 : s;
+    do {
+        e -= side;
+        E=board[e];
+    } while (! E);
+    if((E & grid_mask) == grid_slider)
+        return 0;
+
     return 1;
 }
 
@@ -665,18 +700,18 @@ function p4_check_check(state, colour){
         do {
             e += m;
             E = board[e];
-            if((E & diag_mask) == diag_slider)
-                return true;
         } while (!E);
+        if((E & diag_mask) == diag_slider)
+            return true;
 
         m = grid_moves[i];
         e = s;
         do {
             e += m;
             E = board[e];
-            if((E & grid_mask) == grid_slider)
-                return true;
         } while (!E);
+        if((E & grid_mask) == grid_slider)
+            return true;
     }
     return false;
 }
