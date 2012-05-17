@@ -83,62 +83,12 @@ function p4_get_castles_mask(s, e, colour){
     return 15 ^ mask;
 }
 
-
-/****treeclimber */
-function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotion){
-    var board = state.board;
+function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta,
+                                  promotion){
+    var move = p4_make_move(state, s, e, promotion);
     var i;
     var ncolour = 1 - colour;
-    score = -score;
-    var S = board[s];
-    var E = board[e];
-    board[e]=S;
-    board[s]=0;
-    var piece = S & 14;
-    var moved_colour = S & 1;
-    var piece_locations = state.pieces[moved_colour];
-    piece_locations.push([S, e]);
-    //now some stuff to handle queening, castling
-    var rs = 0, re, rook;
-    var ep_taken = 0, ep_position;
-    var ep = 0;
-    if(piece == P4_PAWN){
-        if((60 - e) * (60 - e) > 900){
-            /*got to end; replace the pawn on board and in pieces cache.
-             *
-             * The only time promotion is *not* undefined is the top level when
-             * a human is making a move. */
-            if (promotion === undefined)
-                promotion = P4_QUEEN;
-            promotion |= moved_colour;
-            board[e] = promotion;
-            piece_locations[piece_locations.length - 1][0] = promotion;
-        }
-        else if (((s ^ e) & 1) && E == 0){
-            /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
-            ep_position = e - 10 + 20 * moved_colour;
-            ep_taken = board[ep_position];
-            board[ep_position] = 0;
-        }
-        else if ((s - e) * (s - e) == 400){
-            /*gap is 2 rows, so set en passant */
-            ep = (s + e) >> 1;
-        }
-    }
-    else if (piece == P4_KING && ((s-e)*(s-e)==4)){  //castling - move rook too
-        rs = s - 4 + (s < e) * 7;
-        re = (s + e) >> 1; //avg of s,e=rook's spot
-        rook = moved_colour + P4_ROOK;
-        board[rs]=0;
-        board[re]=rook;
-        piece_locations.push([rook, re]);
-    }
-
-    var old_castle_state = state.castles;
-    if (old_castle_state)
-        state.castles &= p4_get_castles_mask(s, e, moved_colour);
-
-    var movelist = p4_parse(state, colour, ep, score);
+    var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
@@ -149,13 +99,12 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotio
             var mscore = mv[0];
             var ms = mv[1];
             var me = mv[2];
-
             if (mscore > P4_WIN){ //we won! Don't look further.
                 alpha = P4_KING_VALUE;
                 break;
             }
-            t = -p4_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                -beta, -alpha);
+            t = -p4_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
+                                          -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
@@ -187,21 +136,9 @@ function p4_treeclimber(state, count, colour, score, s, e, alpha, beta, promotio
             }
         }
     }
-    if(rs){
-        board[rs]=rook;
-        board[re]=0;
-        piece_locations.length--;
-    }
-    if (ep_position){
-        board[ep_position] = ep_taken;
-    }
-    state.castles = old_castle_state;
-    board[s]=S;
-    board[e]=E;
-    piece_locations.length--;
+    p4_unmake_move(state, move);
     return alpha;
 }
-
 
 
 /* prepare() works out weightings for assessing various moves,
@@ -1290,7 +1227,7 @@ function p4_initialise_state(){
         weights: weights,
         history: [],
         quiesce_counts: [0, 0],
-        treeclimber: p4_treeclimber
+        treeclimber: p4_alphabeta_treeclimber
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     return state;
