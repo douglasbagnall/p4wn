@@ -123,7 +123,64 @@ function weights_update(p4d, delta, element){
 }
 
 
+/*some debugging functions */
+function p4_dump_board(_board, name){
+    if (name !== undefined)
+        console.log(name);
+    var board = [];
+    for (var i = 0; i < 120; i++){
+        board[i] = _board[i];
+    }
+    for (var y = 9; y >= 2; y--){
+        var s = y * 10;
+        console.log(board.slice(s + 1, s + 9));
+    }
+}
+
+function p4_dump_state(state){
+    var wt_strings = ['', '',
+                      'W pawn', 'B pawn',
+                      'W rook', 'B rook',
+                      'W knight', 'B knight',
+                      'W bishop', 'B bishop',
+                      'W king', 'B king',
+                      'W queen', 'B queen'];
+    for (var i = 2; i < 14; i++){
+        p4_dump_board(state.weights[i], wt_strings[i]);
+    }
+    p4_dump_board(state.board, 'board');
+    p4_dump_board(P4_CENTRALISING_WEIGHTS, 'centralising weights');
+    p4_dump_board(P4_BASE_PAWN_WEIGHTS, 'base pawn weights');
+    p4_dump_board(P4_KNIGHT_WEIGHTS, 'base knight weights');
+    var attr;
+    for (attr in state){
+        if (! /weights|board$/.test(attr))
+            console.log(attr, state[attr]);
+        else
+            console.log(attr, "board array", state[attr].length);
+    }
+}
+
+
 var TEST_BUTTONS = [
+    {/*dump state -- debug only */
+        label: 'dump state',
+        onclick_wrap: function(p4d){
+            return function(e){
+                p4_dump_state(p4d.board_state);
+            };
+        },
+        debug: true
+    },
+    {/*dump FEN -- debug only */
+        label: 'dump FEN',
+        onclick_wrap: function(p4d){
+            return function(e){
+                console.log(p4_state2fen(p4d.board_state));
+            };
+        },
+        debug: true
+    },
     {
         label: " 5-ply speed",
         onclick_wrap: function(p4d){
