@@ -263,7 +263,7 @@ var P4WN_CONTROLS = [
         },
         refresh: function(el){
             var s = this.players[1];
-            el.innerHTML = 'white <img src="images/' + s + '.png" alt="' + s + '">';
+            el.innerHTML = 'black <img src="images/' + s + '.png" alt="' + s + '">';
         }
     },
     {/*swap sides */
