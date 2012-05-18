@@ -103,7 +103,8 @@ function weights_update(p4d, delta, element){
                 continue;
             var scaled = parseInt((overlay[i]) / knee * 255);
             if (scaled <= 255){
-                el.style.backgroundColor = 'rgb(' + scaled +','  + scaled + ',0)';
+                var r = 51 + parseInt(scaled * 204 / 255);
+                el.style.backgroundColor = 'rgb(' + r +','  + scaled + ',0)';
             }
             else {
                 console.log(scaled);
