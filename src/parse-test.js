@@ -1,8 +1,7 @@
-/*Simple negamax search to test parsing against known move counts
+/*This file contains alternate versions of treeclimber, including a
+ * simple negamax search to test parsing against known move counts.
 
-Assumes engine.js function
-
-p4_parse(state, colour, ep, score)
+It assumes various engine.js functions are available.
 */
 
 
@@ -48,9 +47,10 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
 }
 
 function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
-    var move = p4_make_move(state, s, e, P4_QUEEN);
+    var move;
+    if (s)
+        move = p4_make_move(state, s, e, P4_QUEEN);
     var ncolour = 1 - colour;
-    var i, mv;
     var board = state.board;
     if(count){
         //branch nodes
@@ -63,14 +63,15 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                                                   alpha, beta);
             //console.log('count, t, alpha, beta', count, t, alpha, beta);
             if (t > beta){
-                p4_unmake_move(state, move);
+                if (s)
+                    p4_unmake_move(state, move);
                 return beta;
             }
         }
         var movelist = p4_parse(state, colour, move.ep, -score);
         var movecount = movelist.length;
-        for(i = 0; i < movecount; i++){
-            mv = movelist[i];
+        for(var i = 0; i < movecount; i++){
+            var mv = movelist[i];
             var mscore = mv[0];
             var ms = mv[1];
             var me = mv[2];
@@ -80,26 +81,15 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
             }
             t = -p4_nullmove_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
                                                    -beta, -alpha);
-            if (t > alpha){
+            if (t > alpha)
                 alpha = t;
-            }
-            if (alpha >= beta){
+            if (alpha >= beta)
                 break;
-            }
         }
-
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
-             */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
+        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
+            alpha = state.stalemate_scores[colour];
         }
         if (alpha < -P4_WIN){
-            /*make distant checkmate seem less bad */
             alpha += P4_WIN_DECAY;
         }
     }
@@ -113,18 +103,19 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
             }
         }
     }
-    p4_unmake_move(state, move);
+    if (s)
+        p4_unmake_move(state, move);
     return alpha;
 }
 
 function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score, s, e,
                                                      alpha, beta){
-    var move = p4_make_move(state, s, e, P4_QUEEN);
+    if (s)
+        var move = p4_make_move(state, s, e, P4_QUEEN);
     var ncolour = 1 - colour;
     var i, mv;
     var board = state.board;
     if(count){
-        //branch nodes
         var t;
         /* first try a null move. This sets a decent value for beta in
            almost every situation (I think. seems to work).
@@ -132,9 +123,9 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
         if (count >= 2){
             t = p4_nullmove_alphabeta_quiescing_treeclimber(state, count - 2, colour, score, 0, 0,
                                                             alpha, beta);
-            //console.log('count, t, alpha, beta', count, t, alpha, beta);
             if (t > beta){
-                p4_unmake_move(state, move);
+                if(s)
+                    p4_unmake_move(state, move);
                 return beta;
             }
         }
@@ -159,15 +150,8 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
             }
         }
 
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
-             */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
+        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
+            alpha = state.stalemate_scores[colour];
         }
         if (alpha < -P4_WIN){
             /*make distant checkmate seem less bad */
@@ -192,7 +176,8 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
                 alpha = mscore;
         }
     }
-    p4_unmake_move(state, move);
+    if(s)
+        p4_unmake_move(state, move);
     return alpha;
 }
 
