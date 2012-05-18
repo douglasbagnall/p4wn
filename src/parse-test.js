@@ -296,29 +296,27 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
 
 
 function add_extra_searches(p4d){
-    var TREE_CLIMBERS = [
+    var tree_climbers = [
         'alphabeta (default)', p4_alphabeta_treeclimber,
         'negamax', p4_negamax_treeclimber,
         'nullmove', p4_nullmove_alphabeta_treeclimber,
         'nullmove/quiesce', p4_nullmove_alphabeta_quiescing_treeclimber,
         'negascout', p4_negascout_treeclimber
     ];
-
-    var TREE_CLIMBER_INDEX = 0;
+    var index = 0;
 
     p4d.write_controls_html([
         {
             onclick_wrap: function(p4d){
                 return function(e){
-                    var x = (TREE_CLIMBER_INDEX + 2) % TREE_CLIMBERS.length;
-                    TREE_CLIMBER_INDEX = x;
-                    p4d.board_state.treeclimber = TREE_CLIMBERS[x + 1];
-                    e.currentTarget.innerHTML = 'search function: <b>' + TREE_CLIMBERS[TREE_CLIMBER_INDEX] + '</b>';
-                    p4d.log("using " + TREE_CLIMBERS[TREE_CLIMBER_INDEX]);
+                    index = (index + 2) % tree_climbers.length;
+                    p4d.board_state.treeclimber = tree_climbers[index + 1];
+                    e.currentTarget.innerHTML = 'search function: <b>' + tree_climbers[index] + '</b>';
+                    p4d.log("using " + tree_climbers[index]);
                 };
             },
             refresh: function(el){
-                el.innerHTML = 'search function: <b>' + TREE_CLIMBERS[TREE_CLIMBER_INDEX] + '</b>';
+                el.innerHTML = 'search function: <b>' + tree_climbers[index] + '</b>';
             }
         }
     ]);
