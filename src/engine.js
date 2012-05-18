@@ -329,14 +329,12 @@ function p4_prepare(state){
 function p4_parse(state, colour, ep, score) {
     var board = state.board;
     var s, e;    //start and end position
-    var E=0, a;       //E=piece at end place, a= piece moving
+    var E, a;       //E=piece at end place, a= piece moving
     var i, j;
     var other_colour = 1 - colour;
     var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
-    var k=-1;
-    var k2=-1;
-    var movelist=[];
-    var captures=[];
+    var movelist = [];
+    var captures = [];
     var weight;
     var pieces = state.pieces[colour];
     var plen = pieces.length;
@@ -361,21 +359,21 @@ function p4_parse(state, colour, ep, score) {
                         e = s + moves[i];
                         E = board[e];
                         if(!E){
-                            movelist[++k]=[weight + values[E] + weight_lut[e], s, e];
+                            movelist.push([weight + values[E] + weight_lut[e], s, e]);
                         }
                         else if((E&17)==other_colour){
-                            captures[++k2]=[weight + values[E] + weight_lut[e] + all_weights[E][e], s, e];
+                            captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
                         }
                     }
                     if(a == P4_KING && castle_flags){
                         if((castle_flags & 1) &&
                             (board[s-1] + board[s-2] + board[s-3] == 0) &&
                             p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
-                            movelist[++k]=[weight + 12, s, s - 2];     //no analysis, just encouragement
+                            movelist.push([weight + 12, s, s - 2]);     //no analysis, just encouragement
                         }
                         if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
                             p4_check_castling(board, s, other_colour, dir, 1)){//K side
-                            movelist[++k]=[weight + 13, s, s + 2];
+                            movelist.push([weight + 13, s, s + 2]);
                         }
                     }
                 }
@@ -388,10 +386,10 @@ function p4_parse(state, colour, ep, score) {
                             e+=m;
                             E=board[e];
                             if(!E){
-                                movelist[++k]=[weight + values[E] + weight_lut[e], s, e];
+                                movelist.push([weight + values[E] + weight_lut[e], s, e]);
                             }
                             else if((E&17)==other_colour){
-                                captures[++k2]=[weight + values[E] + weight_lut[e] + all_weights[E][e], s, e];
+                                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
                             }
                         }while(!E);
                     }
@@ -400,22 +398,22 @@ function p4_parse(state, colour, ep, score) {
             else{    //pawns
                 e=s+dir;
                 if(!board[e]){
-                    movelist[++k] = [weight + weight_lut[e], s, e];
+                    movelist.push([weight + weight_lut[e], s, e]);
                     /* s * (120 - s) < 3200 true for outer two rows on either side.*/
                     var e2 = e + dir;
                     if(s * (120 - s) < 3200 && (!board[e2])){
-                        movelist[++k] = [weight + weight_lut[e2], s, e2];
+                        movelist.push([weight + weight_lut[e2], s, e2]);
                     }
                 }
                 /* +/-1 for pawn capturing */
                 E = board[--e];
                 if(E && (E & 17) == other_colour){
-                    captures[++k2]=[weight + values[E] + weight_lut[e] + all_weights[E][e], s, e];
+                    captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
                 }
                 e += 2;
                 E = board[e];
                 if(E && (E & 17) == other_colour){
-                    captures[++k2]=[weight + values[E] + weight_lut[e] + all_weights[E][e], s, e];
+                    captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
                 }
             }
         }
@@ -430,12 +428,12 @@ function p4_parse(state, colour, ep, score) {
         s = ep - dir - 1;
         if (board[s] == pawn){
             taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
-            captures[++k2] = [score - weight_lut[s] + weight_lut[ep] + taken, s, ep];
+            captures.push([score - weight_lut[s] + weight_lut[ep] + taken, s, ep]);
         }
         s += 2;
         if (board[s] == pawn){
             taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
-            captures[++k2] = [score - weight_lut[s] + weight_lut[ep] + taken, s, ep];
+            captures.push([score - weight_lut[s] + weight_lut[ep] + taken, s, ep]);
         }
     }
     return captures.concat(movelist);
