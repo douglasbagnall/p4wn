@@ -6,10 +6,14 @@ It assumes various engine.js functions are available.
 
 
 function p4_negamax_treeclimber(state, count, colour, score, s, e){
-    var move = p4_make_move(state, s, e, P4_QUEEN);
+    var move;
+    if (s)
+        move = p4_make_move(state, s, e, P4_QUEEN);
+    var ep = s ? move.ep: 0;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, -score);
+    var movelist = p4_parse(state, colour, ep, -score);
     var movecount = movelist.length;
+    state.node_count += movecount;
     var best = P4_MIN_SCORE;
     if(count){
         //branch nodes
@@ -42,7 +46,8 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
             }
         }
     }
-    p4_unmake_move(state, move);
+    if (s)
+        p4_unmake_move(state, move);
     return best;
 }
 
