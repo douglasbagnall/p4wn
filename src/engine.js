@@ -294,7 +294,7 @@ function p4_prepare(state){
                     /* The losing king wants to stay in the middle, while
                      the winning king goes in for the kill.*/
                     var king_centre_wt = 8 * emptiness * P4_CENTRALISING_WEIGHTS[i];
-                    king += parseInt(150 * emptiness * mul3 / d + king_centre_wt / mul3);
+                    king += parseInt(150 * emptiness / (mul3 * d) + king_centre_wt * mul3);
                 }
                 weights[P4_PAWN + c][i] = pawn;
                 weights[P4_KNIGHT + c][i] = knight;
