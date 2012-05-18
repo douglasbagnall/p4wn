@@ -37,6 +37,7 @@ write_fen_switches(game);
 add_extra_searches(game);
 
 p4_fen2state(FEN[0][1], game.board_state);
+game.interpret_query_string();
 game.refresh();
 game.next_move();
 </script>
