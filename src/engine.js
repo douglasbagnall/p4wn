@@ -1295,17 +1295,17 @@ function p4_find_source_point(state, e, str){
     }
     var possibilities = [];
     p4_prepare(state);
-    var p = p4_parse(state, colour,
-                     state.enpassant, 0);
-    for (i = 0; i < p.length; i++){
-        var mv = p[i];
+    var moves = p4_parse(state, colour,
+                         state.enpassant, 0);
+    for (i = 0; i < moves.length; i++){
+        var mv = moves[i];
         if (e == mv[2]){
             s = mv[1];
             if (state.board[s] == piece &&
                 (column === undefined || column == s % 10) &&
                 (row === undefined || row == parseInt(s / 10))
                ){
-                   var change = p4_make_move(state, mv[1], mv[2], P4_QUEEN);
+                   var change = p4_make_move(state, s, e, P4_QUEEN);
                    if (! p4_check_check(state, colour))
                        possibilities.push(s);
                    p4_unmake_move(state, change);

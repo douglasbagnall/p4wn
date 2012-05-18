@@ -52,12 +52,12 @@ function time_find_move(game, depth){
 
 function parse_test(state){
     p4_prepare(state);
-    var p = p4_parse(state, state.to_play, state.enpassant, 0);
-    console.log("found", p.length, "moves");
+    var moves = p4_parse(state, state.to_play, state.enpassant, 0);
+    console.log("found", moves.length, "moves");
     var current_start = undefined;
     var current_piece = undefined;
-    for (var i = 0; i < p.length; i++){
-        var mv = p[i];
+    for (var i = 0; i < moves.length; i++){
+        var mv = moves[i];
         if (mv[1] != current_start){
             current_start = mv[1];
             current_piece = state.board[mv[1]];
