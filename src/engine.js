@@ -709,8 +709,7 @@ function p4_make_move(state, s, e, promotion){
         state.castles &= ~mask;
     }
 
-    if (piece)
-        piece_locations.push([end_piece, e]);
+    piece_locations.push([end_piece, e]);
 
     return {
         /*some of these (e.g. rook) could be recalculated during
@@ -732,18 +731,17 @@ function p4_make_move(state, s, e, promotion){
 
 function p4_unmake_move(state, move){
     var board = state.board;
-    if(move.rs){
-        board[move.rs] = move.rook;
-        board[move.re] = 0;
-        move.piece_locations.length--;
-    }
     if (move.ep_position){
         board[move.ep_position] = move.ep_taken;
     }
     board[move.s] = move.S;
     board[move.e] = move.E;
-    if (move.S & 15)
+    move.piece_locations.length--;
+    if(move.rs){
+        board[move.rs] = move.rook;
+        board[move.re] = 0;
         move.piece_locations.length--;
+    }
     state.castles = move.castles;
 }
 
