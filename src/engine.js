@@ -1078,8 +1078,6 @@ function p4_fen2state(fen, state){
     var fen_moveno = fenbits[5];
     if (fen_timeout === undefined)
         fen_timeout = 0;
-    if (fen_moveno === undefined)
-        fen_moveno = 1;
     //fen does Y axis backwards, X axis forwards */
     var y = 90;
     var x = 1;
@@ -1113,6 +1111,28 @@ function p4_fen2state(fen, state){
     }
     state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
     state.draw_timeout = parseInt(fen_timeout);
+    if (fen_moveno === undefined){
+        /*have a guess based on entropy and pieces remaining*/
+        var pieces = 0;
+        var mix = 0;
+        var p, q, r;
+        for (y = 20; y < 100; y+=10){
+            for (x = 1; x < 9; x++){
+                p = board[y + x] & 15;
+                pieces += (!!p);
+                if (x < 8){
+                    q = board[y + x + 1];
+                    mix += (!q) != (!p);
+                }
+                if (y < 90){
+                    q = board[y + x + 10];
+                    mix += (!q) != (!p);
+                }
+            }
+        }
+        fen_moveno = Math.max(1, parseInt((32 - pieces) * 1.3 + (4 - fen_castles.length) * 1.5 + ((mix - 16) / 5)));
+        console.log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
+    }
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     state.history = [];
     state.beginning = fen;
