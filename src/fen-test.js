@@ -24,7 +24,8 @@ var FEN = [
     ["earlyish", "rnq1nrk1/pp3pbp/6p1/3p4/3P4/5N2/PP2BPPP/R1BQK2R w KQ -"],
     ["checkmate in 2", "4kb2/3r1p2/2R3p1/6B1/p6P/P3p1P1/P7/5K2 w - - 0 36"],
     ["“leonid's position”", "q2k2q1/2nqn2b/1n1P1n1b/2rnr2Q/1NQ1QN1Q/3Q3B/2RQR2B/Q2K2Q1 w - -"],
-    ["insufficient material", "8/7K/8/8/8/8/N7/7k w - - 40 40"]
+    ["insufficient material", "8/7K/8/8/8/8/N7/7k w - - 40 40"],
+    ["castling; various checks", "r3k2r/p4p1p/4np2/1Bb5/3p4/P3nN2/1P3PPP/R3K2R w KQkq - 2 18"]
 ];
 
 

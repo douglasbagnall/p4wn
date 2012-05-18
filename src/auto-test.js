@@ -65,10 +65,10 @@ function fen_moves(fen, moves, non_moves){
 
 function result_in_n(fen, result, n, depth){
     var i, msg;
-    var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
-    var state = p4_fen2state(fen);
     if (depth == undefined)
         depth = 3;
+    var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, depth ' + depth;
+    var state = p4_fen2state(fen);
     var f = {
         checkmate: [P4_MOVE_CHECKMATE, P4_MOVE_CHECKMATE],
         stalemate: [P4_MOVE_STALEMATE, P4_MOVE_CHECKMATE]
@@ -174,6 +174,16 @@ var TESTS = [
         undefined, ['O-O-O']
      ],
     [
+        "castling knight on 3rd row",
+        fen_moves, "r3k2r/p4p1p/4np2/1Bb5/3p4/P3nN2/1P3PPP/R3K2R w KQkq - 2 18",
+        undefined, ['O-O-O', 'O-O']
+     ],
+    [
+        "castling knight on 2nd row",
+        fen_moves, "r3k2r/p4p1p/4np2/B1b5/3p4/P3pN2/Pn3PPP/R3K2R w KQkq - 2 18",
+        ['O-O'], ['O-O-O']
+     ],
+    [
         "initial board",
         fen_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
         [['Nc3', 'e6']],
@@ -190,9 +200,15 @@ var TESTS = [
         'checkmate', 6
     ],
     [
-        "mate in 2",
+        "mate in 3",
+        result_in_n, "8/8/8/8/8/4K3/5Q2/7k w - - 11 56",
+        'checkmate', 6, 5
+    ],
+    [
+        "mate in 1",
         result_in_n, "4kb1R/1p1np1P1/2B2p2/1N1P1b2/8/5NK1/p3rP1p/8 w - - 0 31",
-        'checkmate', 2
+        'checkmate', 1
+    ],
     ]
 ];
 main(TESTS);
