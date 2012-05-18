@@ -51,6 +51,65 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
     return best;
 }
 
+function p4_counting_treeclimber(state, count, colour, score, s, e){
+    var move, i, ep;
+    var promotions = [P4_QUEEN, P4_ROOK, P4_BISHOP, P4_KNIGHT];
+    var pi = 0;
+    var ncolour = 1 - colour;
+    var subnodes = 0;
+    do {
+        if (s){
+            move = p4_make_move(state, s, e, promotions[pi]);
+            ep = move.ep;
+        }
+        else {
+            ep = 0;
+        }
+        var pseudo_movelist = p4_parse(state, colour, ep, 0);
+        var movelist = [];
+        var promotion_count = 0;
+
+        for (i = 0; i < pseudo_movelist.length; i++){
+            var mv2 = pseudo_movelist[i];
+            var s2 = mv2[1], e2 = mv2[2];
+            var move2 = p4_make_move(state, s2, e2, P4_QUEEN);
+            if (! p4_check_check(state, colour))
+                movelist.push(mv2);
+            if (move2.S < 4 && ((60 - e2) * (60 - e2) > 900)){
+                /*this is a promotion*/
+                promotion_count++;
+            }
+            p4_unmake_move(state, move2);
+        }
+        var movecount = movelist.length;
+        if(count){
+            for(i = 0; i < movecount; i++){
+                var mv = movelist[i];
+                subnodes += p4_counting_treeclimber(state, count - 1, ncolour, 0, mv[1], mv[2]);
+            }
+            //subnodes += movecount;
+        }
+        else{
+            subnodes += movecount;
+            subnodes += promotion_count * 3; //3 extras on top of queen
+        }
+        if (s)
+            p4_unmake_move(state, move);
+
+        if (pi && move.S < 4 && ((60 - e) * (60 - e) > 900))
+            console.log(s, move.S, promotions[pi]);
+        pi++;
+    } while(s &&
+            pi < promotions.length &&
+            move.S < 4 &&
+            ((60 - e) * (60 - e) > 900));
+
+    return subnodes;
+}
+
+
+
+
 function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
     var move;
     if (s)

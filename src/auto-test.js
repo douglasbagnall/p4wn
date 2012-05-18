@@ -87,17 +87,15 @@ function result_in_n(fen, result, n, depth){
 }
 
 function count_moves(fen, ply, expected){
+    console.log(fen);
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, ply ' + ply + ' expecting ' + expected;
     var state = p4_fen2state(fen);
-    state.node_count = 0;
     p4_prepare(state);
-    state.treeclimber = p4_negamax_treeclimber;
-    p4_negamax_treeclimber(state, ply - 1, state.to_play, 0, 0, 0);
-    var r = state.node_count;
-    tstr += '; got ' + r;
-    if (r == expected)
+    var nodes = p4_counting_treeclimber(state, ply - 1, state.to_play, 0, 0, 0);
+    tstr += '; got ' + nodes;
+    if (nodes == expected)
         return  [true, tstr, 'OK'];
-    return [false, tstr, r + ' != ' + expected];
+    return [false, tstr, nodes + ' != ' + expected];
 }
 
 function new_child(element, childtag){
@@ -230,22 +228,57 @@ var TESTS = [
     [
         "count moves, initial board",
         count_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
-        2, 400 + 20
+        2, 400
     ],
     [
         "count moves, initial board",
         count_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
-        3, 8902 + 400 + 20
+        3, 8902
     ],
     [
         "count moves, complex board",
         count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
         1, 48
     ],
-    [ //fails I think due to the consideration of non-legal moves
+    [
         "count moves, complex board",
         count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
-        2, 2039 + 48
+        2, 2039
+    ],
+    [
+        "count moves, in check, promotions",
+        count_moves, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+        2, 264
+    ],
+    [
+        "count moves, in check, promotions",
+        count_moves, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+        3, 9467
+    ],
+    [
+        "count moves, in check, promotions",
+        count_moves, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+        4, 422333
+    ],
+    [
+        "count moves, emptyish board",
+        count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
+        2, 191
+    ],
+    [
+        "count moves, emptyish board",
+        count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
+        3, 2812
+    ],
+    [
+        "count moves, emptyish board",
+        count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
+        4, 43238
+    ],
+    [
+        "count moves, checkmate near",
+        count_moves, "8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - 1 67",
+        2, 279
     ]
 ];
 main(TESTS);
