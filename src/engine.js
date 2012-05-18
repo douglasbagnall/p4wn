@@ -868,7 +868,7 @@ function p4_move(state, s, e, promotion){
     var repetitions = (state.position_counts[shortfen] || 0) + 1;
     state.position_counts[shortfen] = repetitions;
     state.current_repetitions = repetitions;
-    if (state.draw_timeout > 100 || repetitions == 3){
+    if (state.draw_timeout > 100 || repetitions >= 3){
         //XXX also if material drops too low?
         flags |= P4_MOVE_FLAG_DRAW;
     }
