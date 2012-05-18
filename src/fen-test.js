@@ -1,9 +1,9 @@
 var FEN = [
-    ["mid game benchmark, black to play", "r3kb1r/ppBnp1pp/5p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 b kq - 1 16"],
+    ["mid game benchmark, white to play", "r3kb1r/1pBnp1pp/p4p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 w kq - 0 17"],
     ["initial state", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1"],
     ["checkmate in 6", "8/8/8/8/8/4K3/5Q2/7k w - - 11 56"],
     ["checkmate in 1", "8/8/8/8/8/6K1/4Q3/6k1 w - - 21 61"],
-    ["mid game benchmark, white to play", "r3kb1r/1pBnp1pp/p4p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 w kq - 0 17"],
+    ["mid game benchmark, black to play", "r3kb1r/ppBnp1pp/5p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 b kq - 1 16"],
     ["late game, rook pins bishop", "4k3/4n3/8/3N1R2/4R2p/7P/1r3BK1/8 b - - 6 42"],
     ["end game, impossible pawn", "4p3/8/8/8/8/k6P/6K1/8 b - - 6 42"],
     ["en passant", "rn1qkbnr/p1p1pppp/8/1pPp4/3P1B2/8/PP2PPPP/Rb1QKBNR w KQkq b6 0 5"],
