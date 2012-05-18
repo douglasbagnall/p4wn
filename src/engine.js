@@ -15,16 +15,16 @@ var P4_MOVES = [[], [],
                 [1,10,11,9,-1,-10,-11,-9], []
                ];
 
-/* Threshold that indicates a king has been taken. It has to be quite
- * a bit less than the value of a king, in case someone finds a way
- * to, say, sacrifice two queens in order to checkmate.
+/* A score greater than P4_WIN indicates a king has been taken. It is
+ * less than the value of a king, in case someone finds a way to, say,
+ * sacrifice two queens in order to checkmate.
  */
 var P4_KING_VALUE = P4_VALUES[10];
 var P4_WIN = P4_KING_VALUE >> 1;
 
 /* every move, a winning score decreases by this much */
 var P4_WIN_DECAY = 300;
-var P4_WIN_NOW = P4_KING_VALUE - 200;
+var P4_WIN_NOW = P4_KING_VALUE - 250;
 
 /* P4_{MAX,MIN}_SCORE should be beyond any possible evaluated score */
 
@@ -88,7 +88,6 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
                 break;
             }
         }
-
         if (alpha < -P4_WIN_NOW){
             /* Whatever we do, we lose the king.
              *
@@ -117,11 +116,12 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
 }
 
 
-/* prepare() works out weightings for assessing various moves,
+/* p4_prepare() works out weightings for assessing various moves,
  * favouring centralising moves early, for example.
  *
- * It is called before each tree search, not for each parse(),
- * so it is OK for it to be a little bit slow.
+ * It is called before each tree search, not for each parse(), so it
+ * is OK for it to be a little bit slow. But that also means it drifts
+ * out of sync with the real board state, especially on deep searches.
  */
 
 function p4_prepare(state){
@@ -137,9 +137,9 @@ function p4_prepare(state){
     var earliness_weight = (moveno > 50) ? 0 : parseInt(6 * Math.exp(moveno * -0.07));
     var king_should_hide = moveno < 12;
     var early = moveno < 5;
+    /* find the pieces, kings, and weigh material*/
     var kings = [0, 0];
     var material = [0, 0];
-    /* find the pieces, kings, and weigh material*/
     var best_pieces = [0, 0];
     for(i = 20; i  < 100; i++){
         var a = board[i];

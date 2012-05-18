@@ -10,7 +10,7 @@ var P4_VALUES=[0, 0,      //Piece values
                100, 100,    //rooks
                60, 60,    //knights
                61, 61,    //bishops
-               5000, 5000,//kings
+               8000, 8000,//kings
                180, 180,  //queens
                0];
 
