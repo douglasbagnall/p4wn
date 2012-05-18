@@ -790,17 +790,6 @@ function p4_move(state, s, e, promotion){
     var E=board[e];
     var S=board[s];
 
-    /* If the king has just been taken, a checkmate or stalemate has
-     * previously been missed, so signal the end now.
-     *
-     * If the computer suggests (s == 0 && e == 0), treeclimber found no
-     * pieces to move, which is an extreme case of stalemate.
-     */
-    if((E&14) == P4_KING || (s == 0 && e == 0)){
-        console.log('checkmate - got thru checks', s, e, E);
-        return {flags: P4_MOVE_MISSED_MATE, ok: false, string: "checkmate"};
-    }
-
     /*See if this move is even slightly legal, disregarding check.
      */
     var i;
