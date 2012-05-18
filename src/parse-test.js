@@ -50,6 +50,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
     var move;
     if (s)
         move = p4_make_move(state, s, e, P4_QUEEN);
+    var ep = s ? move.ep: 0;
     var ncolour = 1 - colour;
     var board = state.board;
     if(count){
@@ -68,7 +69,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
                 return beta;
             }
         }
-        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movelist = p4_parse(state, colour, ep, -score);
         var movecount = movelist.length;
         for(var i = 0; i < movecount; i++){
             var mv = movelist[i];
@@ -95,7 +96,7 @@ function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, al
     }
     else{
         //leaf nodes
-        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movelist = p4_parse(state, colour, ep, -score);
         var movecount = movelist.length;
         while(beta > alpha && --movecount >= 0){
             if(movelist[movecount][0] > alpha){
@@ -112,6 +113,7 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
                                                      alpha, beta){
     if (s)
         var move = p4_make_move(state, s, e, P4_QUEEN);
+    var ep = s ? move.ep: 0;
     var ncolour = 1 - colour;
     var i, mv;
     var board = state.board;
@@ -129,7 +131,7 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
                 return beta;
             }
         }
-        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movelist = p4_parse(state, colour, ep, -score);
         var movecount = movelist.length;
         for(i = 0; i < movecount; i++){
             mv = movelist[i];
@@ -159,7 +161,7 @@ function p4_nullmove_alphabeta_quiescing_treeclimber(state, count, colour, score
         }
     }
     else{
-        var movelist = p4_parse(state, colour, move.ep, -score);
+        var movelist = p4_parse(state, colour, ep, -score);
         var movecount = movelist.length;
         var threshold = alpha - state.best_pieces[colour];
         while(--movecount >= 0){
