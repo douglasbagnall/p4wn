@@ -47,7 +47,7 @@ function time_find_move(game, depth){
             break;
         }
     }
-    game.log("depth " + depth + " best of " + i + ": " + best);
+    game.log((depth + 1) + " ply; best of " + i + ": " + best);
 }
 
 function parse_test(state){
@@ -204,6 +204,14 @@ var TEST_BUTTONS = [
         onclick_wrap: function(p4d){
             return  function(e){
                 time_find_move(p4d, 6);
+            };
+        }
+    },
+    {
+        label: "8-ply speed",
+        onclick_wrap: function(p4d){
+            return  function(e){
+                time_find_move(p4d, 7);
             };
         }
     },
