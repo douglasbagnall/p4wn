@@ -220,7 +220,6 @@ function p4_quiesce(state, count, colour, s, e, alpha, beta){
             alpha = state.stalemate_scores[colour];
         }
         if (alpha < -P4_WIN){
-            /*make distant checkmate seem less bad */
             alpha += P4_WIN_DECAY;
         }
     }
@@ -273,18 +272,10 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
             b = alpha + 1;
         }
 
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
-             */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
+        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
+            alpha = state.stalemate_scores[colour];
         }
         if (alpha < -P4_WIN){
-            /*make distant checkmate seem less bad */
             alpha += P4_WIN_DECAY;
         }
     }
