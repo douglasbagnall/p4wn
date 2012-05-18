@@ -6,57 +6,45 @@ p4_parse(state, colour, ep, score)
 */
 
 
-function p4_negamax_treeclimber(state, count, colour, score, s, e, alpha, beta){
+function p4_negamax_treeclimber(state, count, colour, score, s, e){
     var move = p4_make_move(state, s, e, P4_QUEEN);
-    var i;
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
-    var mv;
+    var best = P4_MIN_SCORE;
     if(count){
         //branch nodes
         var t;
-        for(i = 0; i < movecount; i++){
-            mv = movelist[i];
+        for(var i = 0; i < movecount; i++){
+            var mv = movelist[i];
             var mscore = mv[0];
-            var ms = mv[1];
-            var me = mv[2];
-            if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE;
+            if (mscore > P4_WIN){
+                best = P4_KING_VALUE;
                 break;
             }
-            t = -p4_negamax_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                        -beta, -alpha);
-            if (t > alpha){
-                alpha = t;
+            t = -p4_negamax_treeclimber(state, count - 1, ncolour, mscore, mv[1], mv[2]);
+            if (t > best){
+                best = t;
             }
         }
 
-        if (alpha < -P4_WIN_NOW){
-            /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
-             */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
+        if (best < -P4_WIN_NOW && ! p4_check_check(state, colour)){
+            best = state.stalemate_scores[colour];
         }
-        if (alpha < -P4_WIN){
-            /*make distant checkmate seem less bad */
-            alpha += P4_WIN_DECAY;
+        if (best < -P4_WIN){
+            best += P4_WIN_DECAY;
         }
     }
     else{
         //leaf nodes
         while(--movecount != -1){
-            if(movelist[movecount][0] > alpha){
-                alpha = movelist[movecount][0];
+            if(movelist[movecount][0] > best){
+                best = movelist[movecount][0];
             }
         }
     }
     p4_unmake_move(state, move);
-    return alpha;
+    return best;
 }
 
 function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
