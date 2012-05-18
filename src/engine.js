@@ -66,12 +66,11 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
     var ncolour = 1 - colour;
     var movelist = p4_parse(state, colour, move.ep, -score);
     var movecount = movelist.length;
-    var mv;
     if(count){
         //branch nodes
         var t;
         for(i = 0; i < movecount; i++){
-            mv = movelist[i];
+            var mv = movelist[i];
             var mscore = mv[0];
             var ms = mv[1];
             var me = mv[2];
@@ -88,15 +87,12 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
                 break;
             }
         }
-        if (alpha < -P4_WIN_NOW){
+        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
             /* Whatever we do, we lose the king.
-             *
-             * But is it check?
-             * If not, this is stalemate, and the score doesn't apply.
+             * But if it is not check then this is stalemate, and the
+             * score doesn't apply.
              */
-            if (! p4_check_check(state, colour)){
-                alpha = state.stalemate_scores[colour];
-            }
+            alpha = state.stalemate_scores[colour];
         }
         if (alpha < -P4_WIN){
             /*make distant checkmate seem less bad */
@@ -646,10 +642,6 @@ function p4_findmove(state, level, colour, ep){
  *
  * p4_unmake_move uses the p4_make_move return value to restore the
  * previous state.
- *
- * These are incorporated inline in p4_treeclimber, for speed and
- * historical reasons.  The alternate treeclimbers in parse-test.js
- * use these functions, as does p4_move() below.
  */
 
 function p4_make_move(state, s, e, promotion){
@@ -812,11 +804,6 @@ function p4_move(state, s, e, promotion){
     }
 
     /*See if this move is even slightly legal, disregarding check.
-     *
-     * At the same time, gather information to determine whether this
-     * move needs qualifying information in the PGN representation.
-     * i.e., does 'Nc3' suffice, or is 'Nbc3', 'N1c3', or even 'Nb1c3'
-     * necessary?
      */
     var i;
     var legal = false;
@@ -1063,7 +1050,7 @@ function p4_state2fen(state, reduced){
     else
         fen += ' -';
     if (reduced){
-        /*if the 'reduced flag is set, the move number and draw
+        /*if the 'reduced' flag is set, the move number and draw
          *timeout are not added. This form is used to detect draws by
          *3-fold repetition.*/
         return fen;
@@ -1160,7 +1147,7 @@ function p4_zero_array(){
 }
 
 /* p4_initialise_state() creates the board and initialises weight
- * arrays etc.  Some of this is really only needs to be once.
+ * arrays etc.  Some of this is really only needs to be done once.
  */
 
 function p4_initialise_state(){
