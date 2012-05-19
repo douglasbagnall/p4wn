@@ -15,6 +15,21 @@ var P4_MOVES = [[], [],
                 [1,10,11,9,-1,-10,-11,-9], []
                ];
 
+/*P4_VALUES defines the relative value of various pieces.
+ *
+ * By default it follows the 1,3,3,5,9 pattern you learn as a kid,
+ * multiplied by 20 to give sub-pawn resolution to other factors, with
+ * bishops given a wee advantage knights.
+ */
+var P4_VALUES=[0, 0,      //Piece values
+               20, 20,    //pawns
+               100, 100,    //rooks
+               60, 60,    //knights
+               61, 61,    //bishops
+               8000, 8000,//kings
+               180, 180,  //queens
+               0];
+
 /* A score greater than P4_WIN indicates a king has been taken. It is
  * less than the value of a king, in case someone finds a way to, say,
  * sacrifice two queens in order to checkmate.
@@ -35,8 +50,18 @@ var P4_CENTRALISING_WEIGHTS;
 var P4_BASE_PAWN_WEIGHTS;
 var P4_KNIGHT_WEIGHTS;
 
+/*P4_DEBUG turns on debugging features */
+var P4_DEBUG = 0;
+var P4_SHUFFLE_PIECES = false;
+var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
+
+/*use javascript typed arrays rather than plain arrays
+ * (faster in some browsers, unsupported in others, possibly slower elsewhere) */
+var P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
+
 /*piece codes:
- *  piece & 2  -> single move piece (including pawn)
+ * piece & 1 -> colour (white: 0, black: 1)
+ *  piece & 2 -> single move piece (including pawn)
  *  if (piece & 2) == 0:
  *     piece & 4  -> row and column moves
  *     piece & 8  -> diagonal moves

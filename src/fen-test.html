@@ -18,18 +18,16 @@
 <body>
 <div id="board"></div>
 
-<script src="engine-config.js"></script>
 <script src="display-config.js"></script>
-<script>
-P4_DEBUG = true;
-P4WN_ADAPTIVE_LEVELS = false;
-P4WN_ROTATE_BOARD = false;
-</script>
 <script src="engine.js"></script>
 <script src="display.js"></script>
 <script src="fen-test.js"></script>
 <script src="parse-test.js"></script>
 <script>
+P4_DEBUG = true;
+P4WN_ADAPTIVE_LEVELS = false;
+P4WN_ROTATE_BOARD = false;
+
 var game = p4wnify("board");
 game.write_controls_html(TEST_BUTTONS);
 write_fen_switches(game);
