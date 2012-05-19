@@ -1140,8 +1140,20 @@ function p4_fen2state(fen, state){
     return state;
 }
 
+/*
+Weights would all fit within an Int8Array *except* for the last row
+for pawns, which is close to the queen value (180, max is 127).
 
-var P4__ZEROS = [];
+Int8Array seems slightly quicker in Chromium 18, no different in
+Firefox 12.
+
+Int16Array is no faster, perhaps slower than Int32Array.
+
+Int32Array is marginally slower than plain arrays with Firefox 12, but
+significantly quicker with Chromium.
+ */
+
+var P4_ZEROS = [];
 function p4_zero_array(){
     if (P4_USE_TYPED_ARRAYS)
         return new Int32Array(120);
