@@ -237,8 +237,9 @@ _p4d_proto.write_board_html = function(){
     var div = this.elements.board;
     var pieces = this.elements.pieces = [];
     var table = p4d_new_child(div, "table");
+    var tbody = p4d_new_child(table, "tbody");
     for (var y = 9; y > 1; y--){
-        var tr = p4d_new_child(table, "tr");
+        var tr = p4d_new_child(tbody, "tr");
         for(var x = 1;  x < 9; x++){
             var i = y * 10 + x;
             var td = p4d_new_child(tr, "td");
