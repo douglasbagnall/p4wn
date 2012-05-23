@@ -72,7 +72,7 @@ _p4d_proto.square_clicked = function(square){
 
 _p4d_proto.move = function(start, end, promotion){
     var state = this.board_state;
-    var move_result = p4_move(state, start, end, promotion);
+    var move_result = state.move(start, end, promotion);
     if(move_result.ok){
         this.display_move_text(state.moveno, move_result.string);
         this.refresh();
@@ -111,14 +111,14 @@ _p4d_proto.computer_move = function(){
     var mv;
     var depth = this.computer_level + 1;
     var start_time = Date.now();
-    mv = p4_findmove(state, depth);
+    mv = state.findmove(depth);
     var delta = Date.now() - start_time;
     console.log("findmove took", delta);
     if (P4WN_ADAPTIVE_LEVELS && depth > 2){
         var min_time = 25 * depth;
         while (delta < min_time){
             depth++;
-            mv = p4_findmove(state, depth);
+            mv = state.findmove(depth);
             delta = Date.now() - start_time;
             console.log("retry at depth", depth, " total time:", delta);
         }
@@ -160,7 +160,7 @@ _p4d_proto.goto_move = function(n){
     for (var i = 0; i < delta; i++){
         div.removeChild(div.lastChild);
     }
-    p4_jump_to_moveno(this.board_state, n);
+    this.board_state.jump_to_moveno(n);
     this.refresh();
     this.next_move();
 };

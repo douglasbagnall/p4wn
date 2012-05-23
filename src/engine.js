@@ -1160,6 +1160,16 @@ function p4_fen2state(fen, state){
     state.history = [];
     state.beginning = fen;
     state.position_counts = {};
+    /* Wrap external functions as methods. */
+    state.move = function(s, e, promotion){
+        return p4_move(this, s, e, promotion);
+    };
+    state.findmove = function(level){
+        return p4_findmove(this, level);
+    };
+    state.jump_to_moveno = function(moveno){
+        return p4_jump_to_moveno(this, moveno);
+    };
     return state;
 }
 
