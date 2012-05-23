@@ -375,7 +375,7 @@ function add_extra_searches(p4d){
                 return function(e){
                     index = (index + 2) % tree_climbers.length;
                     p4d.board_state.treeclimber = tree_climbers[index + 1];
-                    e.currentTarget.innerHTML = 'search function: <b>' + tree_climbers[index] + '</b>';
+                    _event_target(e).innerHTML = 'search function: <b>' + tree_climbers[index] + '</b>';
                     p4d.log("using " + tree_climbers[index]);
                 };
             },

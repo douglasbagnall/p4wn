@@ -49,6 +49,7 @@ var P4WN_PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 var _p4d_proto = {};
 
 
+/* MSIE 6 compatibility functions */
 function _add_event_listener(el, eventname, fn){
     if (el.addEventListener === undefined){
         el.attachEvent('on' + eventname, fn);
@@ -58,6 +59,10 @@ function _add_event_listener(el, eventname, fn){
     }
 }
 
+function _event_target(e){
+    /*e.srcElement is not quite equivalent, but nothing is closer */
+    return (e.currentTarget) ? e.currentTarget : e.srcElement;
+}
 
 _p4d_proto.square_clicked = function(square){
     var board = this.board_state.board;
@@ -335,7 +340,7 @@ var P4WN_CONTROLS = [
             return function(e){
                 var x = (p4d.pawn_becomes + 1) % P4WN_PROMOTION_STRINGS.length;
                 p4d.pawn_becomes = x;
-                e.currentTarget.innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
+                _event_target(e).innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
             };
         },
         refresh: function(el){
@@ -347,7 +352,7 @@ var P4WN_CONTROLS = [
             return function(e){
                 var x = (p4d.computer_level + 1) % P4WN_LEVELS.length;
                 p4d.computer_level = x;
-                e.currentTarget.innerHTML = 'computer level: <b>' + P4WN_LEVELS[x] + '</b>';
+                _event_target(e).innerHTML = 'computer level: <b>' + P4WN_LEVELS[x] + '</b>';
             };
         },
         refresh: function(el){
@@ -381,7 +386,7 @@ var P4WN_CONTROLS = [
                 }
                 else {
                     p4d.draw_offered = false;
-                    draw_button.style.color = 'inherit';
+                    draw_button.style.color = '#000';
                     draw_button.style.display = 'none';
                 }
             };

@@ -917,7 +917,7 @@ function p4_move(state, s, e, promotion){
 
 function p4_move2string(state, s, e, S, promotion, flags, moves){
     var piece = S & 14;
-    var FEN_LUT = '  PpRrNnBbKkQq';
+    var lut = '  PpRrNnBbKkQq';
     var src, dest;
     var mv, i;
     var capture = flags & P4_MOVE_FLAG_CAPTURE;
@@ -933,7 +933,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
         if (e > 90 || e < 30){  //end row, queening
             if (promotion === undefined)
                 promotion = P4_QUEEN;
-            mv += '=' + FEN_LUT[promotion];
+            mv += '=' + lut.charAt(promotion);
         }
     }
     else if (piece == P4_KING && (s-e) * (s-e) == 4) {
@@ -945,7 +945,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
     else {
         var row_qualifier = '';
         var col_qualifier = '';
-        var pstr = FEN_LUT[piece];
+        var pstr = lut.charAt(piece);
         var sx = s % 10;
         var sy = parseInt(s / 10);
 
@@ -1025,7 +1025,7 @@ function p4_jump_to_moveno(state, moveno){
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  * */
 function p4_state2fen(state, reduced){
-    var FEN_LUT = '  PpRrNnBbKkQq';
+    var lut = '  PpRrNnBbKkQq';
     var board = state.board;
     var fen = '';
     //fen does Y axis backwards, X axis forwards */
@@ -1038,7 +1038,7 @@ function p4_state2fen(state, reduced){
             else{
                 if (count)
                     fen += count.toString();
-                fen += FEN_LUT.charAt(piece);
+                fen += lut.charAt(piece);
                 count = 0;
             }
         }
