@@ -5,7 +5,21 @@
  *
  * lives at http://p4wn.sf.net/
  */
-/* in order, even indices: <nothing>, pawn, rook, knight, bishop, king, queen */
+
+/* The pieces are stored as numbers between 2 and 13, inclusive.
+ * Empty squares are stored as 0, and off-board squares as 16.
+ * There is some bitwise logic to it:
+ *  piece & 1 -> colour (white: 0, black: 1)
+ *  piece & 2 -> single move piece (including pawn)
+ *  if (piece & 2) == 0:
+ *     piece & 4  -> row and column moves
+ *     piece & 8  -> diagonal moves
+ */
+var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
+var P4_EDGE = 16;
+
+/* in order, even indices: <nothing>, pawn, rook, knight, bishop, king, queen. Only the
+ * even indices are used.*/
 var P4_MOVES = [[], [],
                 [], [],
                 [1,10,-1,-10], [],
@@ -17,13 +31,13 @@ var P4_MOVES = [[], [],
 
 /*P4_VALUES defines the relative value of various pieces.
  *
- * By default it follows the 1,3,3,5,9 pattern you learn as a kid,
- * multiplied by 20 to give sub-pawn resolution to other factors, with
- * bishops given a wee advantage knights.
+ * It follows the 1,3,3,5,9 pattern you learn as a kid, multiplied by
+ * 20 to give sub-pawn resolution to other factors, with bishops given
+ * a wee boost over knights.
  */
 var P4_VALUES=[0, 0,      //Piece values
                20, 20,    //pawns
-               100, 100,    //rooks
+               100, 100,  //rooks
                60, 60,    //knights
                61, 61,    //bishops
                8000, 8000,//kings
@@ -46,6 +60,7 @@ var P4_WIN_NOW = P4_KING_VALUE - 250;
 var P4_MAX_SCORE = 9999;    // extremes of evaluation range
 var P4_MIN_SCORE = -P4_MAX_SCORE;
 
+/*initialised in p4_initialise_state */
 var P4_CENTRALISING_WEIGHTS;
 var P4_BASE_PAWN_WEIGHTS;
 var P4_KNIGHT_WEIGHTS;
@@ -59,17 +74,7 @@ var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1
  * (faster in some browsers, unsupported in others, possibly slower elsewhere) */
 var P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
 
-/*piece codes:
- * piece & 1 -> colour (white: 0, black: 1)
- *  piece & 2 -> single move piece (including pawn)
- *  if (piece & 2) == 0:
- *     piece & 4  -> row and column moves
- *     piece & 8  -> diagonal moves
- */
-var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
-var P4_EDGE = 16;
-
-var P4_PIECE_LUT = {
+var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     P: 2,
     p: 3,
     R: 4,
