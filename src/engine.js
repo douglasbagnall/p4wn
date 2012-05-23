@@ -253,8 +253,6 @@ function p4_prepare(state){
             i = y * 10 + x;
             var early_centre = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
             var plateau = P4_KNIGHT_WEIGHTS[i];
-            var centre_rooks = (y == 9 || y == 2) * (x == 4 || x == 5) * earliness_weight;
-
             for (var c = 0; c < 2; c++){
                 var dx = Math.abs(kx[1 - c] - x);
                 var dy = Math.abs(ky[1 - c] - y);
@@ -269,6 +267,8 @@ function p4_prepare(state){
                 var promotion_row = y == 9 - c * 7;
                 var get_out = (early && at_home) * -4;
 
+                var centre_rooks = at_home * (x == 4 || x == 5) * earliness_weight;
+                if (x == 1 || x == 8 && (moveno > 10 && moveno < 20)) centre_rooks -= 4;
                 var knight = parseInt(early_centre * 0.3) + 2 * plateau + get_out;
                 var rook = parseInt(early_centre * 0.3) + centre_rooks;
                 var bishop = parseInt(early_centre * 0.6) + plateau + get_out;
@@ -318,7 +318,7 @@ function p4_prepare(state){
                  */
                 if (target_king){
                     knight += 2 * parseInt(8 * mul / d);
-                    rook += 3 * ((dx < 2) + (dy < 2));
+                    rook += 2 * ((dx < 2) + (dy < 2));
                     bishop += 3 * (Math.abs((dx - dy))  < 2);
                     queen += 2 * parseInt(8 / d) + (dx * dy == 0) + (dx - dy == 0);
                     /* The losing king wants to stay in the middle, while
@@ -342,13 +342,6 @@ function p4_prepare(state){
                 }
             }
         }
-    }
-    if (moveno > 10 && moveno < 30){
-        /* not early; pry those rooks out of their corners */
-        weights[P4_ROOK + 1][91] -= 7;
-        weights[P4_ROOK + 1][98] -= 7;
-        weights[P4_ROOK][21] -= 7;
-        weights[P4_ROOK][28] -= 7;
     }
 }
 
