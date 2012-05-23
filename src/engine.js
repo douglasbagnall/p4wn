@@ -768,7 +768,7 @@ function p4_unmake_move(state, move){
     state.castles = move.castles;
 }
 
-/* p4_move(s, e, promotion)
+/* p4_move(state, s, e, promotion)
  * s, e are start and end positions
  *
  * promotion is the desired pawn promotion if the move gets a pawn to the other
@@ -1251,7 +1251,7 @@ function p4_interpret_movestring(state, str){
      */
     var FAIL = [0, 0];
     var algebraic_re = /^\s*([RNBQK]?[a-h]?[1-8]?)[ :x-]*([a-h][1-8]?)(=[RNBQ])?[!?+#e.p]*\s*$/;
-    var castle_re = /^\s*(O-O(-O)?)\s*$/;
+    var castle_re = /^\s*([O0o]-[O0o](-[O0o])?)\s*$/;
     var position_re = /^[a-h][1-8]$/;
 
     var m = algebraic_re.exec(str);
