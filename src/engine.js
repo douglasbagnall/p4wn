@@ -89,6 +89,13 @@ var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     q: 13
 };
 
+/*Backward compatibility for old MSIEs*/
+if (this.console === undefined)
+    this.console = {log: function(){}};
+
+if (Date.now === undefined)
+    Date.now = function(){return (new Date).getTime();};
+
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
     var move = p4_make_move(state, s, e, P4_QUEEN);

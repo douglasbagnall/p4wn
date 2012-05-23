@@ -264,23 +264,22 @@ function write_fen_switches(p4d){
         else{
             span.innerHTML = fen;
         }
-        span.addEventListener("click",
-                              function(s){
-                                  return function(e){
-                                      p4d.log('--------');
-                                      p4_fen2state(s, p4d.board_state);
-                                      p4_prepare(p4d.board_state); //so dump_state(), etc work
-                                      p4d.refresh();
-                                      var s2 = p4_state2fen(p4d.board_state);
-                                      if (s == s2){
-                                          console.log(s, "survives round trip");
-                                      }
-                                      else {
-                                          console.log(s, "and", s2, "differ");
-                                      }
-                                      p4d.next_move();
-                                  };
-                              }(fen));
-
+        _add_event_listener(span, "click",
+                            function(s){
+                                return function(e){
+                                    p4d.log('--------');
+                                    p4_fen2state(s, p4d.board_state);
+                                    p4_prepare(p4d.board_state); //so dump_state(), etc work
+                                    p4d.refresh();
+                                    var s2 = p4_state2fen(p4d.board_state);
+                                    if (s == s2){
+                                        console.log(s, "survives round trip");
+                                    }
+                                    else {
+                                        console.log(s, "and", s2, "differ");
+                                    }
+                                    p4d.next_move();
+                                };
+                            }(fen));
     }
 }

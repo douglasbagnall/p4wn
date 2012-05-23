@@ -48,6 +48,17 @@ var P4WN_PROMOTION_INTS = [P4_QUEEN, P4_ROOK, P4_KNIGHT, P4_BISHOP];
 
 var _p4d_proto = {};
 
+
+function _add_event_listener(el, eventname, fn){
+    if (el.addEventListener === undefined){
+        el.attachEvent('on' + eventname, fn);
+    }
+    else {
+        el.addEventListener(eventname, fn);
+    }
+}
+
+
 _p4d_proto.square_clicked = function(square){
     var board = this.board_state.board;
     var mover = this.board_state.to_play;
@@ -149,7 +160,7 @@ _p4d_proto.log = function(msg, klass, onclick){
     var item = p4d_new_child(div, "div");
     item.className = klass;
     if (onclick !== undefined)
-        item.addEventListener("click", onclick, true);
+        _add_event_listener(item, "click", onclick);
     item.innerHTML = msg;
     div.scrollTop = 999999;
 }
@@ -227,14 +238,12 @@ _p4d_proto.write_board_html = function(){
             var i = y * 10 + x;
             var td = p4d_new_child(tr, "td");
             td.className = (x + y) & 1 ? P4WN_BLACK_SQUARE : P4WN_WHITE_SQUARE;
-            td.addEventListener("click",
+            _add_event_listener(td, 'click',
                                 function(p4d, n){
                                     return function(e){
                                         p4d.square_clicked(p4d.orientation ? 119 - n : n);
                                     };
-                                }(this, i),
-                                true);
-
+                                }(this, i));
             var img = p4d_new_child(td, "img");
             pieces[i] = img;
             img.src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[0];
@@ -391,9 +400,8 @@ _p4d_proto.write_controls_html = function(lut){
         var span = p4d_new_child(div, "span");
         span.className = 'p4wn-control-button';
         buttons.elements.push(span);
-        span.addEventListener("click",
-                              o.onclick_wrap(this),
-                              true);
+        _add_event_listener(span, "click",
+                            o.onclick_wrap(this));
         if (o.label)
             span.innerHTML = o.label;
         if (o.move_listener_wrap)
