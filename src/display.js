@@ -256,7 +256,7 @@ _p4d_proto.maybe_rotate_board = function(){
     var p = this.players;
     if (p[0] != p[1] && P4WN_ROTATE_BOARD){
         this.orientation = p[0] == 'computer' ? 1 : 0;
-        refresh();
+        this.refresh();
     }
 };
 
