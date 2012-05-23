@@ -470,16 +470,11 @@ function P4wn_display(target){
     var inner = p4d_new_child(container, "div", P4WN_WRAPPER_CLASS);
     this.elements = {};
     this.elements.inner = inner;
-    var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
-    inner.style.height = board_height;
     this.elements.container = container;
     var board = this.elements.board = p4d_new_child(inner, "div", P4WN_BOARD_CLASS);
     var log = this.elements.log = p4d_new_child(inner, "div", P4WN_LOG_CLASS);
-    log.style.height = board_height;
-    board.style.height = board_height;
     this.elements.messages = p4d_new_child(inner, "div", P4WN_MESSAGES_CLASS);
     this.elements.controls = p4d_new_child(container, "div", P4WN_CONTROLS_CLASS);
-    this.elements.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
     this.start = 0;
     this.draw_offers = 0;
     this.board_state = p4_new_game();
@@ -496,6 +491,12 @@ function P4wn_display(target){
 
 function p4wnify(id){
     var p4d = new P4wn_display(id);
+    var e = p4d.elements;
+    var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
+    e.inner.style.height = board_height;
+    e.log.style.height = board_height;
+    e.board.style.height = board_height;
+    e.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
     p4d.write_board_html();
     p4d.write_controls_html(P4WN_CONTROLS);
     p4d.interpret_query_string();
