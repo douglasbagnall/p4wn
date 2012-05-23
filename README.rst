@@ -1,80 +1,318 @@
 P4wn, a smallish javascript chess engine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is a web page that can play chess. It was originally written
-between 2000 and 2002 and was entered in the 2002 5k web contest.
-Because it was developed without source control and was minified by
-hand, the code was rather obtuse and resistant to modification.
-
-The version here (in ``src/``) has been reconstructed and expanded
-from old backup files. It almost certainly lacks some bug fixes and
-optimisations found in the 5k and 6k versions, but it has been fixed
-in other ways and altered to suit modern browsers and to facilitate
-extension and embedding.
-
-The code is in the public domain, or if that does not make sense in
-your country, the CC0_ license applies. You can do anything you want
-with it. There are no restrictions, obligations, or warranties.
+P4wn is a web page that can play chess. It is quite small, plays well
+enough to be interesting, and is easy to embed in your pages. The
+default interface is easy to replace, and the engine is tunable. P4wn
+is completely free, available under CC0_ terms or as public domain.
+You can use it for anything you want.
 
 .. _CC0: http://creativecommons.org/publicdomain/zero/1.0/
 
-The name "p4wn" was originally only intended as a sourceforge
-subdomain, not to be applied to the chess program itself. People have
-universally assumed otherwise, so the name sticks.
+How to play
+===========
 
-Where to find it
-================
+If you load ``src/index.html`` in a modern javascript enabled browser,
+you should see a small chess board. You are playing white. To change
+that, click **swap**. You can swap sides at any stage of the game.
+
+To move a piece, click on it and click again where you want it to be.
+
+If the game is too easy or hard, click on the **computer level**
+button until it seems about right. Depending on you browser and
+computer, the slower settings might cause the browser to pop up
+warning windows.
+
+When you make a stupid move, you can undo it by clicking on your
+previous move in the game log.
+
+The **pawn becomes ...** button switches between the various possible
+promotions for a pawn that reaches the end. If you want to change it,
+do so before you move the pawn.
+
+If a draw is technically possible (either through 3 repetitions of the
+same position, or 50 moves without a capture or pawn move) , a **Draw
+?** button will appear. You can claim a draw by clicking it. P4wn will
+never claim a draw on its own, just offer you the button.
+
+Where to find it and get help
+=============================
 
 There is a homepage at http://p4wn.sf.net and git repositories at
 http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn and
 https://github.com/douglasbagnall/p4wn. The two git repositories
-should be pretty similar.
+should be pretty similar. Most people seem to use the github one.
 
-Historical notes
-================
+There is a mailing list at
+https://lists.sourceforge.net/lists/listinfo/p4wn-chess, and the issue
+tracker at https://github.com/douglasbagnall/p4wn/issues is used.
 
-As mentioned, a 5kB version was entered in a 2002 competition for
-small web pages. In 2004 the code gained a sourceforge page
-(http://p4wn.sf.net) with a CVS tree and a public domain dedication.
-This spurred a small flurry of forks, as various people tried fixing
-the obvious bugs and bad graphics or further reducing the code size.
-These forks never coalesced into anything that could be called a
-stream of development, no doubt due to the pathological state of the
-code and a perceived lack of need for small chess playing web pages.
+History
+=======
 
-In March 2012 Douglas Bagnall liberated the code into git and tried to
-de-obfuscate, disentangle, and modernise it, resulting in what you
-find in ``/src/``. The intention, perhaps not entirely realised, is
-that the interface code can be easily replaced without affecting the
-chess engine, or vice versa.
+Version 1
+---------
 
-The original program was first written for turn of the century
-browsers, and to be as small as possible. It worked in Netscape 3. The
-new version targets HTML5-ish browsers and aims to be as small as is
-reasonable, while remaining easy to modify and embed. While it might
-appear that every single line differs, the code is substantially the
-same. The changes are mostly in the variable names and whitespace. In
-particular, it is full of constructs that reflect the programmer's
-former interest in brevity over clarity (and his inexperience).
+P4wn was originally written between 2000 and 2002 in a very compressed
+form, and was entered in the 2002 5k web contest. This version can
+still be found in the ``5k`` and ``6k`` directories. It is quite
+obtuse, due to its minified nature and the inexperience of the
+programmer.
 
-Description of the code
-=======================
-
-**index.html** and **p4wn.css** are vessels for the javascript. These
-are intended as examples and are deliberately simple.
-
-**display.js** shows chess moves in the html. This is also an example,
-though it is quite complex in its way. **display-config.js**
-configures the interface a little. By putting your own script between
-this and display.js, you can override the values you want.
-
-**engine.js** plays chess and verifies moves.
-
-Board structure
+Sourceforge CVS
 ---------------
 
-The board is stored as a 120 element array, conceptually a 10x12
-board, with the 8x8 board placed at the centre, thus::
+In 2004 it gained a sourceforge page (http://p4wn.sf.net) with a CVS
+tree and a public domain dedication. This spurred a small flurry of
+forks, as various people tried fixing the obvious bugs and bad
+graphics or further reducing the code size. These forks never
+coalesced into anything that could be called a stream of development,
+no doubt due to the pathological state of the code and a perceived
+lack of need for small chess playing web pages.
+
+In March 2012 P4wn was liberated into git, and somewhat de-obfuscated,
+disentangled, and modernised. This is the version in ``src/``, known
+as version 2.
+
+The name “p4wn” was originally only intended as a sourceforge
+subdomain, not to be applied to the chess program itself (which was
+called “5k chess” or somesuch). People have universally assumed
+otherwise, so the name sticks.
+
+Differences between version 1 and 2
+-----------------------------------
+
+The original program was first written for turn of the century
+browsers, and to be as small as possible. It works in browsers newer
+than Netscape 3 and Internet Explorer 4. The new version targets
+HTML5-ish browsers and aims to be as small as is reasonable, while
+remaining easy to modify and embed. It probably doesn't work in MSIE6.
+
+Embedding and theming
+=====================
+
+*TL;DR:* look at ``src/index.html``. If you are trying something more
+complex than that, look also at ``src/fen-test.html``. Failing that,
+read on.
+
+The default interface is deliberately primitive, to encourage the
+development of replacements.
+
+Putting it in you own page, method 1
+------------------------------------
+
+Copy the files ``engine.js``, ``display.js``, ``p4wn.css``, and the
+``images`` directory into your html directory. Then add these lines to
+your html::
+
+  <link rel="stylesheet" href="p4wn.css" />
+
+in the ``<head>``,
+::
+
+  <div id="board-goes-here"></div>
+
+where you want the board to be, and this::
+
+ <script src="engine.js"></script>
+ <script src="display.js"></script>
+ <script>
+  var game = p4wnify("board-goes-here");
+  game.next_move();
+ </script>
+
+at the bottom.
+
+Putting it in you own page, method 2
+------------------------------------
+
+You might want the p4wn files somewhere else in your web tree, in
+which case you would do something like this (replacing ``p4wn/src``
+with the correct path)::
+
+ <html>
+    <link rel="stylesheet" href="p4wn/src/p4wn.css" />
+  <body>
+    Your content...
+   <div id="board-goes-here"></div>
+    Your other content...
+   <script src="p4wn/src/engine.js"></script>
+   <script src="p4wn/src/display.js"></script>
+   <script>
+    P4WN_IMAGE_DIR = 'p4wn/src/images';
+    var game = p4wnify("board-goes-here");
+    game.next_move();
+   </script>
+  </body>
+ </html>
+
+
+Putting it in you own page, method 3 (no local copy)
+----------------------------------------------------
+
+Replacing every instance of ``p4wn/src`` in the above example with
+``http://p4wn.sf.net/src`` ought to work.
+
+Theming using CSS
+-----------------
+
+Start from ``p4wn.css``. A few rules (e.g. the log panel height) are
+overridden by javascript. If you really need to wrest control back,
+use the ``!important`` declaration. Or you could write your own
+version of ``p4wnify()`` from ``display.js`` that doesn't do that.
+
+Theming: images
+---------------
+
+The images are found in a directory specified by ``P4WN_IMAGE_DIR``.
+When you have better images, put them where you like and change that
+variable before calling ``p4wnify()``::
+
+   <script src="p4wn/src/engine.js"></script>
+   <script src="p4wn/src/display.js"></script>
+   <script>
+    P4WN_IMAGE_DIR = '/path/to/better/images';
+    var game = p4wnify("board-goes-here");
+    game.next_move();
+   </script>
+
+Alternatively you can change the ``P4WN_IMAGE_NAMES`` variable, which is
+a list of variable names::
+
+ var P4WN_IMAGE_NAMES = [
+     'empty.gif',
+     '',   // 1 is unused
+     'white_pawn.gif',
+     'black_pawn.gif',
+     'white_rook.gif',
+     'black_rook.gif',
+     'white_knight.gif',
+     //....
+    ];
+
+but that is more work.
+
+Theming: scale
+--------------
+
+The size of the board is controlled by the size of each square, which
+is controlled by two variables::
+
+   <script>
+    P4WN_SQUARE_WIDTH = 60;  /* default is 30 x 30 */
+    P4WN_SQUARE_HEIGHT = 60;
+    var game = p4wnify("board-goes-here");
+    game.next_move();
+   </script>
+
+The images will be scaled to this size.
+
+Theming: miscellaneous
+----------------------
+
+Should the board flip around when you are playing black, so your
+pieces are at the bottom?
+::
+
+ P4WN_ROTATE_BOARD = false; //default is true
+
+Do you dislike the names of the various levels, or think the default
+level is wrong? Change these::
+
+ P4WN_LEVELS = ['stupid', 'middling', 'default', 'slow', 'slowest'];
+ P4WN_DEFAULT_LEVEL = 2;
+
+The names of pieces for pawn promotions can be localised::
+
+ P4WN_PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
+
+Should p4wn keep trying deeper and deeper searches until it runs out
+of time (around a second)?
+
+::
+
+ P4WN_ADAPTIVE_LEVELS = true;
+
+More complicated and deeper adaptations
+---------------------------------------
+
+It is possible to replace the ``display.js`` interface altogether, or to
+modify the way the engine plays. But these topics are discussed below.
+It is time for a break.
+
+
+The engine.js API and internals
+===============================
+
+**engine.js** keeps track of the game, finds moves to play, and tries
+to communicate as much of this as is necessary to the human interface
+(**display.js**, by default). There are a few functions and a state
+object you need to worry about if you are writing a new interface, and
+a number of configurable constants you can fiddle with whether you are
+replacing display.js or not.
+
+Some terminology
+----------------
+
+*FEN*, or `Forsyth-Edwards Notation`_ is a standard for describing
+chess positions. It is fairly simple and widely used.
+
+.. _`Forsyth-Edwards Notation`: http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+
+`Algebraic Notation`_ or *AN* is a widely used but not quite precisely
+defined standard for describing chess *moves*. If you have ever read a
+chess article you will have seen little clusters of letters and
+numbers like “*a8=Q Nbxa8*”. That is algebraic notation. P4wn follows
+the PGN_ dialect which uses upper case Os instead of zeros in castling
+notation (*O-O-O* vs *0-0-0*), but it tries to understand a wider
+range, including the long form which names each square rather than the
+moved piece (e.g. *b1-c3* rather than *Nc3*).
+
+.. _`Algebraic Notation`: http://en.wikipedia.org/wiki/Algebraic_chess_notation
+.. _PGN: http://en.wikipedia.org/wiki/Portable_Game_Notation
+
+Finally, a *pseudo-legal move* is a move that is allowed by the
+movement rules of chess without regard for check. The pseudo legal
+moves are an easier to find super-set of the actually legal moves.
+
+
+Functions used by display.js
+----------------------------
+
+p4_new_game() and p4_fen2state()
+++++++++++++++++++++++++++++++++
+
+``p4_new_game()`` creates a state object representing a game in the
+initial position. This is actually just a wrapper for
+``p4_fen2state(P4_INITIAL_BOARD)``, with P4_INITIAL_BOARD being the
+appropriate FEN string. With other FEN strings you can start the game
+in another position.
+
+p4_findmove(state, depth)
++++++++++++++++++++++++++
+
+This finds the computer's moves. ``state`` is the object returned by
+``p4_new_game()``, and ``depth`` is an integer 1 less than the depth
+of the desired search. That is, a ``3`` will give you a 4-ply search.
+
+It returns the array ``[start, end, score]``, where start and end are
+board co-ordinates suitable for feeding into ``p4_move``, which is
+what you need to do if you actually want to make the move
+``p4_findmove`` found.
+
+p4_move(state, start, end, promotion) or p4_move(state, move)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This moves the piece and updates the board state. ``promotion`` is the
+piece the pawn should become if this move happens to be moving a pawn
+to the end. The options are ``P4_ROOK``, ``P4_KNIGHT``, ``P4_BISHOP``,
+and ``P4_QUEEN``, equating to 4, 6, 8, and 12 respectively. If
+``promotion`` is omitted, P4_QUEEN is assumed.
+
+The start and end can take various forms. The native form used by
+display.js and ``p4_findmove`` are indexes into a 120 element array,
+which is conceptually a 10x12 board, with the 8x8 board placed at the
+centre, thus::
 
    + 0123456789
    0 ##########
@@ -90,156 +328,245 @@ board, with the 8x8 board placed at the centre, thus::
  100 ##########
  110 ##########
 
-The idea is that any piece trying to walk off the board will hit a
-wall ('#' in the diagram). There are two rows at top and bottom to
-catch the knights.
+The idea behind this representation is that any piece trying to walk
+off the board will hit a wall (“``#``” in the diagram), which simplifies
+bounds checking. There are two rows at top and bottom to catch the
+knights. The white pieces start in locations 21-28 and 31-38, and the
+black ones in 91-98 and 81-88, so moving the white kings pawn out 2
+rows (*e4* in algebraic notation) would be made using::
 
-The white pieces start in locations 21-28 and 31-38, and the black
-ones in 91-98 and 81-88.
+ p4_move(state, 35, 55);
 
-This board is stored as an attribute of a ``state`` object, which is
-passed around the various engine functions. The board is called
-``state.board``. Extra bits of state, like the presence of en passant
-pawns and the availability of castling, are also stored as attributes
-of the state object. Also, because it is there, the engine uses the
-state to cache all kinds of intermediate values that aren't really
-state.
+But ``p4_move`` will also accept a split algebraic form::
 
-Tree search
------------
+ p4_move(state, 'e2', 'e4');  /*start and end in algebraic notation*/
 
-The function ``p4_treeclimber()`` calls itself recursively to
-implement some sort of principal variation search, which is a kind of
-alpha-beta search that tries to examine the best branches first.
-(Whether this version does that successfully, and whether it is worth
-the complexity over a plain alpha-beta search, is an interesting
-question).
+or various complete algebraic forms, where ``end`` and ``promotion``
+are both ignored::
 
-``p4_treeclimber()`` calls ``p4_parse()`` to get a list of possible
-moves at each level of recursion. As parse finds moves it also scores
-them according to material taken and weights given to various squares.
-These weights are calculated in advance by ``p4_prepare()`` which is
-called before the outermost ``p4_treeclimber()``. Most of the time is
-probably spent in ``p4_parse()``, but this has not been tested or
-particularly optimised.
+ p4_move(state, 'e4');
+ p4_move(state, 'e2-e4'); /* 'long' algebraic notation */
 
-The scoring system is really naive, in part due to size constraints
-and in part to genuine authorial naivete.
+If you are using this for, you should set the pawn promotion as part
+of the algebraic string (or you'll just get queens):
 
-display.js facing API
----------------------
+ p4_move(state, 'e8=N'); /*got to end; promote to knight*/
 
-The display code needs to call ``p4_new_game()`` to get a state
-object. To ask for a computer move, it calls ``p4_findmove(state,
-depth)``, where depth indicates how far ahead the search should look.
-``p4_findmove`` returns an array of ``[start, end]``, where start and
-end are board offsets as described above. To make a move, whether
-found by ``p4_findmove()`` or user interaction, it must call
-``p4_move(state, s, e)``. This tries to alter the board state and
-returns a single integer indicating the result of the move, made up
-out of these flags::
+p4_move() return value
+++++++++++++++++++++++
 
- P4_MOVE_ILLEGAL = 0             0 means the board is unchanged
+You get back an object like this::
+
+   {
+     flags: <integer flags>,
+     string: <algebraic notation>,
+     ok: <boolean>
+   }
+
+``ok`` says whether or not the move was legal. If ``ok`` is true, the
+move stuck and the state has changed accordingly. ``flags`` contains
+more detailed information about what happened.  The flags are::
+
  P4_MOVE_FLAG_OK = 1             the move is OK
  P4_MOVE_FLAG_CHECK = 2          a king is in check
- P4_MOVE_FLAG_MATE = 4           a side can't move (mate)
+ P4_MOVE_FLAG_MATE = 4           checkmate or stalemate
  P4_MOVE_FLAG_CAPTURE = 8        a piece has been taken
  P4_MOVE_FLAG_CASTLE_KING = 16   king side castle
  P4_MOVE_FLAG_CASTLE_QUEEN = 32  queen side castle
+ P4_MOVE_FLAG_DRAW = 64          a draw is available
 
-The castling and capture flags are useful for writing game logs. A
-value of ``P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE`` (5) indicates
-stalemate, while ``P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK |
-P4_MOVE_FLAG_MATE`` (7) means checkmate. If, through a mate somehow
-being missed, a move would directly capture a king, the combination
-``P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE`` is returned. This says
-"checkmate, but the move is not OK", and means the game should stop.
+For example, if you put the other king into check by taking a piece,
+the flags attribute will be ``P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK |
+P4_MOVE_FLAG_CAPTURE``, which is 11. An ordinary move with no capture
+or check results in a 1.
 
+If ``P4_MOVE_FLAG_MATE`` is set without ``P4_MOVE_FLAG_CHECK``, the result is
+stalemate.
 
-TODO
-====
+``P4_MOVE_FLAG_DRAW`` indicates that a technical draw can be claimed (that
+is, a position has been repeated three times or 50 full moves have
+passed without a pawn move or capture).
 
-These changes should have a good or at least interesting effect.
-
-Tune weights
-------------
-
-The weights have suffered all kinds of arbitrary changes with little
-testing, and as a result this version probably plays worse than the 6k
-one.
-
-More general state loading/unloading/storage and history navigation
--------------------------------------------------------------------
-
-It would be nice, and not difficult, to be able to go back and forward
-in history and load arbitrary boards. Perhaps the board should be
-loaded from a more readable compact string (like
-'RNBQKBNRPPPPPPPP...'). The actually stateful parts of the state could
-likewise be stringified, and the history stored as a list of strings.
-(This is sort of how the 6k version worked -- its strings were
-eval()ed into lists).
-
-This would be useful for testing.
-
-Testing
--------
-
-It wouldn't be hard to write a test page, that loaded various boards
-and tested odd positions.  And timed things.
-
-Convert parse to a per-square-per piece look-up table.
-------------------------------------------------------
-
-Currently a knight or king on the edge will try looking in 8
-directions when we know it can at the most go in 4. If the current
-parse code was run for every square at the beginning, there could be a
-big (but not all that big) look up table to use at parse time. Like
-so::
-
-   var moves = MOVE_LUT[piece][start_location];
-   for(i = 0; i < moves.length; i++){
-       e = moves[i];
-       E = board[e];
-       if(!E || ( E & 1) == other_colour){
-           ...move
-       }
-    }
-
-It saves trying off board moves, as well as some arithmetic.
-
-For the pieces with variable length moves, it would look more like this::
-
-   var directions = MOVE_LUT[piece][start_location];
-   for (j = 0; j < directions.length; j++){
-       moves = directions[j];
-       for(i = 0; i < moves.length; i++){
-           e = moves[i];
-           E = board[e];
-           if(! E || (E & 1) == other_colour){
-              ...move
-           }
-           if (E)
-              break;
-       }
-   }
-
-Pawns should save the most.
+If the move is OK, ``string`` is a description of it in algebraic
+notation. If the move fails, ``string`` may or may not contain an
+explanation (“in check” or similar).
 
 
-Consideration of material balance
----------------------------------
+p4_jump_to_moveno(state, n)
++++++++++++++++++++++++++++
 
-A knight-knight swap is only even if every thing else is even. A side
-with a material advantage will proportionally increase its advantage
-through even exchanges.  This is easy enough to calculate.
+Rewind the game to an earlier move, wth ``n`` being the half-move
+number to jump to.  Examples::
+
+ p4_jump_to_moveno(state, 0) /* jump to the beginning */
+ p4_jump_to_moveno(state, 3) /* jump to black's second move */
+
+If the game was initialised using ``p4_fen2state()``, you can only rewind
+as far back as the move specified by the FEN involved.
+
+State attributes
+----------------
+
+The display code reads two attributes of the state object::
+
+ {
+  board: array,
+  to_play: 0
+ }
+
+where ``board`` is the 120 element array described above, and
+``to_play`` is 0 during white's turn and 1 during blacks.
 
 
-General front-end improvements
-------------------------------
+Tweakable constants
+-------------------
 
-The images and interaction could be better.
+These can be adjusted in the same way as themeable constants above:
+just change them after you load *engine.js*, and before you do anything
+else.
 
-WebGL or html5 canvas front-ends are welcome.
+Relative values of pieces.
+++++++++++++++++++++++++++
+
+It would be wise to stick to approximately the same scale::
+
+  P4_VALUES=[0, 0,
+             20, 20,    //pawns
+             100, 100,  //rooks
+             60, 60,    //knights
+             61, 61,    //bishops
+             8000, 8000,//kings
+             180, 180,  //queens
+             0];
+
+P4_DEBUG: determinism and verbosity
++++++++++++++++++++++++++++++++++++
+
+You can make p4wn play the same game every time and possibly log more
+to the javscript console::
+
+  P4_DEBUG = 1; /*or true */
+
+Typed arrays vs plain old arrays
+++++++++++++++++++++++++++++++++
+
+Modern browsers have typed arrays which p4wn uses by default where
+they exist.  You can force them off or on::
+
+  P4_USE_TYPED_ARRAYS = false;
+
+Changing the search algorithm
+=============================
+
+The state object has a ``treeclimber`` attribute, which points to a
+function used by ``p4_find_move`` to evaluate the various possible
+moves. The default implementation calls itself recursively to perform
+an alpha-beta search, but replacement treeclimbers need not do this.
+
+There are a number of alternatives in ``parse-test.js``, and if you
+visit *fen-test.html* you will see a button for cycling through these.
+
+To replace the search, just go ``state.treeclimber =
+your_search_function``, making sure of course that your function knows
+the treeclimber signature::
+
+  treeclimber(
+      state,      /* p4wn state object */
+      depth,      /* integer indicating depth of search */
+      colour,     /* colour to move 0 == white, 1 == black */
+      score,      /* base score to alter */
+      s, e,       /* start and end squares of the move to be considered */
+      alpha, beta /* low and high cutoffs */
+      ){
+       return score; /*score adjusted by evaluation */
+      }
+
+If you don't know ``alpha`` and ``beta`` do, you can ignore them (or
+look up *alpha-beta search*).  You can probably ignore the ``score``
+argument too if your function is not performing cumulative evaluation
+via recursion.
+
+Tree search helper functions
+----------------------------
+
+p4_make_move(state, start, end, promotion)
+++++++++++++++++++++++++++++++++++++++++++
+
+This alters the state object by making the move indicated by ``start``
+and ``end``. If the move puts a pawn in the promotion row,
+``promotion`` must be set. The returned object contains all the
+information necessary to unmake the move (and a bit more).
+
+p4_unmake_move(state, move)
++++++++++++++++++++++++++++
+
+This undoes a ``p4_make_move`` move. The basic pattern is::
+
+  var move = p4_make_move(state, start, end, promotion)
+  /* evaluate... */
+  p4_unmake_move(state, move)
+
+p4_parse(state, colour, ep, score)
+++++++++++++++++++++++++++++++++++
+
+This returns an array of arrays representing the available
+pseudo-legal moves along with a partial evaluation of the move's
+value. Each returned move is represented thus: ``[score, start,
+end]``. Even if you aren't using the evaluation, ``p4_parse`` is
+reasonably quick.
+
+As an exception to the pseudo-legal moves rule, ``p4_parse`` thoroughly
+checks that castling is possible.
+
+p4_check_check(state, colour)
++++++++++++++++++++++++++++++
+
+Returns true if the king of the colour in question is in check.
+Otherwise false.
+
+Re-minimising
+=============
+
+If you wanted to shrink p4wn back down to a few kilobytes, you could
+get rid of much of the last third of *engine.js* which is mostly about
+interpreting and producing strings in standard formats. Then if you
+manually shorten the global names (including functions), an automatic
+minimiser should be able to make it quite small, though probably not
+down to 5k.
+
+Tests
+=====
+
+A *few* tests are run automatically by ``auto-test.html``. The test
+harness in ``auto-test.js`` is primitive but reusable, topical, and
+extensible.
+
+``fen-test.html`` doesn't test anything on its own, but offers more
+debugging options than ``index.html``.
+
+HTTP query string interpretation
+================================
+
+The board state, search depth, and player colour can be set via the
+http query string.  The available options are:
+
+start
+  a FEN string to start the board at.
+
+level
+  the search depth
+
+player
+  one of ``white`` | ``black`` | ``both`` | ``neither``. “both” means
+  the computer makes no moves, players move both sides.
+
+debug
+  switch on P4_DEBUG
+
+For example,
+http://p4wn.sf.net/src/?start=8/8/8/8/8/4K3/5Q2/7k%20w%20-%20-%2011%2056&player=black
+lands you in a pickle, playing black.
+
 
 Contributors and copyright
 ==========================
