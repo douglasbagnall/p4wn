@@ -182,7 +182,7 @@ _p4d_proto.refresh = function(){
 _p4d_proto.start_moving_piece = function(position){
     /*drop the currently held one, if any*/
     this.stop_moving_piece();
-    var img = this.elements.pieces[position];
+    var img = this.elements.pieces[this.orientation ? 119 - position : position];
     this.elements.moving_img = img;
     img.style.position = 'fixed';
     var yoffset = parseInt(P4WN_SQUARE_HEIGHT / 2);
