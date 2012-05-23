@@ -22,21 +22,23 @@ var P4WN_LEVELS = ['stupid', 'middling', 'default', 'slow', 'slowest'];
 var P4WN_DEFAULT_LEVEL = 2;
 var P4WN_ADAPTIVE_LEVELS = false;
 
+var P4WN_IMAGE_DIR = 'images';
+
 var P4WN_IMAGE_NAMES = [
-    'images/empty.gif',
+    'empty.gif',
     '',   // 1 is unused
-    'images/white_pawn.gif',
-    'images/black_pawn.gif',
-    'images/white_rook.gif',
-    'images/black_rook.gif',
-    'images/white_knight.gif',
-    'images/black_knight.gif',
-    'images/white_bishop.gif',
-    'images/black_bishop.gif',
-    'images/white_king.gif',
-    'images/black_king.gif',
-    'images/white_queen.gif',
-    'images/black_queen.gif'
+    'white_pawn.gif',
+    'black_pawn.gif',
+    'white_rook.gif',
+    'black_rook.gif',
+    'white_knight.gif',
+    'black_knight.gif',
+    'white_bishop.gif',
+    'black_bishop.gif',
+    'white_king.gif',
+    'black_king.gif',
+    'white_queen.gif',
+    'black_queen.gif'
 ];
 
 
@@ -172,7 +174,7 @@ _p4d_proto.refresh = function(){
     for (var i = 20; i < 100; i++){
         if(board[i] != P4_EDGE){
             var j = this.orientation ? 119 - i : i;
-            pieces[j].src =  P4WN_IMAGE_NAMES[board[i]];
+            pieces[j].src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[board[i]];
         }
     }
 };
@@ -235,7 +237,7 @@ _p4d_proto.write_board_html = function(){
 
             var img = p4d_new_child(td, "img");
             pieces[i] = img;
-            img.src = P4WN_IMAGE_NAMES[0];
+            img.src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[0];
             img.width= P4WN_SQUARE_WIDTH;
             img.height= P4WN_SQUARE_HEIGHT;
         }
@@ -283,7 +285,7 @@ var P4WN_CONTROLS = [
         },
         refresh: function(el){
             var s = this.players[0];
-            el.innerHTML = 'white <img src="images/' + s + '.png" alt="' + s + '">';
+            el.innerHTML = 'white <img src="' + P4WN_IMAGE_DIR + '/' + s + '.png" alt="' + s + '">';
         }
     },
     {/*black player */
@@ -294,7 +296,7 @@ var P4WN_CONTROLS = [
         },
         refresh: function(el){
             var s = this.players[1];
-            el.innerHTML = 'black <img src="images/' + s + '.png" alt="' + s + '">';
+            el.innerHTML = 'black <img src="' + P4WN_IMAGE_DIR + '/' + s + '.png" alt="' + s + '">';
         }
     },
     {/*swap sides */
