@@ -571,7 +571,7 @@ debug
   switch on P4_DEBUG
 
 For example,
-http://p4wn.sf.net/src/?start=8/8/8/8/8/4K3/5Q2/7k%20w%20-%20-%2011%2056&player=black
+http://p4wn.sf.net/src/?start=8/8/8/8/8/4K3/5Q2/7k+w+-+-+11+56&player=black
 lands you in a pickle, playing black.
 
 
