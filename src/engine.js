@@ -277,11 +277,14 @@ function p4_prepare(state){
                 var promotion_row = y == 9 - c * 7;
                 var get_out = (early && at_home) * -5;
 
-                var centre_rooks = at_home * (x == 4 || x == 5) * earliness_weight;
-                if (x == 1 || x == 8 && (moveno > 10 && moveno < 20)) centre_rooks -= 4;
                 var knight = parseInt(early_centre * 0.3) + 2 * plateau + get_out;
-                var rook = parseInt(early_centre * 0.3) + centre_rooks;
+                var rook = parseInt(early_centre * 0.3);
                 var bishop = parseInt(early_centre * 0.6) + plateau + get_out;
+                if (at_home){
+                    rook += (x == 4 || x == 5) * (earliness_weight + ! target_king);
+                    rook += (x == 1 || x == 8) * (moveno > 10 && moveno < 20) * -3;
+                    rook += (x == 2 || x == 7) * (moveno > 10 && moveno < 20) * -1;
+                }
 
                 /*Queen wants to stay home early, then jump right in*/
                 /*keep kings back on home row for a while*/
