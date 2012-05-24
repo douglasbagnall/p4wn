@@ -1,0 +1,18 @@
+<html>
+<head>
+<link rel="stylesheet" href="p4wn.css" />
+</head>
+<body>
+
+<div id="board1"></div>
+<div id="board2"></div>
+
+<script src="engine.js"></script>
+<script src="display.js"></script>
+<script>
+P4_ENCODE_LUT = "  ♙♟♖♜♘♞♗♝♔♚♕♛";
+p4wnify("board1").next_move();
+p4wnify("board2").next_move();
+</script>
+</body>
+</html>
