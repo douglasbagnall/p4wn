@@ -634,9 +634,48 @@ function p4_check_check(state, colour){
     return false;
 }
 
+function p4_optimise_piece_list(state){
+    var i, p;
+    for (var colour = 0; colour < 2; colour++){
+        var pieces = state.pieces[colour];
+        var movelist = p4_parse(state, colour, 0, 0);
+        var scores = [];
+        for (i = 0; i < pieces.length; i++){
+            p = pieces[i];
+            scores[p[1]] = [0, p[0], p[1]];
+        }
+        //console.log('scores ' + scores);
+        movelist.sort(function(a, b){return a[0] - b[0];});
+        for(i = movelist.length - 1; i >= 0; i--){
+            var mv = movelist[i];
+            var mscore = mv[0];
+            var ms = mv[1];
+            var ps = scores[ms];
+            if (mscore > ps[0])
+                ps[0] = mscore;
+        }
+        var pieces2 = [];
+        for (i = 20; i < 100; i++){
+            p = scores[i];
+            if (p !== undefined)
+                pieces2.push(p);
+        }
+        pieces2.sort(function(a, b){return a[0] - b[0];});
+        for (i = 0; i < pieces2.length; i++){
+            p = pieces2[i];
+            p.shift();
+            pieces[i] = p;
+        }
+        //console.log('colour', colour);
+        //console.log('pieces', pieces);
+        //console.log('pieces2', pieces2);
+    }
+}
+
 function p4_findmove(state, level, colour, ep){
     state.quiesce_counts = [0, 0];
     p4_prepare(state);
+    p4_optimise_piece_list(state);
     var board = state.board;
     if (arguments.length == 2){
         colour = state.to_play;
