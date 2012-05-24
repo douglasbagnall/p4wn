@@ -4,7 +4,7 @@ P4wn, a smallish javascript chess engine
 P4wn is a web page that can play chess. It is quite small, plays well
 enough to be interesting, and is easy to embed in your pages. The
 default interface is easy to replace, and the engine is tunable. P4wn
-is completely free, available under CC0_ terms or as public domain.
+is completely free, available under CC0_ or public domain terms.
 You can use it for anything you want.
 
 .. _CC0: http://creativecommons.org/publicdomain/zero/1.0/
@@ -84,9 +84,15 @@ Differences between version 1 and 2
 
 The original program was first written for turn of the century
 browsers, and to be as small as possible. It works in browsers newer
-than Netscape 3 and Internet Explorer 4. The new version targets
-HTML5-ish browsers and aims to be as small as is reasonable, while
-remaining easy to modify and embed. It probably doesn't work in MSIE6.
+than Netscape 3 and Internet Explorer 4. Version 2 targets HTML5-ish
+browsers and aims to be as small as is reasonable, while remaining
+easy to modify and embed. It probably works in all versions of
+Firefox, Chrome, and Safari, and (more slowly) in Internet Explorer
+5.5 and above.
+
+P4wn 2 in 2012 works a few thousand times faster than P4wn 1 did is
+2002. Much, but not all, of that is down to browser and hardware
+improvements.
 
 Embedding and theming
 =====================
@@ -146,12 +152,13 @@ with the correct path)::
   </body>
  </html>
 
-
 Putting it in you own page, method 3 (no local copy)
 ----------------------------------------------------
 
 Replacing every instance of ``p4wn/src`` in the above example with
-``http://p4wn.sf.net/src`` ought to work.
+``http://p4wn.sf.net/src`` ought to work. (This is by way of example:
+http://p4wn.sf.net/src might not always contain working and up-to-date
+code).
 
 Theming using CSS
 -----------------
