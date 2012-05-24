@@ -295,20 +295,28 @@ initial position. This is actually just a wrapper for
 appropriate FEN string. With other FEN strings you can start the game
 in another position.
 
-p4_findmove(state, depth)
-+++++++++++++++++++++++++
+The ``state`` object has three methods, which are wrappers around
+global functions in ``engine.js``. You can use the global functions
+just as well, using this conversion table::
+
+  state.findmove(depth)    <-->   p4_findmove(state, depth)
+  state.move(...)                 p4_move(state, ...)
+  state.jump_to_moveno(n)         p4_jump_to_moveno(state, n)
+
+state.findmove(depth)
++++++++++++++++++++++
 
 This finds the computer's moves. ``state`` is the object returned by
 ``p4_new_game()``, and ``depth`` is an integer 1 less than the depth
 of the desired search. That is, a ``3`` will give you a 4-ply search.
 
-It returns the array ``[start, end, score]``, where start and end are
-board co-ordinates suitable for feeding into ``p4_move``, which is
-what you need to do if you actually want to make the move
-``p4_findmove`` found.
+It returns the array ``[start, end, score]``, where ``start`` and
+``end`` are board co-ordinates suitable for feeding into
+``state.move()``, which is what you need to do if you actually want to
+make the move it found.
 
-p4_move(state, start, end, promotion) or p4_move(state, move)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+state.move(start, end, promotion) or state.move(move_string)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This moves the piece and updates the board state. ``promotion`` is the
 piece the pawn should become if this move happens to be moving a pawn
@@ -317,9 +325,9 @@ and ``P4_QUEEN``, equating to 4, 6, 8, and 12 respectively. If
 ``promotion`` is omitted, P4_QUEEN is assumed.
 
 The start and end can take various forms. The native form used by
-display.js and ``p4_findmove`` are indexes into a 120 element array,
-which is conceptually a 10x12 board, with the 8x8 board placed at the
-centre, thus::
+``display.js`` and ``state.findmove`` are indexes into a 120 element
+array, which is conceptually a 10x12 board, with the 8x8 board placed
+at the centre, thus::
 
    + 0123456789
    0 ##########
@@ -342,25 +350,25 @@ knights. The white pieces start in locations 21-28 and 31-38, and the
 black ones in 91-98 and 81-88, so moving the white kings pawn out 2
 rows (*e4* in algebraic notation) would be made using::
 
- p4_move(state, 35, 55);
+ state.move(35, 55);
 
-But ``p4_move`` will also accept a split algebraic form::
+But ``state.move`` will also accept a split algebraic form::
 
- p4_move(state, 'e2', 'e4');  /*start and end in algebraic notation*/
+ state.move('e2', 'e4');  /*start and end in algebraic notation*/
 
 or various complete algebraic forms, where ``end`` and ``promotion``
 are both ignored::
 
- p4_move(state, 'e4');
- p4_move(state, 'e2-e4'); /* 'long' algebraic notation */
+ state.move('e4');
+ state.move('e2-e4'); /* 'long' algebraic notation */
 
 If you are using this for, you should set the pawn promotion as part
 of the algebraic string (or you'll just get queens):
 
- p4_move(state, 'e8=N'); /*got to end; promote to knight*/
+ state.move('e8=N'); /*got to end; promote to knight*/
 
-p4_move() return value
-++++++++++++++++++++++
+state.move() return value
++++++++++++++++++++++++++
 
 You get back an object like this::
 
@@ -399,14 +407,14 @@ notation. If the move fails, ``string`` may or may not contain an
 explanation (“in check” or similar).
 
 
-p4_jump_to_moveno(state, n)
-+++++++++++++++++++++++++++
+state.jump_to_moveno(n)
+++++++++++++++++++++++++++++++
 
 Rewind the game to an earlier move, wth ``n`` being the half-move
 number to jump to.  Examples::
 
- p4_jump_to_moveno(state, 0) /* jump to the beginning */
- p4_jump_to_moveno(state, 3) /* jump to black's second move */
+ state.jump_to_moveno(0) /* jump to the beginning */
+ state.jump_to_moveno(3) /* jump to black's second move */
 
 If the game was initialised using ``p4_fen2state()``, you can only rewind
 as far back as the move specified by the FEN involved.
