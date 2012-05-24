@@ -273,8 +273,9 @@ function p4_prepare(state){
                 var mul3 = mul * mul * mul;
                 var at_home = y == 2 + c * 7;
                 var pawn_home = y == 3 + c * 5;
+                var row4 = y == 5 + c;
                 var promotion_row = y == 9 - c * 7;
-                var get_out = (early && at_home) * -4;
+                var get_out = (early && at_home) * -5;
 
                 var centre_rooks = at_home * (x == 4 || x == 5) * earliness_weight;
                 if (x == 1 || x == 8 && (moveno > 10 && moveno < 20)) centre_rooks -= 4;
@@ -282,11 +283,12 @@ function p4_prepare(state){
                 var rook = parseInt(early_centre * 0.3) + centre_rooks;
                 var bishop = parseInt(early_centre * 0.6) + plateau + get_out;
 
-                /*don't encourage the queen to do anything too early, then prefer the centre*/
+                /*Queen wants to stay home early, then jump right in*/
                 /*keep kings back on home row for a while*/
-                var queen = (! early) * parseInt(plateau * 0.5 + early_centre * 0.5);
+                var queen = parseInt(plateau * 0.5 + early_centre * (0.5 - early));
                 var king = (king_should_hide && at_home) * 2 * earliness_weight;
 
+                /*empty board means pawn advancement is more urgent*/
                 var get_on_with_it = Math.max(emptiness * 2, 1);
                 var pawn = get_on_with_it * P4_BASE_PAWN_WEIGHTS[c ? 119 - i : i];
                 if (early){
@@ -297,9 +299,10 @@ function p4_prepare(state){
                         pawn += parseInt((boost + p4_random_int(state, 4)) * 0.1 *
                                          early_centre);
                     }
-                    else if (x == 4 || x == 5);{
+                    if (x == 4 || x == 5){
                         //discourage middle pawns from waiting at home
-                        pawn -= 2 * pawn_home;
+                        pawn -= 3 * pawn_home;
+                        pawn += 3 * row4;
                     }
                 }
                 /*pawn promotion row is weighted as a queen minus a pawn.*/
@@ -344,8 +347,8 @@ function p4_prepare(state){
 
                 if (draw_likely && mul < 1){
                     /*The winning side wants to avoid draw, so adds jitter to its weights.*/
-                    var range = 2 / mul3;
-                    for (j = 2 + c; j < 14; j+= 2){
+                    var range = 3 / mul3;
+                    for (j = 2 + c; j < 14; j += 2){
                         weights[j][i] += p4_random_int(state, range);
                     }
                 }
