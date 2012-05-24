@@ -256,7 +256,7 @@ to communicate as much of this as is necessary to the human interface
 (**display.js**, by default). There are a few functions and a state
 object you need to worry about if you are writing a new interface, and
 a number of configurable constants you can fiddle with whether you are
-replacing display.js or not.
+replacing ``display.js`` or not.
 
 Some terminology
 ----------------
@@ -322,7 +322,7 @@ This moves the piece and updates the board state. ``promotion`` is the
 piece the pawn should become if this move happens to be moving a pawn
 to the end. The options are ``P4_ROOK``, ``P4_KNIGHT``, ``P4_BISHOP``,
 and ``P4_QUEEN``, equating to 4, 6, 8, and 12 respectively. If
-``promotion`` is omitted, P4_QUEEN is assumed.
+``promotion`` is omitted, ``P4_QUEEN`` is assumed.
 
 The start and end can take various forms. The native form used by
 ``display.js`` and ``state.findmove`` are indexes into a 120 element
@@ -432,12 +432,11 @@ The display code reads two attributes of the state object::
 where ``board`` is the 120 element array described above, and
 ``to_play`` is 0 during white's turn and 1 during blacks.
 
-
 Tweakable constants
 -------------------
 
 These can be adjusted in the same way as themeable constants above:
-just change them after you load *engine.js*, and before you do anything
+just change them after you load ``engine.js``, and before you do anything
 else.
 
 Relative values of pieces.
@@ -479,7 +478,8 @@ moves. The default implementation calls itself recursively to perform
 an alpha-beta search, but replacement treeclimbers need not do this.
 
 There are a number of alternatives in ``parse-test.js``, and if you
-visit *fen-test.html* you will see a button for cycling through these.
+visit ``src/fen-test.html`` you will see a button for cycling through
+these.
 
 To replace the search, just go ``state.treeclimber =
 your_search_function``, making sure of course that your function knows
@@ -543,7 +543,7 @@ Re-minimising
 =============
 
 If you wanted to shrink p4wn back down to a few kilobytes, you could
-get rid of much of the last third of *engine.js* which is mostly about
+get rid of much of the last third of ``engine.js`` which is mostly about
 interpreting and producing strings in standard formats. Then if you
 manually shorten the global names (including functions), an automatic
 minimiser should be able to make it quite small, though probably not
@@ -552,11 +552,11 @@ down to 5k.
 Tests
 =====
 
-A *few* tests are run automatically by ``auto-test.html``. The test
-harness in ``auto-test.js`` is primitive but reusable, topical, and
-extensible.
+A *few* tests are run automatically by ``src/auto-test.html``. The
+test harness in ``src/auto-test.js`` is primitive but reusable, topical,
+and extensible.
 
-``fen-test.html`` doesn't test anything on its own, but offers more
+``src/fen-test.html`` doesn't test anything on its own, but offers more
 debugging options than ``index.html``.
 
 HTTP query string interpretation
