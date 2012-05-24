@@ -995,7 +995,7 @@ function p4_jump_to_moveno(state, moveno){
     if (moveno === undefined || moveno > state.moveno)
         moveno = state.moveno;
     else if (moveno < 0){
-        moveno = state.moveno - moveno - 1;
+        moveno = state.moveno + moveno;
     }
     var state2 = p4_fen2state(state.beginning);
     var i = 0;

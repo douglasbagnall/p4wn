@@ -171,7 +171,13 @@ _p4d_proto.log = function(msg, klass, onclick){
 }
 
 _p4d_proto.goto_move = function(n){
-    var delta = this.board_state.moveno - n;
+    var delta;
+    if (n < 0)
+        delta = -n;
+    else
+        delta = this.board_state.moveno - n;
+    if (delta > this.board_state.moveno)
+        delta = this.board_state.moveno;
     var div = this.elements.log;
     for (var i = 0; i < delta; i++){
         div.removeChild(div.lastChild);
@@ -335,6 +341,14 @@ var P4WN_CONTROLS = [
             else
                 el.innerHTML = 'swap';
         }
+    },
+    {/* undo*/
+        onclick_wrap: function(p4d){
+            return function(e){
+                p4d.goto_move(-2);
+            };
+        },
+        label: "<b>undo</i>"
     },
     {/* pawn promotion*/
         onclick_wrap: function(p4d){

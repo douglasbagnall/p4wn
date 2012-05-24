@@ -23,8 +23,9 @@ button until it seems about right. Depending on you browser and
 computer, the slower settings might cause the browser to pop up
 warning windows.
 
-When you make a stupid move, you can undo it by clicking on your
-previous move in the game log.
+When you make a stupid move, you can undo it by clicking on the
+**undo** button. To jump back a long way, you can click on a move in
+the game log.
 
 The **pawn becomes ...** button switches between the various possible
 promotions for a pawn that reaches the end. If you want to change it,
