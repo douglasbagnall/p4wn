@@ -235,7 +235,7 @@ var TEST_BUTTONS = [
     {
         onclick_wrap: function(p4d){
             return function(e){
-                weights_update(p4d, 1, e.currentTarget);
+                weights_update(p4d, 1, _event_target(e));
             };
         },
         refresh: function(el){
