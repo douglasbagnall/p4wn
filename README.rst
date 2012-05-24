@@ -70,7 +70,7 @@ coalesced into anything that could be called a stream of development,
 no doubt due to the pathological state of the code and a perceived
 lack of need for small chess playing web pages.
 
-In March 2012 P4wn was liberated into git, and somewhat de-obfuscated,
+In March 2012 p4wn was liberated into git and somewhat de-obfuscated,
 disentangled, and modernised. This is the version in ``src/``, known
 as version 2.
 
@@ -90,7 +90,7 @@ easy to modify and embed. It probably works in all versions of
 Firefox, Chrome, and Safari, and (more slowly) in Internet Explorer
 5.5 and above.
 
-P4wn 2 in 2012 works a few thousand times faster than P4wn 1 did is
+P4wn 2 in 2012 works a few thousand times faster than p4wn 1 did is
 2002. Much, but not all, of that is down to browser and hardware
 improvements.
 
