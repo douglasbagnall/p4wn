@@ -233,6 +233,10 @@ The names of pieces for pawn promotions can be localised::
 
  P4WN_PROMOTION_STRINGS = ['queen', 'rook', 'knight', 'bishop'];
 
+as can the moves in the game log::
+
+ P4_ENCODE_LUT = "  ♙♟♖♜♘♞♗♝♔♚♕♛";
+
 Should p4wn keep trying deeper and deeper searches until it runs out
 of time (around a second)?
 

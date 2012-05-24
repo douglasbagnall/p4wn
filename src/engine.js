@@ -89,6 +89,8 @@ var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     q: 13
 };
 
+var P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
+
 /*Backward compatibility for old MSIEs*/
 if (this.console === undefined)
     this.console = {log: function(){}};
@@ -917,7 +919,6 @@ function p4_move(state, s, e, promotion){
 
 function p4_move2string(state, s, e, S, promotion, flags, moves){
     var piece = S & 14;
-    var lut = '  PpRrNnBbKkQq';
     var src, dest;
     var mv, i;
     var capture = flags & P4_MOVE_FLAG_CAPTURE;
@@ -933,7 +934,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
         if (e > 90 || e < 30){  //end row, queening
             if (promotion === undefined)
                 promotion = P4_QUEEN;
-            mv += '=' + lut.charAt(promotion);
+            mv += '=' + P4_ENCODE_LUT.charAt(promotion);
         }
     }
     else if (piece == P4_KING && (s-e) * (s-e) == 4) {
@@ -945,7 +946,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
     else {
         var row_qualifier = '';
         var col_qualifier = '';
-        var pstr = lut.charAt(piece);
+        var pstr = P4_ENCODE_LUT.charAt(S);
         var sx = s % 10;
         var sy = parseInt(s / 10);
 
@@ -1025,7 +1026,7 @@ function p4_jump_to_moveno(state, moveno){
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  * */
 function p4_state2fen(state, reduced){
-    var lut = '  PpRrNnBbKkQq';
+    var piece_lut = '  PpRrNnBbKkQq';
     var board = state.board;
     var fen = '';
     //fen does Y axis backwards, X axis forwards */
@@ -1038,7 +1039,7 @@ function p4_state2fen(state, reduced){
             else{
                 if (count)
                     fen += count.toString();
-                fen += lut.charAt(piece);
+                fen += piece_lut.charAt(piece);
                 count = 0;
             }
         }
