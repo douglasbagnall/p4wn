@@ -365,11 +365,10 @@ function p4_parse(state, colour, ep, score) {
     var captures = [];
     var weight;
     var pieces = state.pieces[colour];
-    var plen = pieces.length;
     var castle_flags = (state.castles >> (colour * 2)) & 3;
     var values = state.values[other_colour];
     var all_weights = state.weights;
-    for (j = 0; j < plen; j++){
+    for (j = pieces.length - 1; j >= 0; j--){
         s=pieces[j][1]; // board position
         a=board[s]; //piece number
         /* the pieces list is only a convenient short cut.
