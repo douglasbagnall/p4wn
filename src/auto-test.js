@@ -95,7 +95,7 @@ function count_moves(fen, ply, expected){
     tstr += '; got ' + nodes;
     if (nodes == expected)
         return  [true, tstr, 'OK'];
-    return [false, tstr, nodes + ' != ' + expected];
+    return [false, tstr, nodes + ' != ' + expected + " (diff " + (nodes - expected) + ")"];
 }
 
 function new_child(element, childtag){
@@ -236,6 +236,11 @@ var TESTS = [
         3, 8902
     ],
     [
+        "count moves, initial board",
+        count_moves, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1",
+        4, 197281
+    ],
+    [
         "count moves, complex board",
         count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
         1, 48
@@ -244,6 +249,16 @@ var TESTS = [
         "count moves, complex board",
         count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
         2, 2039
+    ],
+    [
+        "count moves, complex board",
+        count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
+        3, 97862
+    ],
+    [
+        "count moves, complex board",
+        count_moves, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -",
+        4, 4085603
     ],
     [
         "count moves, in check, promotions",
@@ -274,6 +289,11 @@ var TESTS = [
         "count moves, emptyish board",
         count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
         4, 43238
+    ],
+    [
+        "count moves, emptyish board",
+        count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
+        5, 674624
     ],
     [
         "count moves, checkmate near",

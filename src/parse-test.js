@@ -87,7 +87,6 @@ function p4_counting_treeclimber(state, count, colour, score, s, e){
                 var mv = movelist[i];
                 subnodes += p4_counting_treeclimber(state, count - 1, ncolour, 0, mv[1], mv[2]);
             }
-            //subnodes += movecount;
         }
         else{
             subnodes += movecount;
@@ -96,8 +95,8 @@ function p4_counting_treeclimber(state, count, colour, score, s, e){
         if (s)
             p4_unmake_move(state, move);
 
-        if (pi && move.S < 4 && ((60 - e) * (60 - e) > 900))
-            console.log(s, move.S, promotions[pi]);
+        //if (pi && move.S < 4 && ((60 - e) * (60 - e) > 900))
+        //    console.log(s, move.S, promotions[pi]);
         pi++;
     } while(s &&
             pi < promotions.length &&
