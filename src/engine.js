@@ -635,40 +635,69 @@ function p4_check_check(state, colour){
 }
 
 function p4_optimise_piece_list(state){
-    var i, p;
+    var i, p, s, e;
+    var movelists = [
+        p4_parse(state, 0, 0, 0),
+        p4_parse(state, 1, 0, 0)
+    ];
+    var weights = state.weights;
+    var board = state.board;
     for (var colour = 0; colour < 2; colour++){
+        var their_values = state.values[1 - colour];
+        var our_values = state.values[colour];
         var pieces = state.pieces[colour];
-        var movelist = p4_parse(state, colour, 0, 0);
+        var movelist = movelists[colour];
+        var threats = movelists[1 - colour];
+        /* sparse array to index by score. */
         var scores = [];
         for (i = 0; i < pieces.length; i++){
             p = pieces[i];
-            scores[p[1]] = [0, p[0], p[1]];
+            scores[p[1]] = {
+                score: 0,
+                piece: p[0],
+                pos: p[1]
+            };
         }
-        //console.log('scores ' + scores);
-        movelist.sort(function(a, b){return a[0] - b[0];});
+        /* Find the best score for each piece by pure static weights.
+         * This means subtracting the material gain for captures
+         * (captures are already hoisted in their own right).
+         */
         for(i = movelist.length - 1; i >= 0; i--){
             var mv = movelist[i];
-            var mscore = mv[0];
-            var ms = mv[1];
-            var ps = scores[ms];
-            if (mscore > ps[0])
-                ps[0] = mscore;
+            var score = mv[0];
+            s = mv[1];
+            e = mv[2];
+            var E = board[e];
+            if (E){
+                score -= their_values[E] + weights[E][e];
+            }
+            var x = scores[s];
+            x.score = Math.max(x.score, score);
+        }
+        /* moving out of a threat is worth considering
+         * (~5% average gain across several positions).
+         */
+        for(i = threats.length - 1; i >= 0; i--){
+            var mv = threats[i];
+            var x = scores[mv[2]];
+            if (x !== undefined){
+                x.threatened = 1;
+            }
         }
         var pieces2 = [];
         for (i = 20; i < 100; i++){
             p = scores[i];
-            if (p !== undefined)
+            if (p !== undefined){
+                if (p.threatened)
+                    p.score += our_values[p.piece] >> 4;
                 pieces2.push(p);
+            }
         }
-        pieces2.sort(function(a, b){return a[0] - b[0];});
+        pieces2.sort(function(a, b){return a.score - b.score;});
         for (i = 0; i < pieces2.length; i++){
             p = pieces2[i];
-            p.shift();
-            pieces[i] = p;
+            pieces[i] = [p.piece, p.pos];
         }
-        //console.log('colour', colour);
-        //console.log('pieces', pieces);
-        //console.log('pieces2', pieces2);
     }
 }
 
