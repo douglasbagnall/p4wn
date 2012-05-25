@@ -67,7 +67,6 @@ var P4_KNIGHT_WEIGHTS;
 
 /*P4_DEBUG turns on debugging features */
 var P4_DEBUG = 0;
-var P4_SHUFFLE_PIECES = false;
 var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
 /*use javascript typed arrays rather than plain arrays
@@ -192,19 +191,6 @@ function p4_prepare(state){
         }
     }
 
-    /* Shuffle the pieces, so tied scores don't systematically favour
-       one corner of the board or the other.*/
-    if (P4_SHUFFLE_PIECES){
-        for (j = 0; j < 2; j++){
-            var p = pieces[j];
-            for (i = p.length - 1; i > 0; i--){
-                var k = p4_random_int(state, i + 1);
-                var tmp = p[k];
-                p[k] = p[i];
-                p[i] = tmp;
-            }
-        }
-    }
     /*does a draw seem likely soon?*/
     var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
     if (draw_likely)
