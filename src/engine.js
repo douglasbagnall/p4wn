@@ -643,7 +643,6 @@ function p4_optimise_piece_list(state){
     var weights = state.weights;
     var board = state.board;
     for (var colour = 0; colour < 2; colour++){
-        var their_values = state.values[1 - colour];
         var our_values = state.values[colour];
         var pieces = state.pieces[colour];
         var movelist = movelists[colour];
@@ -655,41 +654,39 @@ function p4_optimise_piece_list(state){
             scores[p[1]] = {
                 score: 0,
                 piece: p[0],
-                pos: p[1]
+                pos: p[1],
+                threatened: 0
             };
         }
-        /* Find the best score for each piece by pure static weights.
-         * This means subtracting the material gain for captures
-         * (captures are already hoisted in their own right).
-         */
+        /* Find the best score for each piece by pure static weights,
+         * ignoring captures, which have their own path to the top. */
         for(i = movelist.length - 1; i >= 0; i--){
             var mv = movelist[i];
             var score = mv[0];
             s = mv[1];
             e = mv[2];
-            var E = board[e];
-            if (E){
-                score -= their_values[E] + weights[E][e];
+            if(! board[e]){
+                var x = scores[s];
+                x.score = Math.max(x.score, score);
             }
-            var x = scores[s];
-            x.score = Math.max(x.score, score);
         }
-        /* moving out of a threat is worth considering
-         * (~5% average gain across several positions).
-         */
+        /* moving out of a threat is worth considering, especially
+         * if it is a pawn and you are not.*/
         for(i = threats.length - 1; i >= 0; i--){
             var mv = threats[i];
             var x = scores[mv[2]];
             if (x !== undefined){
-                x.threatened = 1;
+                var S = board[mv[1]];
+                var r = (1 + x.piece > 3 + S < 4) * 0.01;
+                if (x.threatened < r)
+                    x.threatened = r;
             }
         }
         var pieces2 = [];
         for (i = 20; i < 100; i++){
             p = scores[i];
             if (p !== undefined){
-                if (p.threatened)
-                    p.score += our_values[p.piece] >> 4;
+                p.score += p.threatened * our_values[p.piece];
                 pieces2.push(p);
             }
         }
