@@ -344,7 +344,14 @@ function p4_prepare(state){
             }
         }
     }
+    state.prepared = true;
 }
+
+function p4_maybe_prepare(state){
+    if (! state.prepared)
+        p4_prepare(state);
+}
+
 
 function p4_parse(state, colour, ep, score) {
     var board = state.board;
@@ -882,7 +889,7 @@ function p4_move(state, s, e, promotion){
      */
     var i;
     var legal = false;
-    p4_prepare(state);
+    p4_maybe_prepare(state);
     var moves = p4_parse(state, colour, state.enpassant, 0);
     for (i = 0; i < moves.length; i++){
         if (e == moves[i][2] && s == moves[i][1]){
@@ -965,6 +972,7 @@ function p4_move(state, s, e, promotion){
 
     var movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
     console.log("successful move", s, e, movestring, flags);
+    state.prepared = false;
     return {
         flags: flags,
         string: movestring,
@@ -1075,6 +1083,7 @@ function p4_jump_to_moveno(state, moveno){
             state[attr] = src;
         }
     }
+    state.prepared = false;
 }
 
 
@@ -1223,6 +1232,7 @@ function p4_fen2state(fen, state){
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     state.history = [];
     state.beginning = fen;
+    state.prepared = false;
     state.position_counts = {};
     /* Wrap external functions as methods. */
     state.move = function(s, e, promotion){
