@@ -566,8 +566,13 @@ function p4_check_castling(board, s, colour, dir, side){
 }
 
 function old_check_check(state, colour){
-    var a = p4_findmove(state, 0, 1 - colour, 0)[2];
-    return (a > P4_WIN_NOW);
+    p4_maybe_prepare(state);
+    var movelist = p4_parse(state, 1 - colour, 0, 0);
+    for (var i = 0; i < movelist.length; i++){
+        if (movelist[i][0] > P4_WIN)
+            return true;
+    }
+    return false;
 }
 
 function p4_check_check(state, colour){
