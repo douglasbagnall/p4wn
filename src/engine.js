@@ -90,7 +90,7 @@ var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
 
 var P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 
-/*Backward compatibility for old MSIEs*/
+/*Backward compatibility for old MSIEs. (back to 5.5)*/
 if (this.console === undefined)
     this.console = {log: function(){}};
 
@@ -563,16 +563,6 @@ function p4_check_castling(board, s, colour, dir, side){
         return 0;
 
     return 1;
-}
-
-function old_check_check(state, colour){
-    p4_maybe_prepare(state);
-    var movelist = p4_parse(state, 1 - colour, 0, 0);
-    for (var i = 0; i < movelist.length; i++){
-        if (movelist[i][0] > P4_WIN)
-            return true;
-    }
-    return false;
 }
 
 function p4_check_check(state, colour){
