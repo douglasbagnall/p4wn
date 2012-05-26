@@ -3,18 +3,19 @@ P4wn, a smallish javascript chess engine
 
 P4wn is a web page that can play chess. It is quite small, plays well
 enough to be interesting, and is easy to embed in your pages. The
-default interface is easy to replace, and the engine is tunable. P4wn
-is completely free, available under CC0_ or public domain terms.
-You can use it for anything you want.
+default interface is easy to replace, and the engine is simple and
+tunable. P4wn is completely free, available under CC0_ or public
+domain terms. You can use it for anything you want.
 
 .. _CC0: http://creativecommons.org/publicdomain/zero/1.0/
 
 How to play
 ===========
 
-If you load ``src/index.html`` in a modern javascript enabled browser,
-you should see a small chess board. You are playing white. To change
-that, click **swap**. You can swap sides at any stage of the game.
+If you load ``src/index.html`` (or http://p4wn.sf.net/src) in a modern
+javascript enabled browser, you should see a small chess board. You
+are playing white. To change that, click **swap**. You can swap sides
+at any stage of the game.
 
 To move a piece, click on it and click again where you want it to be.
 
@@ -32,9 +33,9 @@ promotions for a pawn that reaches the end. If you want to change it,
 do so before you move the pawn.
 
 If a draw is technically possible (either through 3 repetitions of the
-same position, or 50 moves without a capture or pawn move) , a **Draw
-?** button will appear. You can claim a draw by clicking it. P4wn will
-never claim a draw on its own, just offer you the button.
+same position, or 50 moves without a capture or pawn move) , a
+**Draw?** button will appear. You can claim a draw by clicking it.
+P4wn will never claim a draw on its own, just offer you the button.
 
 Where to find it and get help
 =============================
@@ -60,8 +61,8 @@ still be found in the ``5k`` and ``6k`` directories. It is quite
 obtuse, due to its minified nature and the inexperience of the
 programmer.
 
-Sourceforge CVS
----------------
+Sourceforge CVS era
+-------------------
 
 In 2004 it gained a sourceforge page (http://p4wn.sf.net) with a CVS
 tree and a public domain dedication. This spurred a small flurry of
@@ -71,25 +72,31 @@ coalesced into anything that could be called a stream of development,
 no doubt due to the pathological state of the code and a perceived
 lack of need for small chess playing web pages.
 
-In March 2012 p4wn was liberated into git and somewhat de-obfuscated,
-disentangled, and modernised. This is the version in ``src/``, known
-as version 2.
-
 The name “p4wn” was originally only intended as a sourceforge
 subdomain, not to be applied to the chess program itself (which was
 called “5k chess” or somesuch). People have universally assumed
 otherwise, so the name sticks.
 
+Version 2
+---------
+
+In 2012 P4wn was rewritten for readability, correctness, and speed.
+The code in the ``src`` directory is version 2; that in ``5k`` is
+version 1.  Version 2 followed liberation from CVS into git.
+
 Differences between version 1 and 2
 -----------------------------------
 
-The original program was first written for turn of the century
-browsers, and to be as small as possible. It works in browsers newer
-than Netscape 3 and Internet Explorer 4. Version 2 targets HTML5-ish
-browsers and aims to be as small as is reasonable, while remaining
-easy to modify and embed. It probably works in all versions of
-Firefox, Chrome, and Safari, and (more slowly) in Internet Explorer
-5.5 and above.
+
+Although they look entirely different, there is a structural and
+algorithmic continuity between the versions.
+
+P4wn 1 was written to run on turn of the century browsers, and to be
+as small as possible. It works in browsers newer than Netscape 3 and
+Internet Explorer 4. Version 2 targets HTML5-ish browsers and aims to
+be as small as is reasonable, while remaining easy to modify and
+embed. It probably works in all versions of Firefox, Chrome, and
+Safari, and (more slowly) in Internet Explorer 5.5 and above.
 
 P4wn 2 in 2012 works a few thousand times faster than p4wn 1 did is
 2002. Much, but not all, of that is down to browser and hardware
@@ -102,8 +109,8 @@ Embedding and theming
 complex than that, look also at ``src/fen-test.html``. Failing that,
 read on.
 
-The default interface is deliberately primitive, to encourage the
-development of replacements.
+The default interface (``display.js``) is deliberately primitive, to
+encourage the development of replacements.
 
 Putting it in you own page, method 1
 ------------------------------------
@@ -128,7 +135,7 @@ where you want the board to be, and this::
   game.next_move();
  </script>
 
-at the bottom.
+at the bottom (as seen in ``src/index.html``).
 
 Putting it in you own page, method 2
 ------------------------------------
@@ -157,8 +164,8 @@ Putting it in you own page, method 3 (no local copy)
 ----------------------------------------------------
 
 Replacing every instance of ``p4wn/src`` in the above example with
-``http://p4wn.sf.net/src`` ought to work. (This is by way of example:
-http://p4wn.sf.net/src might not always contain working and up-to-date
+``http://p4wn.sf.net/src`` ought to work. (Which is not to say
+http://p4wn.sf.net/src will always contain working and up-to-date
 code).
 
 Theming using CSS
@@ -167,7 +174,7 @@ Theming using CSS
 Start from ``p4wn.css``. A few rules (e.g. the log panel height) are
 overridden by javascript. If you really need to wrest control back,
 use the ``!important`` declaration. Or you could write your own
-version of ``p4wnify()`` from ``display.js`` that doesn't do that.
+version of ``p4wnify()`` from ``display.js`` that doesn’t do that.
 
 Theming: images
 ---------------
@@ -252,6 +259,17 @@ It is possible to replace the ``display.js`` interface altogether, or to
 modify the way the engine plays. But these topics are discussed below.
 It is time for a break.
 
+p4wnify() tries to do what you mean
+-----------------------------------
+
+For convenience, the ``p4wnify`` function will work with an element ID
+(as seen in the other examples), a DOM element itself, or a jquery
+object::
+
+    var el = document.getElementById("board-goes-here");
+    var $el = $("#board-goes-here");
+    p4wnify(el).next_move();
+    p4wnify($el).next_move();
 
 The engine.js API and internals
 ===============================
@@ -296,7 +314,7 @@ p4_new_game() and p4_fen2state()
 
 ``p4_new_game()`` creates a state object representing a game in the
 initial position. This is actually just a wrapper for
-``p4_fen2state(P4_INITIAL_BOARD)``, with P4_INITIAL_BOARD being the
+``p4_fen2state(P4_INITIAL_BOARD)``, with ``P4_INITIAL_BOARD`` being the
 appropriate FEN string. With other FEN strings you can start the game
 in another position.
 
@@ -311,7 +329,7 @@ just as well, using this conversion table::
 state.findmove(depth)
 +++++++++++++++++++++
 
-This finds the computer's moves. ``state`` is the object returned by
+This finds the computer’s moves. ``state`` is the object returned by
 ``p4_new_game()``, and ``depth`` is an integer 1 less than the depth
 of the desired search. That is, a ``3`` will give you a 4-ply search.
 
@@ -368,7 +386,7 @@ are both ignored::
  state.move('e2-e4'); /* 'long' algebraic notation */
 
 If you are using this for, you should set the pawn promotion as part
-of the algebraic string (or you'll just get queens):
+of the algebraic string (or you’ll just get queens):
 
  state.move('e8=N'); /*got to end; promote to knight*/
 
@@ -413,7 +431,7 @@ explanation (“in check” or similar).
 
 
 state.jump_to_moveno(n)
-++++++++++++++++++++++++++++++
++++++++++++++++++++++++
 
 Rewind the game to an earlier move, wth ``n`` being the half-move
 number to jump to.  Examples::
@@ -435,7 +453,7 @@ The display code reads two attributes of the state object::
  }
 
 where ``board`` is the 120 element array described above, and
-``to_play`` is 0 during white's turn and 1 during blacks.
+``to_play`` is 0 during white’s turn and 1 during blacks.
 
 Tweakable constants
 -------------------
@@ -501,7 +519,7 @@ the treeclimber signature::
        return score; /*score adjusted by evaluation */
       }
 
-If you don't know ``alpha`` and ``beta`` do, you can ignore them (or
+If you don’t know ``alpha`` and ``beta`` do, you can ignore them (or
 look up *alpha-beta search*).  You can probably ignore the ``score``
 argument too if your function is not performing cumulative evaluation
 via recursion.
@@ -530,9 +548,9 @@ p4_parse(state, colour, ep, score)
 ++++++++++++++++++++++++++++++++++
 
 This returns an array of arrays representing the available
-pseudo-legal moves along with a partial evaluation of the move's
+pseudo-legal moves along with a partial evaluation of the move’s
 value. Each returned move is represented thus: ``[score, start,
-end]``. Even if you aren't using the evaluation, ``p4_parse`` is
+end]``. Even if you aren’t using the evaluation, ``p4_parse`` is
 reasonably quick.
 
 As an exception to the pseudo-legal moves rule, ``p4_parse`` thoroughly
@@ -561,14 +579,14 @@ A *few* tests are run automatically by ``src/auto-test.html``. The
 test harness in ``src/auto-test.js`` is primitive but reusable, topical,
 and extensible.
 
-``src/fen-test.html`` doesn't test anything on its own, but offers more
+``src/fen-test.html`` doesn’t test anything on its own, but offers more
 debugging options than ``index.html``.
 
 HTTP query string interpretation
 ================================
 
 The board state, search depth, and player colour can be set via the
-http query string.  The available options are:
+http query string.  The following options are recognised:
 
 start
   a FEN string to start the board at.
