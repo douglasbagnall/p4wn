@@ -2,10 +2,10 @@
 
 Seed.include("fen-test.js");
 
-function benchmark(){
-    var r = mixed_benchmark_core(1);
+function benchmark(n){
+    var r = mixed_benchmark_core(n);
     print("total " + r.cumulative + " avg " + parseInt(r.mean) +
           ' median ' + r.median);
 }
 
-benchmark();
+benchmark(3);
