@@ -68,33 +68,14 @@ function p4_counting_treeclimber(state, count, colour, score, s, e){
         var pseudo_movelist = p4_parse(state, colour, ep, 0);
         var movelist = [];
         var promotion_count = 0;
-        var movelist_set = {};
-        /* Pseudo_movelist contains moves into check, and it may also
-         * contain duplicates.
-         *
-         * The duplicates are there because it is generated from the
-         * pieces list which is only ever appended to. When a piece
-         * moves or is taken, its old entry remains, but that is no
-         * harm because p4_parse checks the actual board square before
-         * proceeding. But if the piece, or an identical one, moves
-         * into the square, then p4_parse will find that piece's move
-         * twice. That *probably* doesn't matter, except when we're
-         * trying to count legal moves.
-         *
-         * So there is a movelist_set object to check for duplicates.
-         *
-         * This could of course be done sooner, on the pieces list.
+        /* Pseudo_movelist contains moves into check, so drop those.
          */
-
         for (i = 0; i < pseudo_movelist.length; i++){
             var mv2 = pseudo_movelist[i];
             var s2 = mv2[1], e2 = mv2[2];
             var move2 = p4_make_move(state, s2, e2, P4_QUEEN);
             if (! p4_check_check(state, colour)){
-                var key = 's' + s2 + 'e' + e2;
-                if (movelist_set[key] === undefined)
-                    movelist.push(mv2);
-                movelist_set[key] = 1;
+                movelist.push(mv2);
             }
             if ((move2.S & 14) == 2 && (e2 < 30 || e2 > 90)){
                 /*this is a promotion*/
