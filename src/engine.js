@@ -695,7 +695,6 @@ function p4_optimise_piece_list(state){
 }
 
 function p4_findmove(state, level, colour, ep){
-    state.quiesce_counts = [0, 0];
     p4_prepare(state);
     p4_optimise_piece_list(state);
     var board = state.board;
@@ -731,7 +730,6 @@ function p4_findmove(state, level, colour, ep){
     if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
         alpha = state.stalemate_scores[colour];
     }
-    p4_log('quiesce counts', state.quiesce_counts);
     return [bs, be, alpha];
 }
 
@@ -1329,7 +1327,6 @@ function p4_initialise_state(){
         board: board,
         weights: weights,
         history: [],
-        quiesce_counts: [0, 0],
         treeclimber: p4_alphabeta_treeclimber
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());

@@ -257,7 +257,6 @@ function p4_quiesce(state, count, colour, s, e, alpha, beta){
     var movelist = p4_parse(state, colour, move.ep, -alpha);
     var movecount = movelist.length;
     var mv;
-    state.quiesce_counts[count]++;
     if(count){
         //branch nodes
         var t;
