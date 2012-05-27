@@ -382,10 +382,10 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
 function add_extra_searches(p4d){
     var tree_climbers = [
         'alphabeta (default)', p4_alphabeta_treeclimber,
-        'negamax', p4_negamax_treeclimber,
         'nullmove', p4_nullmove_alphabeta_treeclimber,
         'nullmove/quiesce', p4_nullmove_alphabeta_quiescing_treeclimber,
-        'negascout', p4_negascout_treeclimber
+        'negascout', p4_negascout_treeclimber,
+        'negamax (slow!)', p4_negamax_treeclimber
     ];
     var index = 0;
 

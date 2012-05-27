@@ -294,12 +294,14 @@ function mixed_benchmark(p4d){
     var cumulative = 0;
     var count = 0;
     var scores = [];
+    var treeclimber = p4d.board_state.treeclimber;
     for (var i = 0; i < FEN.length; i++){
         var ply = FEN[i][2];
         if (ply === undefined)
             continue;
         var fen = FEN[i][1];
         var state = p4_fen2state(fen);
+        state.treeclimber = treeclimber;
         var start = Date.now();
         state.findmove(ply, state.to_move, state.ep);
         var elapsed = Date.now() - start;
