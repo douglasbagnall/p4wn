@@ -707,6 +707,19 @@ function p4_findmove(state, level, colour, ep){
     var mv, t, i;
     var bs = 0;
     var be = 0;
+
+    if (level <= 0){
+        for (i = 0; i < movelist.length; i++){
+            mv = movelist[i];
+            if(movelist[i][0] > alpha){
+                alpha = mv[0];
+                bs = mv[1];
+                be = mv[2];
+            }
+        }
+        return [bs, be, alpha];
+    }
+
     for(i = 0; i < movelist.length; i++){
         mv = movelist[i];
         var mscore = mv[0];
