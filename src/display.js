@@ -68,7 +68,7 @@ _p4d_proto.square_clicked = function(square){
     var board = this.board_state.board;
     var mover = this.board_state.to_play;
     if (this.players[mover] == 'computer'){
-        console.log("not your turn!");
+        p4_log("not your turn!");
         return;
     }
     var piece = board[square];
@@ -102,7 +102,7 @@ _p4d_proto.move = function(start, end, promotion){
         }
     }
     else {
-        console.log("bad move!", start, end);
+        p4_log("bad move!", start, end);
     }
     for (var i = 0; i < this.move_listeners.length; i++){
         this.move_listeners[i](move_result);
@@ -129,14 +129,14 @@ _p4d_proto.computer_move = function(){
     var start_time = Date.now();
     mv = state.findmove(depth);
     var delta = Date.now() - start_time;
-    console.log("findmove took", delta);
+    p4_log("findmove took", delta);
     if (P4WN_ADAPTIVE_LEVELS && depth > 2){
         var min_time = 25 * depth;
         while (delta < min_time){
             depth++;
             mv = state.findmove(depth);
             delta = Date.now() - start_time;
-            console.log("retry at depth", depth, " total time:", delta);
+            p4_log("retry at depth", depth, " total time:", delta);
         }
     }
     this.move(mv[0], mv[1]);
@@ -383,7 +383,7 @@ var P4WN_CONTROLS = [
                 window.clearTimeout(p4d.auto_play_timeout);
                 p4d.refresh_buttons();
                 p4d.log('DRAW');
-                console.log(p4_state2fen(p4d.board_state));
+                p4_log(p4_state2fen(p4d.board_state));
                 p4d.auto_play_timeout = undefined;
                 p4d.next_move_timeout = undefined;
             };

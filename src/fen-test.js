@@ -1,3 +1,8 @@
+/* for seed command-line use */
+if (this.Seed){
+    Seed.include('engine.js');
+}
+
 var FEN = [
     ["mid game benchmark, white to play", "r3kb1r/1pBnp1pp/p4p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 w kq - 0 17", 6],
     ["initial state", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1", 5],
@@ -39,7 +44,7 @@ function time_find_move(game, depth){
         var mv = p4_findmove(state, depth);
         var end_time = Date.now();
         var delta = end_time - start_time;
-        console.log("depth", depth, "run", i, "took", delta);
+        p4_log("depth", depth, "run", i, "took", delta);
         if (delta < best)
             best = delta;
         if (end_time - start_run > max_milliseconds){
@@ -53,7 +58,7 @@ function time_find_move(game, depth){
 function parse_test(state){
     p4_prepare(state);
     var moves = p4_parse(state, state.to_play, state.enpassant, 0);
-    console.log("found", moves.length, "moves");
+    p4_log("found", moves.length, "moves");
     var current_start = undefined;
     var current_piece = undefined;
     for (var i = 0; i < moves.length; i++){
@@ -62,8 +67,8 @@ function parse_test(state){
             current_start = mv[1];
             current_piece = state.board[mv[1]];
         }
-        console.log('  PpRrNnBbKkQq'.charAt(current_piece), p4_stringify_point(mv[1]),
-                    p4_stringify_point(mv[2]));
+        p4_log('  PpRrNnBbKkQq'.charAt(current_piece), p4_stringify_point(mv[1]),
+             p4_stringify_point(mv[2]));
     }
 }
 
@@ -111,7 +116,7 @@ function weights_update(p4d, delta, element){
                 el.style.backgroundColor = 'rgb(' + r +','  + scaled + ',0)';
             }
             else {
-                console.log(scaled);
+                p4_log(scaled);
                 scaled = parseInt(Math.min(255, scaled / 4));
                 el.style.backgroundColor = 'rgb(255,255,' + scaled + ')';
             }
@@ -132,14 +137,14 @@ function weights_update(p4d, delta, element){
 /*some debugging functions */
 function p4_dump_board(_board, name){
     if (name !== undefined)
-        console.log(name);
+        p4_log(name);
     var board = [];
     for (var i = 0; i < 120; i++){
         board[i] = _board[i];
     }
     for (var y = 9; y >= 2; y--){
         var s = y * 10;
-        console.log(board.slice(s + 1, s + 9));
+        p4_log(board.slice(s + 1, s + 9));
     }
 }
 
@@ -161,9 +166,9 @@ function p4_dump_state(state){
     var attr;
     for (attr in state){
         if (! /weights|board$/.test(attr))
-            console.log(attr, state[attr]);
+            p4_log(attr, state[attr]);
         else
-            console.log(attr, "board array", state[attr].length);
+            p4_log(attr, "board array", state[attr].length);
     }
 }
 
@@ -182,7 +187,7 @@ var TEST_BUTTONS = [
         label: 'dump FEN',
         onclick_wrap: function(p4d){
             return function(e){
-                console.log(p4_state2fen(p4d.board_state));
+                p4_log(p4_state2fen(p4d.board_state));
             };
         },
         debug: true
@@ -279,10 +284,10 @@ function write_fen_switches(p4d){
                                     p4d.refresh();
                                     var s2 = p4_state2fen(p4d.board_state);
                                     if (s == s2){
-                                        console.log(s, "survives round trip");
+                                        p4_log(s, "survives round trip");
                                     }
                                     else {
-                                        console.log(s, "and", s2, "differ");
+                                        p4_log(s, "and", s2, "differ");
                                     }
                                     p4d.next_move();
                                 };
@@ -291,27 +296,41 @@ function write_fen_switches(p4d){
 }
 
 function mixed_benchmark(p4d){
+    var r = mixed_benchmark_core(1, p4d.board_state.treeclimber);
+    p4d.log("total " + r.cumulative + " avg " + parseInt(r.mean) +
+            ' median ' + r.median);
+}
+
+function mixed_benchmark_core(iterations, treeclimber){
     var cumulative = 0;
     var count = 0;
     var scores = [];
-    var treeclimber = p4d.board_state.treeclimber;
     for (var i = 0; i < FEN.length; i++){
         var ply = FEN[i][2];
         if (ply === undefined)
             continue;
         var fen = FEN[i][1];
+        var desc = FEN[i][0];
         var state = p4_fen2state(fen);
-        state.treeclimber = treeclimber;
-        var start = Date.now();
-        state.findmove(ply, state.to_move, state.ep);
-        var elapsed = Date.now() - start;
-        cumulative += elapsed;
-        console.log("bench", elapsed, ply, fen);
+        if (treeclimber !== undefined)
+            state.treeclimber = treeclimber;
+        var best = 1e999;
+        var all_times = [];
+        for (var j = 0; j < iterations; j++){
+            var start = Date.now();
+            state.findmove(ply, state.to_move, state.ep);
+            var elapsed = Date.now() - start;
+            if (elapsed < best)
+                best = elapsed;
+            all_times.push(elapsed);
+        }
+        cumulative += best;
+        print([ply, all_times, desc]);
         count++;
-        scores.push(elapsed);
+        scores.push(best);
     }
     scores.sort(function(a, b){return a - b});
-    console.log(scores);
+    p4_log(scores);
     var n = scores.length;
     var median;
     if (n & 1){
@@ -320,5 +339,9 @@ function mixed_benchmark(p4d){
     else{
         median = (scores[n / 2] + scores[n / 2 - 1]) / 2;
     }
-    p4d.log("total " + cumulative + " avg " + parseInt(cumulative / count) + ' median ' + median);
+    return {cumulative: cumulative,
+            mean: cumulative / count,
+            median: median,
+            count: count
+           };
 }

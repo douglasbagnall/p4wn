@@ -6,6 +6,27 @@
  * lives at http://p4wn.sf.net/
  */
 
+/*Compatibility tricks:
+ * backwards for old MSIEs (to 5.5)
+ * sideways for seed command-line javascript.*/
+var p4_log;
+if (this.Seed !== undefined){//seed
+    p4_log = function(){
+        var args = Array.prototype.slice.call(arguments);
+        printerr(args.join(', '));
+    };
+}
+else if (this.console === undefined){//MSIE
+    p4_log = function(){};
+}
+else {
+    p4_log = function(){console.log.apply(console, arguments);};
+}
+
+/*MSIE Date.now backport */
+if (Date.now === undefined)
+    Date.now = function(){return (new Date).getTime();};
+
 /* The pieces are stored as numbers between 2 and 13, inclusive.
  * Empty squares are stored as 0, and off-board squares as 16.
  * There is some bitwise logic to it:
@@ -89,13 +110,6 @@ var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
 };
 
 var P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
-
-/*Backward compatibility for old MSIEs. (back to 5.5)*/
-if (this.console === undefined)
-    this.console = {log: function(){}};
-
-if (Date.now === undefined)
-    Date.now = function(){return (new Date).getTime();};
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
@@ -194,7 +208,7 @@ function p4_prepare(state){
     /*does a draw seem likely soon?*/
     var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
     if (draw_likely)
-        console.log("draw likely", state.current_repetitions, state.draw_timeout);
+        p4_log("draw likely", state.current_repetitions, state.draw_timeout);
     state.values = [[], []];
     var qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
     var material_sum = material[0] + material[1] + 2 * qvalue;
@@ -204,8 +218,8 @@ function p4_prepare(state){
     var emptiness = 4 * P4_QUEEN / material_sum;
     state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * qvalue),
                               parseInt(0.5 + (bmul - 1) * 2 * qvalue)];
-    console.log("value multipliers (W, B):", wmul, bmul,
-                "stalemate scores", state.stalemate_scores);
+    //p4_log("value multipliers (W, B):", wmul, bmul,
+    //       "stalemate scores", state.stalemate_scores);
     for (i = 0; i < P4_VALUES.length; i++){
         var v = P4_VALUES[i];
         if (v < P4_WIN){//i.e., not king
@@ -700,7 +714,7 @@ function p4_findmove(state, level, colour, ep){
         var ms = mv[1];
         var me = mv[2];
         if (mscore > P4_WIN){
-            console.log("XXX taking king! it should never come to this");
+            p4_log("XXX taking king! it should never come to this");
             alpha = P4_KING_VALUE;
             bs = ms;
             be = me;
@@ -717,7 +731,7 @@ function p4_findmove(state, level, colour, ep){
     if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
         alpha = state.stalemate_scores[colour];
     }
-    console.log('quiesce counts', state.quiesce_counts);
+    p4_log('quiesce counts', state.quiesce_counts);
     return [bs, be, alpha];
 }
 
@@ -920,7 +934,7 @@ function p4_move(state, s, e, promotion){
     /*is it check? */
     if (p4_check_check(state, colour)){
         p4_unmake_move(state, changes);
-        console.log('in check', changes);
+        p4_log('in check', changes);
         return {flags: P4_MOVE_ILLEGAL, ok: false, string: "in check!"};
     }
     /*The move is known to be legal. We won't be undoing it.*/
@@ -984,7 +998,7 @@ function p4_move(state, s, e, promotion){
         flags |= P4_MOVE_FLAG_MATE;
 
     var movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
-    console.log("successful move", s, e, movestring, flags);
+    p4_log("successful move", s, e, movestring, flags);
     state.prepared = false;
     return {
         flags: flags,
@@ -1068,7 +1082,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
 
 
 function p4_jump_to_moveno(state, moveno){
-    console.log('jumping to move', moveno);
+    p4_log('jumping to move', moveno);
     if (moveno === undefined || moveno > state.moveno)
         moveno = state.moveno;
     else if (moveno < 0){
@@ -1240,7 +1254,7 @@ function p4_fen2state(fen, state){
             }
         }
         fen_moveno = Math.max(1, parseInt((32 - pieces) * 1.3 + (4 - fen_castles.length) * 1.5 + ((mix - 16) / 5)));
-        console.log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
+        //p4_log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
     }
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     state.history = [];
@@ -1436,15 +1450,15 @@ function p4_find_source_point(state, e, str){
             }
         }
     }
-    console.log("finding", str, "that goes to", e, "got", possibilities);
+    p4_log("finding", str, "that goes to", e, "got", possibilities);
 
     if (possibilities.length == 0){
         return 0;
     }
     else if (possibilities.length > 1){
-        console.log("p4_find_source_point seems to have failed",
-                    state, e, str,
-                    possibilities);
+        p4_log("p4_find_source_point seems to have failed",
+               state, e, str,
+               possibilities);
     }
     return possibilities[0];
 }
