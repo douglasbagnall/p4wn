@@ -311,12 +311,12 @@ function mixed_benchmark_core(iterations, treeclimber){
             continue;
         var fen = FEN[i][1];
         var desc = FEN[i][0];
-        var state = p4_fen2state(fen);
-        if (treeclimber !== undefined)
-            state.treeclimber = treeclimber;
         var best = 1e999;
         var all_times = [];
         for (var j = 0; j < iterations; j++){
+            var state = p4_fen2state(fen);
+            if (treeclimber !== undefined)
+                state.treeclimber = treeclimber;
             var start = Date.now();
             state.findmove(ply, state.to_move, state.ep);
             var elapsed = Date.now() - start;
@@ -325,7 +325,7 @@ function mixed_benchmark_core(iterations, treeclimber){
             all_times.push(elapsed);
         }
         cumulative += best;
-        print([ply, all_times, desc]);
+        p4_log([ply, all_times, desc]);
         count++;
         scores.push(best);
     }
