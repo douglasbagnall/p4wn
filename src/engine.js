@@ -382,73 +382,79 @@ function p4_parse(state, colour, ep, score) {
     var values = state.values[other_colour];
     var all_weights = state.weights;
     for (j = pieces.length - 1; j >= 0; j--){
-        s = pieces[j][1]; // board position
-        a = board[s]; //piece number
-        var weight_lut = all_weights[a];
-        weight = score - weight_lut[s];
-        a &= 14;
-        if(a > 2){    //non-pawns
-            var moves = P4_MOVES[a];
-            if(a & 2){
-                for(i = 0; i < 8; i++){
-                    e = s + moves[i];
-                    E = board[e];
-                    if(!E){
-                        movelist.push([weight + values[E] + weight_lut[e], s, e]);
-                    }
-                    else if((E&17)==other_colour){
-                        captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
-                    }
-                }
-                if(a == P4_KING && castle_flags){
-                    if((castle_flags & 1) &&
-                        (board[s-1] + board[s-2] + board[s-3] == 0) &&
-                        p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
-                        movelist.push([weight + 12, s, s - 2]);     //no analysis, just encouragement
-                    }
-                    if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
-                        p4_check_castling(board, s, other_colour, dir, 1)){//K side
-                        movelist.push([weight + 13, s, s + 2]);
-                    }
-                }
-            }
-            else{//rook, bishop, queen
-                var mlen = moves.length;
-                for(i=0;i<mlen;){     //goeth thru list of moves
-                    var m = moves[i++];
-                    e=s;
-                    do {
-                        e+=m;
-                        E=board[e];
+        s=pieces[j][1]; // board position
+        a=board[s]; //piece number
+        /* the pieces list is only a convenient short cut.
+         * pieces that have moved/been taken will still be listed at their
+         * old place. So check.
+         */
+        if (pieces[j][0]==a){
+            var weight_lut = all_weights[a];
+            weight = score - weight_lut[s];
+            a &= 14;
+            if(a > 2){    //non-pawns
+                var moves = P4_MOVES[a];
+                if(a & 2){
+                    for(i = 0; i < 8; i++){
+                        e = s + moves[i];
+                        E = board[e];
                         if(!E){
                             movelist.push([weight + values[E] + weight_lut[e], s, e]);
                         }
                         else if((E&17)==other_colour){
                             captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
                         }
-                    }while(!E);
+                    }
+                    if(a == P4_KING && castle_flags){
+                        if((castle_flags & 1) &&
+                            (board[s-1] + board[s-2] + board[s-3] == 0) &&
+                            p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
+                            movelist.push([weight + 12, s, s - 2]);     //no analysis, just encouragement
+                        }
+                        if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
+                            p4_check_castling(board, s, other_colour, dir, 1)){//K side
+                            movelist.push([weight + 13, s, s + 2]);
+                        }
+                    }
+                }
+                else{//rook, bishop, queen
+                    var mlen = moves.length;
+                    for(i=0;i<mlen;){     //goeth thru list of moves
+                        var m = moves[i++];
+                        e=s;
+                        do {
+                            e+=m;
+                            E=board[e];
+                            if(!E){
+                                movelist.push([weight + values[E] + weight_lut[e], s, e]);
+                            }
+                            else if((E&17)==other_colour){
+                                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                            }
+                        }while(!E);
+                    }
                 }
             }
-        }
-        else{    //pawns
-            e=s+dir;
-            if(!board[e]){
-                movelist.push([weight + weight_lut[e], s, e]);
-                /* s * (120 - s) < 3200 true for outer two rows on either side.*/
-                var e2 = e + dir;
-                if(s * (120 - s) < 3200 && (!board[e2])){
-                    movelist.push([weight + weight_lut[e2], s, e2]);
+            else{    //pawns
+                e=s+dir;
+                if(!board[e]){
+                    movelist.push([weight + weight_lut[e], s, e]);
+                    /* s * (120 - s) < 3200 true for outer two rows on either side.*/
+                    var e2 = e + dir;
+                    if(s * (120 - s) < 3200 && (!board[e2])){
+                        movelist.push([weight + weight_lut[e2], s, e2]);
+                    }
                 }
-            }
-            /* +/-1 for pawn capturing */
-            E = board[--e];
-            if(E && (E & 17) == other_colour){
-                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
-            }
-            e += 2;
-            E = board[e];
-            if(E && (E & 17) == other_colour){
-                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                /* +/-1 for pawn capturing */
+                E = board[--e];
+                if(E && (E & 17) == other_colour){
+                    captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                }
+                e += 2;
+                E = board[e];
+                if(E && (E & 17) == other_colour){
+                    captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                }
             }
         }
     }
@@ -761,7 +767,9 @@ function p4_make_move(state, s, e, promotion){
     board[s] = 0;
     var piece = S & 14;
     var moved_colour = S & 1;
+    var piece_locations = state.pieces[moved_colour];
     var end_piece = S; /* can differ from S in queening*/
+
     //now some stuff to handle queening, castling
     var rs = 0, re, rook;
     var ep_taken = 0, ep_position;
@@ -790,7 +798,7 @@ function p4_make_move(state, s, e, promotion){
         rook = moved_colour + P4_ROOK;
         board[rs] = 0;
         board[re] = rook;
-        //piece_locations.push([rook, re]);
+        piece_locations.push([rook, re]);
     }
 
     var old_castle_state = state.castles;
@@ -816,36 +824,12 @@ function p4_make_move(state, s, e, promotion){
         state.castles &= ~mask;
     }
 
-    var old_pieces = state.pieces.concat();
-    var our_pieces = old_pieces[moved_colour];
-    var dest = state.pieces[moved_colour] = [];
-    for (var i = 0; i < our_pieces.length; i++){
-        var x = our_pieces[i];
-        var pp = x[0];
-        var ps = x[1];
-        if (ps != s && ps != rs){
-            dest.push(x);
-        }
-    }
-    dest.push([end_piece, e]);
-    if (rook)
-        dest.push([rook, re]);
-
-    if (E || ep_taken){
-        var their_pieces = old_pieces[1 - moved_colour];
-        dest = state.pieces[1 - moved_colour] = [];
-        var gone = ep_taken ? ep_position : e;
-        for (i = 0; i < their_pieces.length; i++){
-            var x = their_pieces[i];
-            if (x[1] != gone){
-                dest.push(x);
-            }
-        }
-    }
+    piece_locations.push([end_piece, e]);
 
     return {
         /*some of these (e.g. rook) could be recalculated during
          * unmake, possibly more cheaply. */
+        piece_locations: piece_locations,
         s: s,
         e: e,
         S: S,
@@ -856,8 +840,7 @@ function p4_make_move(state, s, e, promotion){
         re: re,
         rook: rook,
         ep_position: ep_position,
-        ep_taken: ep_taken,
-        pieces: old_pieces
+        ep_taken: ep_taken
     };
 }
 
@@ -868,13 +851,12 @@ function p4_unmake_move(state, move){
     }
     board[move.s] = move.S;
     board[move.e] = move.E;
-    //move.piece_locations.length--;
+    move.piece_locations.length--;
     if(move.rs){
         board[move.rs] = move.rook;
         board[move.re] = 0;
-        //move.piece_locations.length--;
+        move.piece_locations.length--;
     }
-    state.pieces = move.pieces;
     state.castles = move.castles;
 }
 
