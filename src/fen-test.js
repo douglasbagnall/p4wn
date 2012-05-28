@@ -1,8 +1,3 @@
-/* for seed command-line use */
-if (this.Seed){
-    Seed.include('engine.js');
-}
-
 var FEN = [
     ["mid game benchmark, white to play", "r3kb1r/1pBnp1pp/p4p2/1N1n1b2/2BP4/5NP1/P4P1P/R1R3K1 w kq - 0 17", 6],
     ["initial state", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1", 5],
