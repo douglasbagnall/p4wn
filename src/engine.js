@@ -173,7 +173,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
  */
 
 function p4_prepare(state){
-    var i, j, x, y;
+    var i, j, x, y, a;
     var pieces = state.pieces = [[], []];
     /*convert state.moveno half move count to move cycle count */
     var moveno = state.moveno >> 1;
@@ -190,7 +190,7 @@ function p4_prepare(state){
     var material = [0, 0];
     var best_pieces = [0, 0];
     for(i = 20; i  < 100; i++){
-        var a = board[i];
+        a = board[i];
         var piece = a & 14;
         var colour = a & 1;
         if(piece){
@@ -243,7 +243,7 @@ function p4_prepare(state){
     for (y = 3; y < 9; y++){
         for (x = 1; x < 9; x++){
             i = y * 10 + x;
-            var a = board[i];
+            a = board[i];
             if ((a & 14) != P4_PAWN)
                 continue;
             if ((a & 1) == 0){
