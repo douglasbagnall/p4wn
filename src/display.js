@@ -476,8 +476,8 @@ _p4d_proto.interpret_query_string = function(){
     var query = parse_query();
     for (i = 0; i < query.length; i++){
         var p = query[i];
-            var fn = attrs[p[0]];
-        if (fn !== undefined){
+        var fn = attrs[p[0]];
+        if (fn !== undefined && attrs.hasOwnProperty(p[0])){
             fn.call(this, p[1]);
             this.refresh_buttons();
         }
