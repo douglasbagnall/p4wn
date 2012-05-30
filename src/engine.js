@@ -10,7 +10,8 @@
  * backwards for old MSIEs (to 5.5)
  * sideways for seed command-line javascript.*/
 var p4_log;
-if (this.Seed !== undefined){//seed
+if (this.imports !== undefined &&
+    this.printerr !== undefined){//seed or gjs
     p4_log = function(){
         var args = Array.prototype.slice.call(arguments);
         printerr(args.join(', '));
