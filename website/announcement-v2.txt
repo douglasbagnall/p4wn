@@ -1,0 +1,112 @@
+Version 2 of p4wn javascript chess engine released
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+P4wn is a small public domain chess engine that can be embedded in web
+pages or run in other javascript environments. It plays well enough to
+beat most people, but emphasises playability over perfection, moving
+quickly and taking risks when it is ahead.
+
+Version 2 is faster, less buggy, and easier to read than Version 1,
+which was released in 2002 as an entry in a 5kB web page contest and
+whose extremely compact code baffled would-be contributors. The new
+version is well over 5k, but still smallish with no external
+dependencies.
+
+New and better in version 2:
+============================
+
+* Everything has been rewritten for clarity and modularity, and to
+  avoid namespace collisions.
+
+* It is many times faster, and optimised for modern JITing javascript
+  engines.
+
+* There are rudimentary frameworks for testing and experimentation.
+
+* Fewer known bugs.
+
+* Git replaces CVS, and the sourceforge repository is mirrored on
+  Github so that javascript programmers might know it exists.
+
+* The name “p4wn”, which was originally intended only for the
+  sourceforge subdomain, now applies to the program itself, because
+  everyone seemed to assume this was always the case.
+
+* There is an easy API for embedding it in web pages
+  (`p4wnify(element_or_id)`).
+
+* The engine has no DOM dependencies and can be run in headless
+  javascript engines like node.js, gjs, and Seed.
+
+* P4wn 2 has a CC0 dedication, for where “public domain” is
+  insufficient.
+
+Not so good changes:
+====================
+
+* P4wn 2 no longer supports Netscape 3 or 4 or MSIE 4 or 5. Nor, in
+  all likelihood, unknown previously supported old versions of Opera,
+  KHTML, and others.
+
+* P4wn 2 is much larger, even when treated with automatic
+  minification. While it is still small for a chess engine and a
+  javascript application, it has abandoned tininess as a raison
+  d’être, and with that much of its fascination for some people.
+
+Contributors.
+=============
+
+These people (and others I have forgotten) created p4wn:
+
+* Douglas Bagnall
+* Sven Vahar
+* Antony Lesuisse
+* Ron Winter
+* Chris Lear
+* Ivan Yelizariev
+* Chanibal
+
+Special mention goes to new contributors *Ivan Yelizariev* and
+*Chanibal* whose testing found all kinds of dreadful bugs.
+
+Future plans
+============
+
+P4wn now follows a release-when-bored strategy: when a burst of
+activity ceases and there have been no commits for a few weeks, it is
+time for a release (supposing we find the energy to make a tarball).
+So while these plans exist, nobody is actually working on them nor has
+any enthusiasm to start:
+
+* Use fancier algorithms, like null-move pruning, quiescence search,
+  and iterative search (some of which are already there as options).
+
+* Better (multiple, alternative) interfaces: presenting a history tree
+  for undone moves instead of a stack, webGL and HTML5 canvas
+  interfaces, various machine and net protocols.
+
+* Experiment with a flat typed array memory model.
+
+* Testing and tuning using a Darwinian tournament.
+
+* Work out why some deep search-tree node counting tests fail, and
+  stop that happening.
+
+There are no plans for an HTML5 phone app, but of course anybody is
+welcome to do that (this is a FAQ).
+
+Further information
+===================
+
+The home page: http://p4wn.sf.net
+
+The mailing list (in the order of 2 messages a year):
+https://lists.sourceforge.net/lists/listinfo/p4wn-chess
+
+Git (Github and Sourceforge):
+https://github.com/douglasbagnall/p4wn
+http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn;a=summary
+git://github.com/douglasbagnall/p4wn.git
+git://p4wn.git.sourceforge.net/gitroot/p4wn/p4wn
+
+Bug reports tend to be filed on Github.
