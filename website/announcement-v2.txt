@@ -12,6 +12,12 @@ whose extremely compact code baffled would-be contributors. The new
 version is well over 5k, but still smallish with no external
 dependencies.
 
+Tar and zip files can be downloaded from
+https://sourceforge.net/projects/p4wn/files/ while the git tree is
+obtainable via https://github.com/douglasbagnall/p4wn or
+git://p4wn.git.sourceforge.net/gitroot/p4wn/p4wn
+
+
 New and better in version 2:
 ============================
 
@@ -72,10 +78,11 @@ Special mention goes to new contributors *Ivan Yelizariev* and
 Future plans
 ============
 
-P4wn now follows a release-when-bored strategy: when a burst of
-activity ceases and there have been no commits for a few weeks, it is
-time for a release (supposing we find the energy to make a tarball).
-So while these plans exist, nobody is actually working on them nor has
+P4wn now follows a release-when-bored strategy. Development follows
+interest and stops and starts suddenly. When here have been no commits
+for a few weeks, there may be none for several years, and it is time
+for a release -- supposing we find the energy to make a tarball. So
+while these plans exist, nobody is actually working on them nor has
 any enthusiasm to start:
 
 * Use fancier algorithms, like null-move pruning, quiescence search,
