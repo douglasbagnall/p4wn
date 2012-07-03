@@ -45,6 +45,14 @@ http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn and
 https://github.com/douglasbagnall/p4wn. The two git repositories
 should be pretty similar. Most people seem to use the github one.
 
+The git tree contains several files not included in the version 2 zip
+and tar files. These are mainly interesting for historical reasons, or
+for testing, and are unnecessary and potentially confusing if you just
+want to play chess. So they have been left out and instead you'll get
+confused when this document refers to them. You can get these files
+via git, or just look at them on the Github and Sourceforge links
+above.
+
 There is a mailing list at
 https://lists.sourceforge.net/lists/listinfo/p4wn-chess, and the issue
 tracker at https://github.com/douglasbagnall/p4wn/issues is used.
