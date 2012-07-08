@@ -44,7 +44,7 @@ There is a homepage at http://p4wn.sf.net and git repositories at
 http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn and
 https://github.com/douglasbagnall/p4wn. The two git repositories
 should be pretty similar. Most people seem to use the github one. Zip
-and tar files of selected can be found at
+and tar files of version 2 can be found at
 http://sourceforge.net/projects/p4wn/files/.
 
 
