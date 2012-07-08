@@ -14,39 +14,57 @@
 <a href="https://github.com/douglasbagnall/p4wn">also on github</a>
 <a href="http://sourceforge.net/projects/p4wn/">Sourceforge project page</a>
 <a href="https://lists.sourceforge.net/lists/listinfo/p4wn-chess">mailing list</a>
+<a href="src/">latest</a>
+<a href="src/fen-test.html">extra options</a>
 <a href="/5k/">5k</a>
 <a href="/6k/">6k</a>
 <a href="/unicode/">unicode</a>
 <a href="/sven/">tidy</a>
 
-<div id="chessboard"></div>
 </div>
 
 <div class="main">
 
-<h1>P4wn, a javascript chess engine</h1>
+<h1>p4wn, a smallish javascript chess engine</h1>
 
+      <div id="chessboard" style="margin: 20px; float:right"></div>
 
 <p>
-This is a small javascript chess engine. It was originally written by
-Douglas Bagnall between 2000 and 2002, and a <a
-href="http://p4wn.sourceforge.net/5k/">version</a> of it
-was entered in the 2002 5k competition. Various people have added bits
-and pieces over the years, and in 2012 it was substantially rewritten
-to ease modification and embedding.
-</p>
-<p>
-P4wn has been placed in the public domain with a CC-zero dedication. That
-means you can do whatever you want with it without asking anyone.
+P4wn is a small public domain chess engine. It was first released in
+2002, and substantially revised in 2012.
 </p>
 
-<h2>News</h2>
+<h2>Instructions</h2>
+
+<p>
+Click on the piece you want to move, then click where you want it to be.
+</p>
+
+<p>
+If the game is too easy or hard, click on the <b>computer level</b>
+button until it seems about right.
+</p>
+
+<p>When you make a stupid move, you can undo it by clicking on the
+<b>undo</b> button.</p>
+
+<p>Further instructions can be found in the <a
+href="https://github.com/douglasbagnall/p4wn/blob/master/README.rst">README</a>
+file.
+</p>
+
+<h2 style="clear: both">News</h2>
 
 <h3>2012-07-03: P4wn 2 released</h3>
 <p>
 Version 2 has been released, following the apparent cessation of
 activity. Read the <a href="announcement-v2.txt">announcement</a> if
 you wish, and look out for version 3 in 2022.
+</p>
+
+<p>
+Zip and tar files can be found at <a
+href="http://sourceforge.net/projects/p4wn/files/">Sourceforge</a>.
 </p>
 
 <h3>2012-03-22: P4wn 2 also on Github</h3>
@@ -87,6 +105,12 @@ interface with help text, with both
 <a href="http://aab.pri.ee/chess/">English</a> versions.
 
 </p>
+
+<h3>2004-03-25: Sourceforge site registered</h3>
+<p>This is what you are looking at.</p>
+
+<h3>2002-06-16: First released in 5k web competition</h3>
+<p>Development started in 2000 and skipped 2001.</p>
 
 <h2>How it works</h2>
 <p>
@@ -160,11 +184,12 @@ width="210" height="62" border="0" alt="SF logo" style="padding:0px 10px;" />
 <i>Last modified July 2012.</i>
 
 </div>
-<script src="engine.js"></script>
-<script src="display.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/display.js"></script>
 <script>
-P4WN_SQUARE_WIDTH = 18;
-P4WN_SQUARE_HEIGHT = 18;
+P4WN_IMAGE_DIR = 'src/images';
+//P4WN_SQUARE_WIDTH = 18;
+//P4WN_SQUARE_HEIGHT = 18;
 var game = p4wnify("chessboard");
 game.next_move();
 </script>

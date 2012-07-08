@@ -43,7 +43,10 @@ Where to find it and get help
 There is a homepage at http://p4wn.sf.net and git repositories at
 http://p4wn.git.sourceforge.net/git/gitweb.cgi?p=p4wn/p4wn and
 https://github.com/douglasbagnall/p4wn. The two git repositories
-should be pretty similar. Most people seem to use the github one.
+should be pretty similar. Most people seem to use the github one. Zip
+and tar files of selected can be found at
+http://sourceforge.net/projects/p4wn/files/.
+
 
 The git tree contains several files not included in the version 2 zip
 and tar files. These are mainly interesting for historical reasons, or
