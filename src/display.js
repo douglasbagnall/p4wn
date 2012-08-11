@@ -206,7 +206,7 @@ _p4d_proto.start_moving_piece = function(position){
     this.stop_moving_piece();
     var img = this.elements.pieces[this.orientation ? 119 - position : position];
     this.elements.moving_img = img;
-    img.style.position = 'fixed';
+    img.style.position = (document.all) ? 'absolute': 'fixed';
     var yoffset = parseInt(P4WN_SQUARE_HEIGHT / 2);
     if (window.event){
         img.style.left = (window.event.clientX + 1) + "px";
@@ -214,6 +214,7 @@ _p4d_proto.start_moving_piece = function(position){
     }
     this.start = position;
     document.onmousemove = function(e){
+        e = e || window.event;
         img.style.left = (e.clientX + 1) + "px";
         img.style.top = (e.clientY - yoffset) + "px";
     };
