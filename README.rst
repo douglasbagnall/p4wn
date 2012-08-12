@@ -95,6 +95,8 @@ In 2012 P4wn was rewritten for readability, correctness, and speed.
 The code in the ``src`` directory is version 2; that in ``5k`` is
 version 1.  Version 2 followed liberation from CVS into git.
 
+Version 2.01 contains an interface fix for Internet Explorer 6.
+
 Differences between version 1 and 2
 -----------------------------------
 
