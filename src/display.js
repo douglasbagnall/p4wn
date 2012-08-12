@@ -206,7 +206,8 @@ _p4d_proto.start_moving_piece = function(position){
     this.stop_moving_piece();
     var img = this.elements.pieces[this.orientation ? 119 - position : position];
     this.elements.moving_img = img;
-    img.style.position = (document.all) ? 'absolute': 'fixed';
+    var old_msie = /MSIE [56]/.test(navigator.userAgent);
+    img.style.position = (old_msie) ? 'absolute': 'fixed';
     var yoffset = parseInt(P4WN_SQUARE_HEIGHT / 2);
     if (window.event){
         img.style.left = (window.event.clientX + 1) + "px";
