@@ -961,7 +961,7 @@ function p4_move(state, s, e, promotion){
         state.draw_timeout = 0;
         flags |= P4_MOVE_FLAG_CAPTURE;
     }
-    else if (S & 14 == P4_PAWN){
+    else if ((S & 14) == P4_PAWN){
         state.draw_timeout = 0;
     }
     else{
