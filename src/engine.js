@@ -879,6 +879,46 @@ function p4_unmake_move(state, move){
     state.castles = move.castles;
 }
 
+
+function p4_insufficient_material(state){
+    var knights = false;
+    var bishops = undefined;
+    var i;
+    var board = state.board;
+    for(i = 20; i  < 100; i++){
+        var piece = board[i] & 14;
+        if(piece == 0 || piece == P4_KING){
+            continue;
+        }
+        if (piece == P4_KNIGHT){
+            /* only allow one knight of either colour, never with a bishop */
+            if (knights || bishops !== undefined){
+                return false;
+            }
+            knights = true;
+        }
+        else if (piece == P4_BISHOP){
+            /*any number of bishops, but on only one colour square */
+            var x = i & 1;
+            var y = parseInt(i / 10) & 1;
+            var parity = x ^ y;
+            if (knights){
+                return false;
+            }
+            else if (bishops === undefined){
+                bishops = parity;
+            }
+            else if (bishops != parity){
+                return false;
+            }
+        }
+        else {
+             return false;
+        }
+    }
+    return true;
+}
+
 /* p4_move(state, s, e, promotion)
  * s, e are start and end positions
  *
@@ -974,8 +1014,8 @@ function p4_move(state, s, e, promotion){
     var repetitions = (state.position_counts[shortfen] || 0) + 1;
     state.position_counts[shortfen] = repetitions;
     state.current_repetitions = repetitions;
-    if (state.draw_timeout > 100 || repetitions >= 3){
-        //XXX also if material drops too low?
+    if (state.draw_timeout > 100 || repetitions >= 3 ||
+        p4_insufficient_material(state)){
         flags |= P4_MOVE_FLAG_DRAW;
     }
     state.moveno++;
