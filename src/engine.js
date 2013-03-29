@@ -1024,7 +1024,7 @@ function p4_move(state, s, e, promotion){
     if (p4_check_check(state, other_colour)){
         flags |= P4_MOVE_FLAG_CHECK;
     }
-    /* check for (state|check)mate, by seeing if there is a move for
+    /* check for (stale|check)mate, by seeing if there is a move for
      * the other side that doesn't result in check. (In other words,
      * reduce the pseudo-legal-move list down to a legal-move list,
      * and check it isn't empty).
