@@ -1547,7 +1547,7 @@ function p4_random31(state){
 }
 
 function p4_random_int(state, top){
-    /* uniform integer in range [0 < n < top), supposing top < 2 ** 31
+    /* uniform integer in range [0 <= n < top), supposing top < 2 ** 31
      *
      * This method is slightly (probably pointlessly) more accurate
      * than converting to 0-1 float, multiplying and truncating, and
