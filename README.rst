@@ -97,6 +97,13 @@ version 1.  Version 2 followed liberation from CVS into git.
 
 Version 2.01 contains an interface fix for Internet Explorer.
 
+Version 2.02 introduces changes and wrappers so p4wn runs with an
+offline.appcache. Now p4wn can be installed as a packaged application
+or hosted application on Firefox OS devices to run even offline
+and in full screen. Furthermore p4wn can now be installed and run on
+iOS devices being started via icon from Home Screen and run in full
+screen, too.
+
 Differences between version 1 and 2
 -----------------------------------
 
