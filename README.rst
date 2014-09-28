@@ -102,7 +102,8 @@ offline.appcache. Now p4wn can be installed as a packaged application
 or hosted application on Firefox OS devices to run even offline
 and in full screen. Furthermore p4wn can now be installed and run on
 iOS devices being started via icon from Home Screen and run in full
-screen, too.
+screen, too. See http://omerkel.github.io/p4wn/src/index-mobile.html
+and https://marketplace.firefox.com/app/p4wn/
 
 Differences between version 1 and 2
 -----------------------------------
