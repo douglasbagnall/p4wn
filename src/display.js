@@ -357,11 +357,11 @@ var P4WN_CONTROLS = [
             return function(e){
                 var x = (p4d.pawn_becomes + 1) % P4WN_PROMOTION_STRINGS.length;
                 p4d.pawn_becomes = x;
-                _event_target(e).innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
+                _event_target(e).innerHTML = 'pawn promotes to <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
             };
         },
         refresh: function(el){
-            el.innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[this.pawn_becomes] + '</b>';
+            el.innerHTML = 'pawn promotes to <b>' + P4WN_PROMOTION_STRINGS[this.pawn_becomes] + '</b>';
         }
     },
     {/*computer level*/

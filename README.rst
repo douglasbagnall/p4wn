@@ -631,6 +631,7 @@ added something to p4wn:
 * Ron Winter
 * Chris Lear
 * Ivan Yelizariev
+* Oliver Merkel
 
 Public domain/ CC0
 ------------------
