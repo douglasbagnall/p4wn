@@ -4,6 +4,10 @@
  * laws allow. No warranty; no restrictions.
  *
  * lives at http://p4wn.sf.net/
+ *
+ * @author Douglas Bagnall <douglas@paradise.net.nz>
+ * @author Oliver Merkel <merkel.oliver@web.de>
+ *
  */
 /* The routines here draw the screen and handle user interaction */
 
@@ -263,6 +267,7 @@ _p4d_proto.write_board_html = function(){
             img.src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[0];
             img.width= P4WN_SQUARE_WIDTH;
             img.height= P4WN_SQUARE_HEIGHT;
+            img.id= 'field' + (((y-2) << 3) + x-1);
         }
     }
 };
@@ -519,14 +524,18 @@ function P4wn_display(target){
     return this;
 }
 
-function p4wnify(id){
-    var p4d = new P4wn_display(id);
-    var e = p4d.elements;
+_p4d_proto.render_elements = function(){
+    var e = this.elements;
     var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
     e.inner.style.height = board_height;
     e.log.style.height = board_height;
     e.board.style.height = board_height;
-    e.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
+    e.controls.style.width = (11 * P4WN_SQUARE_WIDTH) + 'px';
+}
+
+function p4wnify(id){
+    var p4d = new P4wn_display(id);
+    p4d.render_elements();
     p4d.write_board_html();
     p4d.write_controls_html(P4WN_CONTROLS);
     p4d.interpret_query_string();
