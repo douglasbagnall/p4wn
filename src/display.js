@@ -523,18 +523,18 @@ function P4wn_display(target){
     return this;
 }
 
-_p4d_proto.render_elements = function(){
+_p4d_proto.render_elements = function(square_height, square_width){
     var e = this.elements;
-    var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
+    var board_height = (8 * (square_height + 3)) + 'px';
     e.inner.style.height = board_height;
     e.log.style.height = board_height;
     e.board.style.height = board_height;
-    e.controls.style.width = (11 * P4WN_SQUARE_WIDTH) + 'px';
+    e.controls.style.width = (11 * square_width) + 'px';
 }
 
 function p4wnify(id){
     var p4d = new P4wn_display(id);
-    p4d.render_elements();
+    p4d.render_elements(P4WN_SQUARE_HEIGHT, P4WN_SQUARE_WIDTH);
     p4d.write_board_html();
     p4d.write_controls_html(P4WN_CONTROLS);
     p4d.interpret_query_string();

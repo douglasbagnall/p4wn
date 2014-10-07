@@ -18,12 +18,7 @@ function displayResize(evt) {
   var tmp = tmp_square_height > tmp_square_width ?
       tmp_square_width : tmp_square_height;
   var tmp_square = tmp < 30 ? 30 : tmp;
-  /*
-   * Overwriting CONSTANTS here (due to compatibility to display.js code)
-   */
-  P4WN_SQUARE_WIDTH = tmp_square;
-  P4WN_SQUARE_HEIGHT = tmp_square;
-  game.render_elements();
+  game.render_elements(tmp_square, tmp_square);
   var pieces = game.elements.pieces;
   for (var y = 9; y > 1; y--){
     for(var x = 1;  x < 9; x++){
