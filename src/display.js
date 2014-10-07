@@ -267,7 +267,6 @@ _p4d_proto.write_board_html = function(){
             img.src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[0];
             img.width= P4WN_SQUARE_WIDTH;
             img.height= P4WN_SQUARE_HEIGHT;
-            img.id= 'field' + (((y-2) << 3) + x-1);
         }
     }
 };

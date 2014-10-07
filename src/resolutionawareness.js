@@ -24,10 +24,13 @@ function displayResize(evt) {
   P4WN_SQUARE_WIDTH = tmp_square;
   P4WN_SQUARE_HEIGHT = tmp_square;
   game.render_elements();
-  for (var i=0; i<64; ++i) {
-    var element = this.document.getElementById('field' + i)
-    element.height = tmp_square;
-    element.width = tmp_square;
+  var pieces = game.elements.pieces;
+  for (var y = 9; y > 1; y--){
+    for(var x = 1;  x < 9; x++){
+      var i = y * 10 + x;
+      pieces[i].height = tmp_square;
+      pieces[i].width = tmp_square;
+    }
   }
 }
 
