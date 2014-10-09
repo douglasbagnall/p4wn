@@ -1,7 +1,8 @@
 P4wn, a smallish javascript chess engine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-P4wn is a web page that can play chess. It is quite small, plays well
+P4wn is both - an online web page and an offline HTML mobile and tablet
+application - that can play chess. It is quite small, plays well
 enough to be interesting, and is easy to embed in your pages. The
 default interface is easy to replace, and the engine is simple and
 tunable. P4wn is completely free, available under CC0_ or public
