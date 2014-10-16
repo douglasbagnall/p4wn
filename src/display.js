@@ -4,6 +4,10 @@
  * laws allow. No warranty; no restrictions.
  *
  * lives at http://p4wn.sf.net/
+ *
+ * @author Douglas Bagnall <douglas@paradise.net.nz>
+ * @author Oliver Merkel <merkel.oliver@web.de>
+ *
  */
 /* The routines here draw the screen and handle user interaction */
 
@@ -357,11 +361,11 @@ var P4WN_CONTROLS = [
             return function(e){
                 var x = (p4d.pawn_becomes + 1) % P4WN_PROMOTION_STRINGS.length;
                 p4d.pawn_becomes = x;
-                _event_target(e).innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
+                _event_target(e).innerHTML = 'pawn promotes to <b>' + P4WN_PROMOTION_STRINGS[x] + '</b>';
             };
         },
         refresh: function(el){
-            el.innerHTML = 'pawn becomes <b>' + P4WN_PROMOTION_STRINGS[this.pawn_becomes] + '</b>';
+            el.innerHTML = 'pawn promotes to <b>' + P4WN_PROMOTION_STRINGS[this.pawn_becomes] + '</b>';
         }
     },
     {/*computer level*/
@@ -519,14 +523,18 @@ function P4wn_display(target){
     return this;
 }
 
-function p4wnify(id){
-    var p4d = new P4wn_display(id);
-    var e = p4d.elements;
-    var board_height = (8 * (P4WN_SQUARE_HEIGHT + 3)) + 'px';
+_p4d_proto.render_elements = function(square_height, square_width){
+    var e = this.elements;
+    var board_height = (8 * (square_height + 3)) + 'px';
     e.inner.style.height = board_height;
     e.log.style.height = board_height;
     e.board.style.height = board_height;
-    e.controls.style.width = (15 * P4WN_SQUARE_WIDTH) + 'px';
+    e.controls.style.width = (11 * square_width) + 'px';
+}
+
+function p4wnify(id){
+    var p4d = new P4wn_display(id);
+    p4d.render_elements(P4WN_SQUARE_HEIGHT, P4WN_SQUARE_WIDTH);
     p4d.write_board_html();
     p4d.write_controls_html(P4WN_CONTROLS);
     p4d.interpret_query_string();

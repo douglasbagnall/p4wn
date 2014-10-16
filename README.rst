@@ -1,7 +1,8 @@
 P4wn, a smallish javascript chess engine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-P4wn is a web page that can play chess. It is quite small, plays well
+P4wn is both - an online web page and an offline HTML mobile and tablet
+application - that can play chess. It is quite small, plays well
 enough to be interesting, and is easy to embed in your pages. The
 default interface is easy to replace, and the engine is simple and
 tunable. P4wn is completely free, available under CC0_ or public
@@ -96,6 +97,16 @@ The code in the ``src`` directory is version 2; that in ``5k`` is
 version 1.  Version 2 followed liberation from CVS into git.
 
 Version 2.01 contains an interface fix for Internet Explorer.
+
+Version 2.02 introduces changes and wrappers so p4wn runs with an
+offline.appcache. Now p4wn can be installed as a packaged application
+or hosted application on Firefox OS devices to run even offline
+and in full screen. Furthermore p4wn can now be installed and run on
+iOS devices being started via icon from Home Screen and run in full
+screen, too. An optimize to screen resolution feature is available
+now. It provides resolution awareness, e.g. on mobile devices if
+switching between portrait and landscape, etc. See http://omerkel.github.io/p4wn/src/index-mobile.html
+and https://marketplace.firefox.com/app/p4wn/
 
 Differences between version 1 and 2
 -----------------------------------
@@ -631,6 +642,7 @@ added something to p4wn:
 * Ron Winter
 * Chris Lear
 * Ivan Yelizariev
+* Oliver Merkel
 
 Public domain/ CC0
 ------------------
