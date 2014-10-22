@@ -105,8 +105,15 @@ and in full screen. Furthermore p4wn can now be installed and run on
 iOS devices being started via icon from Home Screen and run in full
 screen, too. An optimize to screen resolution feature is available
 now. It provides resolution awareness, e.g. on mobile devices if
-switching between portrait and landscape, etc. See http://omerkel.github.io/p4wn/src/index-mobile.html
-and https://marketplace.firefox.com/app/p4wn/
+switching between portrait and landscape, etc. New SVG (Scalable
+Vector Graphics) chess set has been created from scratch under CC0_.
+See
+
+* http://omerkel.github.io/p4wn/src/index-mobile.html ,
+* http://omerkel.github.io/p4wn/src/index-mobile-1.html ,
+* http://omerkel.github.io/p4wn/src/index-mobile-2.html ,
+* https://marketplace.firefox.com/app/p4wn/ , and
+* https://marketplace.firefox.com/app/p4wn2/
 
 Differences between version 1 and 2
 -----------------------------------
