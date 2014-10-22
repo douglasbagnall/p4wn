@@ -16,12 +16,6 @@ images/black_knight.gif
 images/black_pawn.gif
 images/black_queen.gif
 images/black_rook.gif
-images/black_bishop.svg
-images/black_king.svg
-images/black_knight.svg
-images/black_pawn.svg
-images/black_queen.svg
-images/black_rook.svg
 images/computer.png
 images/empty.gif
 images/human.png
@@ -32,12 +26,6 @@ images/white_knight.gif
 images/white_pawn.gif
 images/white_queen.gif
 images/white_rook.gif
-images/white_bishop.svg
-images/white_king.svg
-images/white_knight.svg
-images/white_pawn.svg
-images/white_queen.svg
-images/white_rook.svg
 auto-test-framework.js
 auto-test-tests.js
 auto-test.html
@@ -46,7 +34,7 @@ double.html
 engine.js
 fen-test.html
 fen-test.js
-index-mobile.html
+index-mobile-1.html
 manifest.webapp
 p4wn.css
 parse-test.js
