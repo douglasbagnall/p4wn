@@ -19,6 +19,14 @@ body {
   background-color:#d67b46;
 }
 
+.p4wn2-white-square {
+  background-color: #ccc;
+}
+
+.p4wn2-black-square {
+  background-color:#888;
+}
+
 .p4wn-board {
   position: relative;
   left: 0px;
