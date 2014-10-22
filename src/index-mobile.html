@@ -1,59 +1,36 @@
-<html manifest="offline.appcache">
+<html>
 <head profile="http://dublincore.org/documents/dcq-html/">
-  <link rel="icon" href="img/icons/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="p4wn2.css" />
+  <link rel="icon" href="images/icons/p4wn2-favicon.ico" type="image/x-icon" />
   <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
   <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta charset="UTF-8" />
   <meta name="DC.rights" content="CC0: http://creativecommons.org/publicdomain/zero/1.0/" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <link rel="apple-touch-icon" href="images/icons/p4wn-128.png" />
-  <title>p4wn</title>
-  <link rel="stylesheet" href="p4wn.css" />
 </head>
-<body>
-
-<!-- Put anything you like here... -->
-
-<div id="board-goes-here"></div>
-
-<!-- ...and here -->
-
-<script src="engine.js"></script>
-<script src="display.js"></script>
-<script>
-var game = p4wnify("board-goes-here");
-game.next_move();
-</script>
-<script src="resolutionawareness.js"></script>
-&nbsp;<a href="index-mobile.html" style="text-decoration:none; color:#000;"><svg
-  height="15"
-  width="15"
-  viewBox="-15 -15 30 30"
-  >
-  <g id="restartsymbol">
-    <g transform="translate(-0.16426637,-2.7925283)">
-      <path
-         id="arctop"
-         d="m -11.948321,-3.9869812 c 4.5942271,-12.3063408 22.118461,-8.8543618 23.32171,1.3476643"
-         style="fill:none;stroke:#000000;stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         id="arrowtop"
-         d="M 9.1989168,-4.1169873 11.745046,0.72887068 12.812778,-4.6097864 z"
-         style="fill:#000000;stroke:#000000;stroke-width:3px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    </g>
-    <g transform="matrix(-1,0,0,-1,-0.06057028,1.2226969)">
-      <path
-         id="arcbottom"
-         d="m -11.948321,-3.9869812 c 4.5942271,-12.3063408 22.118461,-8.8543618 23.32171,1.3476643"
-         style="fill:none;stroke:#000000;stroke-width:2px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      <path
-         id="arrowbottom"
-         d="M 9.1989168,-4.1169873 11.745046,0.72887068 12.812778,-4.6097864 z"
-         style="fill:#000000;stroke:#000000;stroke-width:3px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    </g>
-  </g>
-</svg><b>new game</b></a>
+<body style="background-color: #fff; font-family:Sans, Arial;">
+<h3>Select chess set to use</h3>
+<div class="p4wn-board" style="background-color: #3a6; min-width: 380px; width: 80%; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+<center><a href="index-mobile-2.html"><table>
+<tbody>
+<tr><td rowspan="5"><img src="images/icons/p4wn2-64.png" />&nbsp;&nbsp;&nbsp;</td><td colspan="8"><p>Free-hand design chess set</p></td></tr>
+<tr><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td></tr>
+<tr><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/empty.gif" height="32" width="32"></td></tr>
+<tr><td class="p4wn-white-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_pawn.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_pawn.svg" height="32" width="32"></td></tr>
+<tr><td class="p4wn-black-square"><img src="images/white_rook.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_knight.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_bishop.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_queen.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_king.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_bishop.svg" height="32" width="32"></td><td class="p4wn-black-square"><img src="images/white_knight.svg" height="32" width="32"></td><td class="p4wn-white-square"><img src="images/white_rook.svg" height="32" width="32"></td></tr>
+</tbody>
+</table></a><br />also published in <a href="https://marketplace.firefox.com/app/p4wn2"><img align="middle" width="150px" src="https://marketplace.cdn.mozilla.net/media/fireplace/img/pretty/marketplace_logo.png" /></a></center>
+</div>
+<div class="p4wn-board" style="background-color: #ddd; min-width: 380px; width: 80%; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+<center><a href="index-mobile-1.html"><table>
+<tbody>
+<tr><td rowspan="5"><img src="images/icons/p4wn-64.png" />&nbsp;&nbsp;&nbsp;</td><td colspan="8"><p>Pixelized chess set</p></td></tr>
+<tr><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td></tr>
+<tr><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/empty.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/empty.gif" height="32" width="32"></td></tr>
+<tr><td class="p4wn2-white-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_pawn.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_pawn.gif" height="32" width="32"></td></tr>
+<tr><td class="p4wn2-black-square"><img src="images/white_rook.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_knight.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_bishop.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_queen.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_king.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_bishop.gif" height="32" width="32"></td><td class="p4wn2-black-square"><img src="images/white_knight.gif" height="32" width="32"></td><td class="p4wn2-white-square"><img src="images/white_rook.gif" height="32" width="32"></td></tr>
+</tbody>
+</table></a><br />also published in <a href="https://marketplace.firefox.com/app/p4wn"><img align="middle" width="150px" src="https://marketplace.cdn.mozilla.net/media/fireplace/img/pretty/marketplace_logo.png" /></a></center>
+</div>
 </body>
 </html>
