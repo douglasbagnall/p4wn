@@ -2,7 +2,7 @@
   "version": "2.02",
   "name": "p4wn",
   "description": "p4wn - chess w/ offline feature",
-  "launch_path": "/index-mobile.html",
+  "launch_path": "/index-mobile-1.html",
   "chrome": { "navigation": true },
   "icons": {
     "16": "/images/icons/p4wn-16.png",
