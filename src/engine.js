@@ -1256,9 +1256,9 @@ function p4_fen2state(fen, state){
     //fen does Y axis backwards, X axis forwards */
     var y = 90;
     var x = 1;
-    var i;
+    var i, c;
     for (var j = 0; j < fen_board.length; j++){
-        var c = fen_board.charAt(j);
+        c = fen_board.charAt(j);
         if (c == '/'){
             x = 1;
             y -= 10;
@@ -1280,10 +1280,27 @@ function p4_fen2state(fen, state){
     }
     state.to_play = (fen_toplay.toLowerCase() == 'b') ? 1 : 0;
     state.castles = 0;
+    /* Sometimes we meet bad FEN that says it can castle when it can't. */
+    var wk = board[25] == P4_KING;
+    var bk = board[95] == P4_KING + 1;
+    var castle_lut = {
+        k: 8 * (bk && board[98] == P4_ROOK + 1),
+        q: 4 * (bk && board[91] == P4_ROOK + 1),
+        K: 2 * (wk && board[28] == P4_ROOK),
+        Q: 1 * (wk && board[21] == P4_ROOK)
+    };
     for (i = 0; i < fen_castles.length; i++){
-        var bit = {k: 8, q: 4, K: 2, Q: 1}[fen_castles.charAt(i)];
-        state.castles |= (bit || 0);
+        c = fen_castles.charAt(i);
+        var castle = castle_lut[c];
+        if (castle !== undefined){
+            state.castles |= castle;
+            if (castle == 0){
+                console.log("FEN claims castle state " + fen_castles +
+                            " but pieces are not in place for " + c);
+            }
+        }
     }
+
     state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
     state.draw_timeout = parseInt(fen_timeout);
     if (fen_moveno === undefined){

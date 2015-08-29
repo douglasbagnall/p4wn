@@ -28,7 +28,11 @@ var FEN = [
     ["insufficient material - bishops", "8/6BK/7B/6b1/7B/8/1B6/7k w - - 40 40", 8],
     ["sufficient material - opposing bishops", "8/6BK/7B/6b1/7B/8/B7/7k w - - 40 40", 8],
     ["sufficient material", "8/7K/8/8/7B/8/N7/7k w - - 40 40", 8],
-    ["castling; various checks", "r3k2r/p4p1p/4np2/1Bb5/3p4/P3nN2/1P3PPP/R3K2R w KQkq - 2 18"]
+    ["castling; various checks", "r3k2r/p4p1p/4np2/1Bb5/3p4/P3nN2/1P3PPP/R3K2R w KQkq - 2 18"],
+    ["Adrian Dușa's en-passant position", "r2k3B/ppp2p1p/7n/3p4/8/1P3N2/P4qP1/4RRK1 w q - 0 17", 6],
+    ["Adrian Dușa's position, no castling", "r2k3B/ppp2p1p/7n/3p4/8/1P3N2/P4qP1/4RRK1 w - - 0 17", 6],
+    ["Adrian Dușa's continuation", "r7/pp1k1p1p/5B1n/2pp4/8/1P3N2/P4RP1/4R1K1 w q - 3 19", 6],
+    ["blatantly false castling claims", "8/7K/8/8/8/8/q7/7k w KQq - 40 40", 8]
 ];
 
 
