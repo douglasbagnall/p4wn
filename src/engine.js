@@ -403,11 +403,11 @@ function p4_parse(state, colour, ep, score) {
                 }
                 if(a == P4_KING && castle_flags){
                     if((castle_flags & 1) &&
-                        (board[s-1] + board[s-2] + board[s-3] == 0) &&
-                        p4_check_castling(board, s - 2,other_colour,dir,-1)){//Q side
+                        (board[s - 1] + board[s - 2] + board[s - 3] == 0) &&
+                        p4_check_castling(board, s - 2, other_colour, dir, -1)){//Q side
                         movelist.push([weight + 12, s, s - 2]);     //no analysis, just encouragement
                     }
-                    if((castle_flags & 2) && (board[s+1]+board[s+2] == 0)&&
+                    if((castle_flags & 2) && (board[s + 1] + board[s + 2] == 0) &&
                         p4_check_castling(board, s, other_colour, dir, 1)){//K side
                         movelist.push([weight + 13, s, s + 2]);
                     }
