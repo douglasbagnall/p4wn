@@ -37,19 +37,20 @@ if (Date.now === undefined)
  *     piece & 4  -> row and column moves
  *     piece & 8  -> diagonal moves
  */
-var P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
-var P4_EDGE = 16;
+const P4_PAWN = 2, P4_ROOK = 4, P4_KNIGHT = 6, P4_BISHOP = 8, P4_QUEEN = 12, P4_KING = 10;
+const P4_EDGE = 16;
 
 /* in order, even indices: <nothing>, pawn, rook, knight, bishop, king, queen. Only the
  * even indices are used.*/
-var P4_MOVES = [[], [],
-                [], [],
-                [1,10,-1,-10], [],
-                [21,19,12,8,-21,-19,-12,-8], [],
-                [11,9,-11,-9], [],
-                [1,10,11,9,-1,-10,-11,-9], [],
-                [1,10,11,9,-1,-10,-11,-9], []
-               ];
+const P4_MOVES = [
+    [], [],
+    [], [],
+    [1,10,-1,-10], [],
+    [21,19,12,8,-21,-19,-12,-8], [],
+    [11,9,-11,-9], [],
+    [1,10,11,9,-1,-10,-11,-9], [],
+    [1,10,11,9,-1,-10,-11,-9], []
+];
 
 /*P4_VALUES defines the relative value of various pieces.
  *
@@ -57,30 +58,31 @@ var P4_MOVES = [[], [],
  * 20 to give sub-pawn resolution to other factors, with bishops given
  * a wee boost over knights.
  */
-var P4_VALUES=[0, 0,      //Piece values
-               20, 20,    //pawns
-               100, 100,  //rooks
-               60, 60,    //knights
-               61, 61,    //bishops
-               8000, 8000,//kings
-               180, 180,  //queens
-               0];
+var P4_VALUES=[
+    0, 0,      //Piece values
+    20, 20,    //pawns
+    100, 100,  //rooks
+    60, 60,    //knights
+    61, 61,    //bishops
+    8000, 8000,//kings
+    180, 180,  //queens
+    0];
 
 /* A score greater than P4_WIN indicates a king has been taken. It is
  * less than the value of a king, in case someone finds a way to, say,
  * sacrifice two queens in order to checkmate.
  */
-var P4_KING_VALUE = P4_VALUES[10];
-var P4_WIN = P4_KING_VALUE >> 1;
+const P4_KING_VALUE = P4_VALUES[10];
+const P4_WIN = P4_KING_VALUE >> 1;
 
 /* every move, a winning score decreases by this much */
-var P4_WIN_DECAY = 300;
-var P4_WIN_NOW = P4_KING_VALUE - 250;
+const P4_WIN_DECAY = 300;
+const P4_WIN_NOW = P4_KING_VALUE - 250;
 
 /* P4_{MAX,MIN}_SCORE should be beyond any possible evaluated score */
 
-var P4_MAX_SCORE = 9999;    // extremes of evaluation range
-var P4_MIN_SCORE = -P4_MAX_SCORE;
+const P4_MAX_SCORE = 9999;    // extremes of evaluation range
+const P4_MIN_SCORE = -P4_MAX_SCORE;
 
 /*initialised in p4_initialise_state */
 var P4_CENTRALISING_WEIGHTS;
@@ -89,13 +91,13 @@ var P4_KNIGHT_WEIGHTS;
 
 /*P4_DEBUG turns on debugging features */
 var P4_DEBUG = 0;
-var P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
+const P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
 /*use javascript typed arrays rather than plain arrays
  * (faster in some browsers, unsupported in others, possibly slower elsewhere) */
-var P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
+const P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
 
-var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
+const P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     P: 2,
     p: 3,
     R: 4,
@@ -110,7 +112,7 @@ var P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     q: 13
 };
 
-var P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
+const P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
