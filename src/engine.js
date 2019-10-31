@@ -697,34 +697,27 @@ function p4_optimise_piece_list(state){
 function p4_findmove(state, level, colour, ep){
     p4_prepare(state);
     p4_optimise_piece_list(state);
-    var board = state.board;
+    let board = state.board;
     if (arguments.length == 2){
         colour = state.to_play;
         ep = state.enpassant;
     }
-    var movelist = p4_parse(state, colour, ep, 0);
-    var alpha = P4_MIN_SCORE;
-    var mv, t, i;
-    var bs = 0;
-    var be = 0;
+    let movelist = p4_parse(state, colour, ep, 0);
+    let alpha = P4_MIN_SCORE;
+    let bs = 0;
+    let be = 0;
 
     if (level <= 0){
-        for (i = 0; i < movelist.length; i++){
-            mv = movelist[i];
+        for (let i = 0; i < movelist.length; i++){
             if(movelist[i][0] > alpha){
-                alpha = mv[0];
-                bs = mv[1];
-                be = mv[2];
+                [alpha, bs, be] = movelist[i];
             }
         }
         return [bs, be, alpha];
     }
 
-    for(i = 0; i < movelist.length; i++){
-        mv = movelist[i];
-        var mscore = mv[0];
-        var ms = mv[1];
-        var me = mv[2];
+    for(let i = 0; i < movelist.length; i++){
+        let [mscore, ms, me] = movelist[i];
         if (mscore > P4_WIN){
             p4_log("XXX taking king! it should never come to this");
             alpha = P4_KING_VALUE;
@@ -732,9 +725,9 @@ function p4_findmove(state, level, colour, ep){
             be = me;
             break;
         }
-        t = -state.treeclimber(state, level - 1, 1 - colour, mscore, ms, me,
-                               P4_MIN_SCORE, -alpha);
-        if (t > alpha){
+        let t = -state.treeclimber(state, level - 1, 1 - colour, mscore, ms, me,
+                                   P4_MIN_SCORE, -alpha);
+        if (t > alpha) {
             alpha = t;
             bs = ms;
             be = me;
