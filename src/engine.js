@@ -747,32 +747,32 @@ function p4_findmove(state, level, colour, ep){
  */
 
 function p4_make_move(state, s, e, promotion){
-    var board = state.board;
-    var S = board[s];
-    var E = board[e];
+    let board = state.board;
+    const S = board[s];
+    const E = board[e];
     board[e] = S;
     board[s] = 0;
-    var piece = S & 14;
-    var moved_colour = S & 1;
-    var end_piece = S; /* can differ from S in queening*/
+    const piece = S & 14;
+    const moved_colour = S & 1;
+    let end_piece = S; /* can differ from S in queening*/
     //now some stuff to handle queening, castling
-    var rs = 0, re, rook;
-    var ep_taken = 0, ep_position;
-    var ep = 0;
+    let rs = 0, re, rook;
+    let ep_taken = 0, ep_position;
+    let ep = 0;
     if(piece == P4_PAWN){
-        if((60 - e) * (60 - e) > 900){
+        if((60 - e) * (60 - e) > 900) {
             /*got to end; replace the pawn on board and in pieces cache.*/
             promotion |= moved_colour;
             board[e] = promotion;
             end_piece = promotion;
         }
-        else if (((s ^ e) & 1) && E == 0){
+        else if (((s ^ e) & 1) && E == 0) {
             /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
             ep_position = e - 10 + 20 * moved_colour;
             ep_taken = board[ep_position];
             board[ep_position] = 0;
         }
-        else if ((s - e) * (s - e) == 400){
+        else if ((s - e) * (s - e) == 400) {
             /*delta is 20 --> two row jump at start*/
             ep = (s + e) >> 1;
         }
@@ -786,13 +786,13 @@ function p4_make_move(state, s, e, promotion){
         //piece_locations.push([rook, re]);
     }
 
-    var old_castle_state = state.castles;
+    const old_castle_state = state.castles;
     if (old_castle_state){
-        var mask = 0;
-        var shift = moved_colour * 2;
-        var side = moved_colour * 70;
-        var s2 = s - side;
-        var e2 = e + side;
+        let mask = 0;
+        let shift = moved_colour * 2;
+        let side = moved_colour * 70;
+        let s2 = s - side;
+        let e2 = e + side;
         //wipe both our sides if king moves
         if (s2 == 25)
             mask |= 3 << shift;
@@ -809,13 +809,13 @@ function p4_make_move(state, s, e, promotion){
         state.castles &= ~mask;
     }
 
-    var old_pieces = state.pieces.concat();
-    var our_pieces = old_pieces[moved_colour];
-    var dest = state.pieces[moved_colour] = [];
-    for (var i = 0; i < our_pieces.length; i++){
-        var x = our_pieces[i];
-        var pp = x[0];
-        var ps = x[1];
+    let old_pieces = state.pieces.concat();
+    let our_pieces = old_pieces[moved_colour];
+    let dest = state.pieces[moved_colour] = [];
+    for (let i = 0; i < our_pieces.length; i++){
+        let x = our_pieces[i];
+        let pp = x[0];
+        let ps = x[1];
         if (ps != s && ps != rs){
             dest.push(x);
         }
@@ -825,11 +825,11 @@ function p4_make_move(state, s, e, promotion){
         dest.push([rook, re]);
 
     if (E || ep_taken){
-        var their_pieces = old_pieces[1 - moved_colour];
+        let their_pieces = old_pieces[1 - moved_colour];
         dest = state.pieces[1 - moved_colour] = [];
-        var gone = ep_taken ? ep_position : e;
-        for (i = 0; i < their_pieces.length; i++){
-            var x = their_pieces[i];
+        let gone = ep_taken ? ep_position : e;
+        for (let i = 0; i < their_pieces.length; i++){
+            let x = their_pieces[i];
             if (x[1] != gone){
                 dest.push(x);
             }
@@ -855,17 +855,15 @@ function p4_make_move(state, s, e, promotion){
 }
 
 function p4_unmake_move(state, move){
-    var board = state.board;
+    let board = state.board;
     if (move.ep_position){
         board[move.ep_position] = move.ep_taken;
     }
     board[move.s] = move.S;
     board[move.e] = move.E;
-    //move.piece_locations.length--;
     if(move.rs){
         board[move.rs] = move.rook;
         board[move.re] = 0;
-        //move.piece_locations.length--;
     }
     state.pieces = move.pieces;
     state.castles = move.castles;
