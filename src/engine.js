@@ -1,4 +1,4 @@
-/* p4wn, AKA 5k chess - by Douglas Bagnall <douglas@paradise.net.nz>
+/* p4wn, AKA 5k chess - by Douglas Bagnall <douglas@halo.gen.nz>
  *
  * This code is in the public domain, or as close to it as various
  * laws allow. No warranty; no restrictions.
