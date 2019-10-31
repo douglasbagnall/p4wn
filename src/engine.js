@@ -573,58 +573,59 @@ function p4_check_castling(board, s, colour, dir, side){
 }
 
 function p4_check_check(state, colour){
-    var board = state.board;
+    const board = state.board;
     /*find the king.  The pieces list updates from the end,
      * so the last-most king is correctly placed.*/
-    var pieces = state.pieces[colour];
-    var p;
-    var i = pieces.length;
+    const pieces = state.pieces[colour];
+    let p;
+    let i = pieces.length;
     do {
         p = pieces[--i];
     } while (p[0] != (P4_KING | colour));
-    var s = p[1];
-    var other_colour = 1 - colour;
-    var dir = 10 - 20 * colour;
+    const s = p[1];
+    const other_colour = 1 - colour;
+    const dir = 10 - 20 * colour;
     if (board[s + dir - 1] == (P4_PAWN | other_colour) ||
         board[s + dir + 1] == (P4_PAWN | other_colour))
         return true;
-    var knight_moves = P4_MOVES[P4_KNIGHT];
-    var king_moves = P4_MOVES[P4_KING];
-    var knight = P4_KNIGHT | other_colour;
-    var king = P4_KING | other_colour;
-    for (i = 0; i < 8; i++){
+    const knight_moves = P4_MOVES[P4_KNIGHT];
+    const king_moves = P4_MOVES[P4_KING];
+    const knight = P4_KNIGHT | other_colour;
+    const king = P4_KING | other_colour;
+    for (i = 0; i < 8; i++) {
         if (board[s + knight_moves[i]] == knight ||
             board[s + king_moves[i]] == king)
             return true;
     }
-    var diagonal_moves = P4_MOVES[P4_BISHOP];
-    var grid_moves = P4_MOVES[P4_ROOK];
+    const diagonal_moves = P4_MOVES[P4_BISHOP];
+    const grid_moves = P4_MOVES[P4_ROOK];
 
     /* diag_mask ignores rook moves of queens,
      * grid_mask ignores the bishop moves*/
-    var diag_slider = P4_BISHOP | other_colour;
-    var diag_mask = 27;
-    var grid_slider = P4_ROOK | other_colour;
-    var grid_mask = 23;
+    const diag_slider = P4_BISHOP | other_colour;
+    const diag_mask = 27;
+    const grid_slider = P4_ROOK | other_colour;
+    const grid_mask = 23;
     for (i = 0; i < 4; i++){
-        var m = diagonal_moves[i];
-        var e = s;
-        var E;
+        let m = diagonal_moves[i];
+        let e = s;
+        let E;
         do {
             e += m;
             E = board[e];
         } while (!E);
-        if((E & diag_mask) == diag_slider)
+        if((E & diag_mask) == diag_slider) {
             return true;
-
+        }
         m = grid_moves[i];
         e = s;
         do {
             e += m;
             E = board[e];
         } while (!E);
-        if((E & grid_mask) == grid_slider)
+        if((E & grid_mask) == grid_slider) {
             return true;
+        }
     }
     return false;
 }
