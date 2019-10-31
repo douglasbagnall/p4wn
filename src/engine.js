@@ -171,27 +171,26 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
  * out of sync with the real board state, especially on deep searches.
  */
 
-function p4_prepare(state){
-    var i, j, x, y, a;
-    var pieces = state.pieces = [[], []];
+function p4_prepare(state) {
+    let pieces = state.pieces = [[], []];
     /*convert state.moveno half move count to move cycle count */
-    var moveno = state.moveno >> 1;
-    var board = state.board;
+    const moveno = state.moveno >> 1;
+    let board = state.board;
 
     /* high earliness_weight indicates a low move number. The formula
      * should work above moveno == 50, but this is javascript.
      */
-    var earliness_weight = (moveno > 50) ? 0 : parseInt(6 * Math.exp(moveno * -0.07));
-    var king_should_hide = moveno < 12;
-    var early = moveno < 5;
+    const earliness_weight = (moveno > 50) ? 0 : parseInt(6 * Math.exp(moveno * -0.07));
+    const king_should_hide = moveno < 12;
+    const early = moveno < 5;
     /* find the pieces, kings, and weigh material*/
-    var kings = [0, 0];
-    var material = [0, 0];
-    var best_pieces = [0, 0];
-    for(i = 20; i  < 100; i++){
-        a = board[i];
-        var piece = a & 14;
-        var colour = a & 1;
+    let kings = [0, 0];
+    let material = [0, 0];
+    let best_pieces = [0, 0];
+    for(let i = 20; i  < 100; i++){
+        const a = board[i];
+        const piece = a & 14;
+        const colour = a & 1;
         if(piece){
             pieces[colour].push([a, i]);
             if (piece == P4_KING){
@@ -205,22 +204,21 @@ function p4_prepare(state){
     }
 
     /*does a draw seem likely soon?*/
-    var draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
-    if (draw_likely)
+    const draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
+    if (draw_likely) {
         p4_log("draw likely", state.current_repetitions, state.draw_timeout);
+    }
     state.values = [[], []];
-    var qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
-    var material_sum = material[0] + material[1] + 2 * qvalue;
-    var wmul = 2 * (material[1] + qvalue) / material_sum;
-    var bmul = 2 * (material[0] + qvalue) / material_sum;
-    var multipliers = [wmul, bmul];
-    var emptiness = 4 * P4_QUEEN / material_sum;
+    const qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
+    const material_sum = material[0] + material[1] + 2 * qvalue;
+    const wmul = 2 * (material[1] + qvalue) / material_sum;
+    const bmul = 2 * (material[0] + qvalue) / material_sum;
+    const multipliers = [wmul, bmul];
+    const emptiness = 4 * P4_QUEEN / material_sum;
     state.stalemate_scores = [parseInt(0.5 + (wmul - 1) * 2 * qvalue),
                               parseInt(0.5 + (bmul - 1) * 2 * qvalue)];
-    //p4_log("value multipliers (W, B):", wmul, bmul,
-    //       "stalemate scores", state.stalemate_scores);
-    for (i = 0; i < P4_VALUES.length; i++){
-        var v = P4_VALUES[i];
+    for (let i = 0; i < P4_VALUES.length; i++){
+        const v = P4_VALUES[i];
         if (v < P4_WIN){//i.e., not king
             state.values[0][i] = parseInt(v * wmul + 0.5);
             state.values[1][i] = parseInt(v * bmul + 0.5);
@@ -234,51 +232,52 @@ function p4_prepare(state){
     state.best_pieces = [parseInt(best_pieces[0] * wmul + 0.5),
                          parseInt(best_pieces[1] * bmul + 0.5)];
 
-    var kx = [kings[0] % 10, kings[1] % 10];
-    var ky = [parseInt(kings[0] / 10), parseInt(kings[1] / 10)];
+    const kx = [kings[0] % 10, kings[1] % 10];
+    const ky = [parseInt(kings[0] / 10), parseInt(kings[1] / 10)];
 
     /* find the frontmost pawns in each file */
-    var pawn_cols = [[], []];
-    for (y = 3; y < 9; y++){
-        for (x = 1; x < 9; x++){
-            i = y * 10 + x;
-            a = board[i];
-            if ((a & 14) != P4_PAWN)
+    let pawn_cols = [[], []];
+    for (let y = 3; y < 9; y++){
+        for (let x = 1; x < 9; x++) {
+            let i = y * 10 + x;
+            let a = board[i];
+            if ((a & 14) != P4_PAWN) {
                 continue;
-            if ((a & 1) == 0){
+            }
+            if ((a & 1) == 0) {
                 pawn_cols[0][x] = y;
             }
-            else if (pawn_cols[1][x] === undefined){
+            else if (pawn_cols[1][x] === undefined) {
                 pawn_cols[1][x] = y;
             }
         }
     }
-    var target_king = (moveno >= 20 || material_sum < 5 * qvalue);
-    var weights = state.weights;
+    const target_king = (moveno >= 20 || material_sum < 5 * qvalue);
+    const weights = state.weights;
 
-    for (y = 2; y < 10; y++){
-        for (x = 1; x < 9; x++){
-            i = y * 10 + x;
-            var early_centre = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
-            var plateau = P4_KNIGHT_WEIGHTS[i];
-            for (var c = 0; c < 2; c++){
-                var dx = Math.abs(kx[1 - c] - x);
-                var dy = Math.abs(ky[1 - c] - y);
-                var our_dx = Math.abs(kx[c] - x);
-                var our_dy = Math.abs(ky[c] - y);
+    for (let y = 2; y < 10; y++){
+        for (let x = 1; x < 9; x++){
+            let i = y * 10 + x;
+            const early_centre = P4_CENTRALISING_WEIGHTS[i] * earliness_weight;
+            const plateau = P4_KNIGHT_WEIGHTS[i];
+            for (let c = 0; c < 2; c++) {
+                let dx = Math.abs(kx[1 - c] - x);
+                let dy = Math.abs(ky[1 - c] - y);
+                let our_dx = Math.abs(kx[c] - x);
+                let our_dy = Math.abs(ky[c] - y);
 
-                var d = Math.max(Math.sqrt(dx * dx + dy * dy), 1) + 1;
-                var mul = multipliers[c]; /*(mul < 1) <==> we're winning*/
-                var mul3 = mul * mul * mul;
-                var at_home = y == 2 + c * 7;
-                var pawn_home = y == 3 + c * 5;
-                var row4 = y == 5 + c;
-                var promotion_row = y == 9 - c * 7;
-                var get_out = (early && at_home) * -5;
+                let d = Math.max(Math.sqrt(dx * dx + dy * dy), 1) + 1;
+                let mul = multipliers[c]; /*(mul < 1) <==> we're winning*/
+                let mul3 = mul * mul * mul;
+                let at_home = y == 2 + c * 7;
+                let pawn_home = y == 3 + c * 5;
+                let row4 = y == 5 + c;
+                let promotion_row = y == 9 - c * 7;
+                let get_out = (early && at_home) * -5;
 
-                var knight = parseInt(early_centre * 0.3) + 2 * plateau + get_out;
-                var rook = parseInt(early_centre * 0.3);
-                var bishop = parseInt(early_centre * 0.6) + plateau + get_out;
+                let knight = parseInt(early_centre * 0.3) + 2 * plateau + get_out;
+                let rook = parseInt(early_centre * 0.3);
+                let bishop = parseInt(early_centre * 0.6) + plateau + get_out;
                 if (at_home){
                     rook += (x == 4 || x == 5) * (earliness_weight + ! target_king);
                     rook += (x == 1 || x == 8) * (moveno > 10 && moveno < 20) * -3;
@@ -287,17 +286,17 @@ function p4_prepare(state){
 
                 /*Queen wants to stay home early, then jump right in*/
                 /*keep kings back on home row for a while*/
-                var queen = parseInt(plateau * 0.5 + early_centre * (0.5 - early));
-                var king = (king_should_hide && at_home) * 2 * earliness_weight;
+                let queen = parseInt(plateau * 0.5 + early_centre * (0.5 - early));
+                let king = (king_should_hide && at_home) * 2 * earliness_weight;
 
                 /*empty board means pawn advancement is more urgent*/
-                var get_on_with_it = Math.max(emptiness * 2, 1);
-                var pawn = get_on_with_it * P4_BASE_PAWN_WEIGHTS[c ? 119 - i : i];
+                let get_on_with_it = Math.max(emptiness * 2, 1);
+                let pawn = get_on_with_it * P4_BASE_PAWN_WEIGHTS[c ? 119 - i : i];
                 if (early){
                     /* Early pawn weights are slightly randomised, so each game is different.
                      */
                     if (y >= 4 && y <= 7){
-                        var boost = 1 + 3 * (y == 5 || y == 6);
+                        let boost = 1 + 3 * (y == 5 || y == 6);
                         pawn += parseInt((boost + p4_random_int(state, 4)) * 0.1 *
                                          early_centre);
                     }
@@ -308,14 +307,14 @@ function p4_prepare(state){
                     }
                 }
                 /*pawn promotion row is weighted as a queen minus a pawn.*/
-                if (promotion_row)
+                if (promotion_row) {
                     pawn += state.values[c][P4_QUEEN] - state.values[c][P4_PAWN];
-
+                }
                 /*pawns in front of a castled king should stay there*/
                 pawn += 4 * (y == 3 && ky[c] == 2 && Math.abs(our_dx) < 2 &&
                              kx[c] != 5 && x != 4 && x != 5);
                 /*passed pawns (having no opposing pawn in front) are encouraged. */
-                var cols = pawn_cols[1 - c];
+                let cols = pawn_cols[1 - c];
                 if (cols[x] == undefined ||
                     (c == 0 && cols[x] < y) ||
                     (c == 1 && cols[x] > y))
@@ -337,7 +336,7 @@ function p4_prepare(state){
                     queen += 2 * parseInt(8 / d) + (dx * dy == 0) + (dx - dy == 0);
                     /* The losing king wants to stay in the middle, while
                      the winning king goes in for the kill.*/
-                    var king_centre_wt = 8 * emptiness * P4_CENTRALISING_WEIGHTS[i];
+                    let king_centre_wt = 8 * emptiness * P4_CENTRALISING_WEIGHTS[i];
                     king += parseInt(150 * emptiness / (mul3 * d) + king_centre_wt * mul3);
                 }
                 weights[P4_PAWN + c][i] = pawn;
@@ -349,8 +348,8 @@ function p4_prepare(state){
 
                 if (draw_likely && mul < 1){
                     /*The winning side wants to avoid draw, so adds jitter to its weights.*/
-                    var range = 3 / mul3;
-                    for (j = 2 + c; j < 14; j += 2){
+                    let range = 3 / mul3;
+                    for (let j = 2 + c; j < 14; j += 2){
                         weights[j][i] += p4_random_int(state, range);
                     }
                 }
