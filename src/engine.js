@@ -507,15 +507,15 @@ function p4_parse(state, colour, ep, score) {
  */
 
 function p4_check_castling(board, s, colour, dir, side){
-    var e;
-    var E;
-    var m, p;
-    var knight = colour + P4_KNIGHT;
-    var diag_slider = P4_BISHOP | colour;
-    var diag_mask = 27;
-    var grid_slider = P4_ROOK | colour;
-    var king_pawn = 2 | colour;
-    var grid_mask = 23;
+    let e;
+    let E;
+    let m, p;
+    const knight = colour + P4_KNIGHT;
+    const diag_slider = P4_BISHOP | colour;
+    const diag_mask = 27;
+    const grid_slider = P4_ROOK | colour;
+    const king_pawn = 2 | colour;
+    const grid_mask = 23;
 
     /* go through 3 positions, checking for check in each
      */
@@ -529,7 +529,7 @@ function p4_check_castling(board, s, colour, dir, side){
         if((E & grid_mask) == grid_slider)
             return 0;
         e = p;
-        var delta = dir - 1;
+        let delta = dir - 1;
         do{
             e += delta;
             E=board[e];
@@ -552,10 +552,11 @@ function p4_check_castling(board, s, colour, dir, side){
 
     /* a pawn or king in any of 5 positions on row 7.
      * or a knight on row 6. */
-    for(p = s + dir - 1; p < s + dir + 4; p++){
+    for (p = s + dir - 1; p < s + dir + 4; p++){
         E = board[p] & grid_mask;
-        if(E == king_pawn || board[p + dir] == knight)
+        if (E == king_pawn || board[p + dir] == knight) {
             return 0;
+        }
     }
     /* scan back row for rooks, queens on the other side.
      * Same side check is impossible, because the castling rook is there
@@ -565,9 +566,9 @@ function p4_check_castling(board, s, colour, dir, side){
         e -= side;
         E=board[e];
     } while (! E);
-    if((E & grid_mask) == grid_slider)
+    if((E & grid_mask) == grid_slider) {
         return 0;
-
+    }
     return 1;
 }
 
