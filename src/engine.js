@@ -366,36 +366,35 @@ function p4_maybe_prepare(state){
 
 
 function p4_parse(state, colour, ep, score) {
-    var board = state.board;
-    var s, e;    //start and end position
-    var E, a;       //E=piece at end place, a= piece moving
-    var i, j;
-    var other_colour = 1 - colour;
-    var dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
-    var movelist = [];
-    var captures = [];
-    var weight;
-    var pieces = state.pieces[colour];
-    var castle_flags = (state.castles >> (colour * 2)) & 3;
-    var values = state.values[other_colour];
-    var all_weights = state.weights;
-    for (j = pieces.length - 1; j >= 0; j--){
+    let board = state.board;
+    let s, e;    //start and end position
+    let E, a;       //E=piece at end place, a= piece moving
+    const other_colour = 1 - colour;
+    const dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
+    let movelist = [];
+    let captures = [];
+    let pieces = state.pieces[colour];
+    const castle_flags = (state.castles >> (colour * 2)) & 3;
+    let values = state.values[other_colour];
+    let all_weights = state.weights;
+    for (let j = pieces.length - 1; j >= 0; j--){
         s = pieces[j][1]; // board position
         a = board[s]; //piece number
-        var weight_lut = all_weights[a];
-        weight = score - weight_lut[s];
+        const weight_lut = all_weights[a];
+        const weight = score - weight_lut[s];
         a &= 14;
-        if(a > 2){    //non-pawns
-            var moves = P4_MOVES[a];
-            if(a & 2){
-                for(i = 0; i < 8; i++){
+        if(a > 2) {    //non-pawns
+            const moves = P4_MOVES[a];
+            if(a & 2) { /* knight, king; one-steppers */
+                for(let i = 0; i < 8; i++){
                     e = s + moves[i];
                     E = board[e];
                     if(!E){
                         movelist.push([weight + values[E] + weight_lut[e], s, e]);
                     }
                     else if((E&17)==other_colour){
-                        captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                        captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e],
+                                       s, e]);
                     }
                 }
                 if(a == P4_KING && castle_flags){
@@ -411,12 +410,12 @@ function p4_parse(state, colour, ep, score) {
                 }
             }
             else{//rook, bishop, queen
-                var mlen = moves.length;
-                for(i=0;i<mlen;){     //goeth thru list of moves
-                    var m = moves[i++];
-                    e=s;
+                const mlen = moves.length;
+                for(let i = 0; i < mlen; i++){     //goeth thru list of moves
+                    const m = moves[i];
+                    e = s;
                     do {
-                        e+=m;
+                        e += m;
                         E=board[e];
                         if(!E){
                             movelist.push([weight + values[E] + weight_lut[e], s, e]);
@@ -428,19 +427,19 @@ function p4_parse(state, colour, ep, score) {
                 }
             }
         }
-        else{    //pawns
-            e=s+dir;
-            if(!board[e]){
+        else {    //pawns
+            e = s + dir;
+            if (!board[e]){
                 movelist.push([weight + weight_lut[e], s, e]);
                 /* s * (120 - s) < 3200 true for outer two rows on either side.*/
-                var e2 = e + dir;
+                const e2 = e + dir;
                 if(s * (120 - s) < 3200 && (!board[e2])){
                     movelist.push([weight + weight_lut[e2], s, e2]);
                 }
             }
             /* +/-1 for pawn capturing */
             E = board[--e];
-            if(E && (E & 17) == other_colour){
+            if (E && (E & 17) == other_colour) {
                 captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
             }
             e += 2;
@@ -450,9 +449,10 @@ function p4_parse(state, colour, ep, score) {
             }
         }
     }
-    if(ep){
-        var pawn = P4_PAWN | colour;
-        var taken;
+    if (ep){
+        const pawn = P4_PAWN | colour;
+        const weight_lut = all_weights[pawn];
+        let taken;
         /* Some repetitive calculation here could be hoisted out, but that would
             probably slow things: the common case is no pawns waiting to capture
             enpassant, not 2.
