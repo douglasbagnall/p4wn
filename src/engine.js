@@ -24,10 +24,6 @@ else {
     p4_log = function(){console.log.apply(console, arguments);};
 }
 
-/*MSIE Date.now backport */
-if (Date.now === undefined)
-    Date.now = function(){return (new Date).getTime();};
-
 /* The pieces are stored as numbers between 2 and 13, inclusive.
  * Empty squares are stored as 0, and off-board squares as 16.
  * There is some bitwise logic to it:
