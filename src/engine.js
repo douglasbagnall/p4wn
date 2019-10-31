@@ -631,22 +631,21 @@ function p4_check_check(state, colour){
 }
 
 function p4_optimise_piece_list(state){
-    var i, p, s, e;
-    var movelists = [
+    const movelists = [
         p4_parse(state, 0, 0, 0),
         p4_parse(state, 1, 0, 0)
     ];
-    var weights = state.weights;
-    var board = state.board;
-    for (var colour = 0; colour < 2; colour++){
-        var our_values = state.values[colour];
-        var pieces = state.pieces[colour];
-        var movelist = movelists[colour];
-        var threats = movelists[1 - colour];
+    const weights = state.weights;
+    const board = state.board;
+    for (let colour = 0; colour < 2; colour++){
+        const our_values = state.values[colour];
+        let pieces = state.pieces[colour];
+        const movelist = movelists[colour];
+        const threats = movelists[1 - colour];
         /* sparse array to index by score. */
-        var scores = [];
-        for (i = 0; i < pieces.length; i++){
-            p = pieces[i];
+        let scores = [];
+        for (let i = 0; i < pieces.length; i++){
+            let p = pieces[i];
             scores[p[1]] = {
                 score: 0,
                 piece: p[0],
@@ -656,39 +655,40 @@ function p4_optimise_piece_list(state){
         }
         /* Find the best score for each piece by pure static weights,
          * ignoring captures, which have their own path to the top. */
-        for(i = movelist.length - 1; i >= 0; i--){
-            var mv = movelist[i];
-            var score = mv[0];
-            s = mv[1];
-            e = mv[2];
+        for(let i = movelist.length - 1; i >= 0; i--){
+            let mv = movelist[i];
+            let e = mv[2];
             if(! board[e]){
-                var x = scores[s];
+                let score = mv[0];
+                let s = mv[1];
+                let x = scores[s];
                 x.score = Math.max(x.score, score);
             }
         }
         /* moving out of a threat is worth considering, especially
          * if it is a pawn and you are not.*/
-        for(i = threats.length - 1; i >= 0; i--){
-            var mv = threats[i];
-            var x = scores[mv[2]];
+        for (let i = threats.length - 1; i >= 0; i--){
+            let mv = threats[i];
+            let x = scores[mv[2]];
             if (x !== undefined){
-                var S = board[mv[1]];
-                var r = (1 + x.piece > 3 + S < 4) * 0.01;
-                if (x.threatened < r)
+                let S = board[mv[1]];
+                let r = (1 + x.piece > 3 + S < 4) * 0.01;
+                if (x.threatened < r) {
                     x.threatened = r;
+                }
             }
         }
-        var pieces2 = [];
-        for (i = 20; i < 100; i++){
-            p = scores[i];
+        let pieces2 = [];
+        for (let i = 20; i < 100; i++){
+            let p = scores[i];
             if (p !== undefined){
                 p.score += p.threatened * our_values[p.piece];
                 pieces2.push(p);
             }
         }
         pieces2.sort(function(a, b){return a.score - b.score;});
-        for (i = 0; i < pieces2.length; i++){
-            p = pieces2[i];
+        for (let i = 0; i < pieces2.length; i++){
+            let p = pieces2[i];
             pieces[i] = [p.piece, p.pos];
         }
     }
