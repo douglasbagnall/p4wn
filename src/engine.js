@@ -112,25 +112,25 @@ const P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
-    var move = p4_make_move(state, s, e, P4_QUEEN);
-    var i;
-    var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, -score);
-    var movecount = movelist.length;
+    const move = p4_make_move(state, s, e, P4_QUEEN);
+    const ncolour = 1 - colour;
+    const movelist = p4_parse(state, colour, move.ep, -score);
+    let movecount = movelist.length;
     if(count){
         //branch nodes
-        var t;
-        for(i = 0; i < movecount; i++){
-            var mv = movelist[i];
-            var mscore = mv[0];
-            var ms = mv[1];
-            var me = mv[2];
+        for(let i = 0; i < movecount; i++){
+            let mv = movelist[i];
+            let mscore = mv[0];
+            let ms = mv[1];
+            let me = mv[2];
             if (mscore > P4_WIN){ //we won! Don't look further.
                 alpha = P4_KING_VALUE;
                 break;
             }
-            t = -p4_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                          -beta, -alpha);
+            let t = -p4_alphabeta_treeclimber(state, count - 1,
+                                              ncolour, mscore,
+                                              ms, me,
+                                              -beta, -alpha);
             if (t > alpha){
                 alpha = t;
             }
