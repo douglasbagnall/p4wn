@@ -1422,30 +1422,33 @@ function p4_interpret_movestring(state, str){
     /* Ignore any irrelevant characters, then tokenise.
      *
      */
-    var FAIL = [0, 0];
-    var algebraic_re = /^\s*([RNBQK]?[a-h]?[1-8]?)[ :x-]*([a-h][1-8]?)(=[RNBQ])?[!?+#e.p]*\s*$/;
-    var castle_re = /^\s*([O0o]-[O0o](-[O0o])?)\s*$/;
-    var position_re = /^[a-h][1-8]$/;
+    const FAIL = [0, 0];
+    const algebraic_re = /^\s*([RNBQK]?[a-h]?[1-8]?)[ :x-]*([a-h][1-8]?)(=[RNBQ])?[!?+#e.p]*\s*$/;
+    const castle_re = /^\s*([O0o]-[O0o](-[O0o])?)\s*$/;
+    const position_re = /^[a-h][1-8]$/;
 
     let s = 0, e, q;
-    var m = algebraic_re.exec(str);
+    let m = algebraic_re.exec(str);
     if (m == null){
         /*check for castling notation (O-O, O-O-O) */
         m = castle_re.exec(str);
-        if (m){
+        if (m) {
             s = 25 + state.to_play * 70;
-            if (m[2])/*queenside*/
+            if (m[2]) {/*queenside*/
                 e = s - 2;
-            else
+            }
+            else {
                 e = s + 2;
+            }
         }
-        else
+        else {
             return FAIL;
+        }
     }
-    var src = m[1];
-    var dest = m[2];
-    var queen = m[3];
-    var moves, i;
+    let src = m[1];
+    let dest = m[2];
+    let queen = m[3];
+    let moves;
     if (s == 0 && (src == '' || src === undefined)){
         /* a single coordinate pawn move */
         e = p4_destringify_point(dest);
