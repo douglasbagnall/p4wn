@@ -1216,17 +1216,18 @@ function p4_state2fen(state, reduced){
 }
 
 function p4_stringify_point(p){
-    var letters = " abcdefgh";
-    var x = p % 10;
-    var y = (p - x) / 10 - 1;
+    const letters = " abcdefgh";
+    const x = p % 10;
+    const y = (p - x) / 10 - 1;
     return letters.charAt(x) + y;
 }
 
 function p4_destringify_point(p){
-    var x = parseInt(p.charAt(0), 19) - 9; //a-h <-> 10-18, base 19
-    var y = parseInt(p.charAt(1)) + 1;
-    if (y >= 2 && y < 10 && x >= 1 && x < 9)
+    const x = parseInt(p.charAt(0), 19) - 9; //a-h <-> 10-18, base 19
+    const y = parseInt(p.charAt(1)) + 1;
+    if (y >= 2 && y < 10 && x >= 1 && x < 9) {
         return y * 10 + x;
+    }
     return undefined;
 }
 
