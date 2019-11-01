@@ -1427,6 +1427,7 @@ function p4_interpret_movestring(state, str){
     var castle_re = /^\s*([O0o]-[O0o](-[O0o])?)\s*$/;
     var position_re = /^[a-h][1-8]$/;
 
+    let s = 0, e, q;
     var m = algebraic_re.exec(str);
     if (m == null){
         /*check for castling notation (O-O, O-O-O) */
@@ -1444,9 +1445,8 @@ function p4_interpret_movestring(state, str){
     var src = m[1];
     var dest = m[2];
     var queen = m[3];
-    var s, e, q;
     var moves, i;
-    if (src == '' || src == undefined){
+    if (s == 0 && (src == '' || src === undefined)){
         /* a single coordinate pawn move */
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, 'P' + dest.charAt(0));
