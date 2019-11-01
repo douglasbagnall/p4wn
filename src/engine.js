@@ -931,35 +931,33 @@ const P4_MOVE_CHECKMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MA
 const P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
 
 function p4_move(state, s, e, promotion){
-    var board = state.board;
-    var colour = state.to_play;
-    var other_colour = 1 - colour;
-    if (s != parseInt(s)){
-        if (e === undefined){
-            var mv = p4_interpret_movestring(state, s);
-            s = mv[0];
-            e = mv[1];
-            if (s == 0)
+    let board = state.board;
+    const colour = state.to_play;
+    const other_colour = 1 - colour;
+    if (s != parseInt(s)) {
+        if (e === undefined) {
+            [s, e, promotion] = p4_interpret_movestring(state, s);
+            if (s == 0) {
                 return {flags: P4_MOVE_ILLEGAL, ok: false};
-            promotion = mv[2];
+            }
         }
         else {/*assume two point strings: 'e2', 'e4'*/
             s = p4_destringify_point(s);
             e = p4_destringify_point(e);
         }
     }
-    if (promotion === undefined)
+    if (promotion === undefined) {
         promotion = P4_QUEEN;
-    var E=board[e];
-    var S=board[s];
+    }
+    const E = board[e];
+    const S = board[s];
 
     /*See if this move is even slightly legal, disregarding check.
      */
-    var i;
-    var legal = false;
+    let legal = false;
     p4_maybe_prepare(state);
-    var moves = p4_parse(state, colour, state.enpassant, 0);
-    for (i = 0; i < moves.length; i++){
+    const moves = p4_parse(state, colour, state.enpassant, 0);
+    for (let i = 0; i < moves.length; i++){
         if (e == moves[i][2] && s == moves[i][1]){
             legal = true;
             break;
@@ -970,7 +968,7 @@ function p4_move(state, s, e, promotion){
     }
 
     /*Try the move, and see what the response is.*/
-    var changes = p4_make_move(state, s, e, promotion);
+    let changes = p4_make_move(state, s, e, promotion);
 
     /*is it check? */
     if (p4_check_check(state, colour)){
@@ -980,7 +978,7 @@ function p4_move(state, s, e, promotion){
     }
     /*The move is known to be legal. We won't be undoing it.*/
 
-    var flags = P4_MOVE_FLAG_OK;
+    let flags = P4_MOVE_FLAG_OK;
 
     state.enpassant = changes.ep;
     state.history.push([s, e, promotion]);
@@ -999,8 +997,8 @@ function p4_move(state, s, e, promotion){
     if (changes.rs){
         flags |= (s > e) ? P4_MOVE_FLAG_CASTLE_QUEEN : P4_MOVE_FLAG_CASTLE_KING;
     }
-    var shortfen = p4_state2fen(state, true);
-    var repetitions = (state.position_counts[shortfen] || 0) + 1;
+    const shortfen = p4_state2fen(state, true);
+    const repetitions = (state.position_counts[shortfen] || 0) + 1;
     state.position_counts[shortfen] = repetitions;
     state.current_repetitions = repetitions;
     if (state.draw_timeout > 100 || repetitions >= 3 ||
@@ -1023,22 +1021,22 @@ function p4_move(state, s, e, promotion){
      * setting the promotion piece is unnecessary, because all
      * promotions block check equally well.
     */
-    var is_mate = true;
-    var replies = p4_parse(state, other_colour, changes.ep, 0);
-    for (i = 0; i < replies.length; i++){
-        var m = replies[i];
-        var change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
-        var check = p4_check_check(state, other_colour);
+    let is_mate = true;
+    const replies = p4_parse(state, other_colour, changes.ep, 0);
+    for (let i = 0; i < replies.length; i++){
+        let m = replies[i];
+        let change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
+        let check = p4_check_check(state, other_colour);
         p4_unmake_move(state, change2);
         if (!check){
             is_mate = false;
             break;
         }
     }
-    if (is_mate)
+    if (is_mate) {
         flags |= P4_MOVE_FLAG_MATE;
-
-    var movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
+    }
+    const movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
     p4_log("successful move", s, e, movestring, flags);
     state.prepared = false;
     return {
