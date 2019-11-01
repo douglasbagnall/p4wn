@@ -1136,9 +1136,9 @@ function p4_jump_to_moveno(state, moveno){
     }
     /* copy the replayed state across, not all that deeply, but
      * enough to cover, eg, held references to board. */
-    var attr, dest;
+    let attr, dest;
     for (attr in state2){
-        var src = state2[attr];
+        let src = state2[attr];
         if (attr instanceof Array){
             dest = state[attr];
             dest.length = 0;
