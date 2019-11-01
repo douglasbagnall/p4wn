@@ -1158,43 +1158,48 @@ function p4_jump_to_moveno(state, moveno){
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  * */
 function p4_state2fen(state, reduced){
-    var piece_lut = '  PpRrNnBbKkQq';
-    var board = state.board;
-    var fen = '';
+    const piece_lut = '  PpRrNnBbKkQq';
+    let board = state.board;
+    let fen = '';
     //fen does Y axis backwards, X axis forwards */
-    for (var y = 9; y > 1; y--){
-        var count = 0;
-        for (var x = 1; x < 9; x++){
-            var piece = board[y * 10 + x];
-            if (piece == 0)
+    for (let y = 9; y > 1; y--){
+        let count = 0;
+        for (let x = 1; x < 9; x++){
+            let piece = board[y * 10 + x];
+            if (piece == 0) {
                 count++;
+            }
             else{
-                if (count)
+                if (count) {
                     fen += count.toString();
+                }
                 fen += piece_lut.charAt(piece);
                 count = 0;
             }
         }
-        if (count)
-            fen += count;
-        if (y > 2)
+        if (count) {
+            fen += count.toString();
+        }
+        if (y > 2) {
             fen += '/';
+        }
     }
     /*white or black */
     fen += ' ' + 'wb'.charAt(state.to_play) + ' ';
     /*castling */
     if (state.castles){
-        var lut = [2, 'K', 1, 'Q', 8, 'k', 4, 'q'];
-        for (var i = 0; i < 8; i += 2){
-            if (state.castles & lut[i]){
+        const lut = [2, 'K', 1, 'Q', 8, 'k', 4, 'q'];
+        for (let i = 0; i < 8; i += 2){
+            if (state.castles & lut[i]) {
                 fen += lut[i + 1];
             }
         }
     }
-    else
+    else {
         fen += '-';
+    }
     /*enpassant */
-    if (state.enpassant !== 0){
+    if (state.enpassant !== 0) {
         fen += ' ' + p4_stringify_point(state.enpassant);
     }
     else
