@@ -108,7 +108,7 @@ const P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     q: 13
 };
 
-const P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
+let P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
@@ -917,18 +917,18 @@ function p4_insufficient_material(state){
  * return value contains bitwise flags
 */
 
-var P4_MOVE_FLAG_OK = 1;
-var P4_MOVE_FLAG_CHECK = 2;
-var P4_MOVE_FLAG_MATE = 4;
-var P4_MOVE_FLAG_CAPTURE = 8;
-var P4_MOVE_FLAG_CASTLE_KING = 16;
-var P4_MOVE_FLAG_CASTLE_QUEEN = 32;
-var P4_MOVE_FLAG_DRAW = 64;
+const P4_MOVE_FLAG_OK = 1;
+const P4_MOVE_FLAG_CHECK = 2;
+const P4_MOVE_FLAG_MATE = 4;
+const P4_MOVE_FLAG_CAPTURE = 8;
+const P4_MOVE_FLAG_CASTLE_KING = 16;
+const P4_MOVE_FLAG_CASTLE_QUEEN = 32;
+const P4_MOVE_FLAG_DRAW = 64;
 
-var P4_MOVE_ILLEGAL = 0;
-var P4_MOVE_MISSED_MATE = P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
-var P4_MOVE_CHECKMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
-var P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
+const P4_MOVE_ILLEGAL = 0;
+const P4_MOVE_MISSED_MATE = P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
+const P4_MOVE_CHECKMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_CHECK | P4_MOVE_FLAG_MATE;
+const P4_MOVE_STALEMATE = P4_MOVE_FLAG_OK | P4_MOVE_FLAG_MATE;
 
 function p4_move(state, s, e, promotion){
     var board = state.board;
