@@ -1538,20 +1538,20 @@ function p4_random_seed(state, seed){
     state.rng[1] = seed;
     state.rng[2] = seed;
     state.rng[3] = seed;
-    for (var i = 0; i < 20; i++)
+    for (let i = 0; i < 20; i++)
         p4_random31(state);
 }
 
 function p4_random31(state){
-    var rng = state.rng;
-    var b = rng[1];
-    var c = rng[2];
+    let rng = state.rng;
+    let b = rng[1];
+    let c = rng[2];
     /* These shifts amount to rotates.
      * Note the three-fold right shift '>>>', meaning an unsigned shift.
      * The 0xffffffff masks are needed to keep javascript to 32bit. (supposing
      * untyped arrays).
      */
-    var e = rng[0] - ((b << 27) | (b >>> 5));
+    let e = rng[0] - ((b << 27) | (b >>> 5));
     rng[0] = b ^ ((c << 17) | (c >>> 15));
     rng[1] = (c + rng[3]) & 0xffffffff;
     rng[2] = (rng[3] + e) & 0xffffffff;
@@ -1568,14 +1568,14 @@ function p4_random_int(state, top){
      * Obviously it is a bit slower.
      */
     /* mask becomes one less than the next highest power of 2 */
-    var mask = top;
+    let mask = top;
     mask--;
     mask |= mask >>> 1;
     mask |= mask >>> 2;
     mask |= mask >>> 4;
     mask |= mask >>> 8;
     mask |= mask >>> 16;
-    var r;
+    let r;
     do{
         r = p4_random31(state) & mask;
     } while (r >= top);
