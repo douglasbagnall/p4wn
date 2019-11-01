@@ -871,12 +871,11 @@ function p4_unmake_move(state, move){
 
 
 function p4_insufficient_material(state){
-    var knights = false;
-    var bishops = undefined;
-    var i;
-    var board = state.board;
-    for(i = 20; i  < 100; i++){
-        var piece = board[i] & 14;
+    let knights = false;
+    let bishops = undefined;
+    let board = state.board;
+    for(let i = 20; i  < 100; i++){
+        const piece = board[i] & 14;
         if(piece == 0 || piece == P4_KING){
             continue;
         }
@@ -889,9 +888,9 @@ function p4_insufficient_material(state){
         }
         else if (piece == P4_BISHOP){
             /*any number of bishops, but on only one colour square */
-            var x = i & 1;
-            var y = parseInt(i / 10) & 1;
-            var parity = x ^ y;
+            const x = i & 1;
+            const y = parseInt(i / 10) & 1;
+            const parity = x ^ y;
             if (knights){
                 return false;
             }
