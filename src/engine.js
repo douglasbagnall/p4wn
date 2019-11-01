@@ -1467,9 +1467,9 @@ function p4_interpret_movestring(state, str){
         e = p4_destringify_point(dest);
         s = p4_find_source_point(state, e, 'P' + src);
     }
-    if (s == 0)
+    if (s == 0) {
         return FAIL;
-
+    }
     if (queen){
         /* the chosen queen piece */
         q = P4_PIECE_LUT[queen.charAt(1)];
@@ -1479,15 +1479,14 @@ function p4_interpret_movestring(state, str){
 
 
 function p4_find_source_point(state, e, str){
-    var colour = state.to_play;
-    var piece = P4_PIECE_LUT[str.charAt(0)];
-    piece |= colour;
-    var s, i;
+    const colour = state.to_play;
+    const piece = P4_PIECE_LUT[str.charAt(0)] | colour;
+    let s;
 
-    var row, column;
+    let row, column;
     /* can be specified as Na, Na3, N3, and who knows, N3a? */
-    for (i = 1; i < str.length; i++){
-        var c = str.charAt(i);
+    for (let i = 1; i < str.length; i++){
+        let c = str.charAt(i);
         if (/[a-h]/.test(c)){
             column = str.charCodeAt(i) - 96;
         }
@@ -1496,19 +1495,19 @@ function p4_find_source_point(state, e, str){
             row = 1 + parseInt(c);
         }
     }
-    var possibilities = [];
+    let possibilities = [];
     p4_prepare(state);
-    var moves = p4_parse(state, colour,
+    let moves = p4_parse(state, colour,
                          state.enpassant, 0);
-    for (i = 0; i < moves.length; i++){
-        var mv = moves[i];
+    for (let i = 0; i < moves.length; i++){
+        let mv = moves[i];
         if (e == mv[2]){
             s = mv[1];
             if (state.board[s] == piece &&
                 (column === undefined || column == s % 10) &&
                 (row === undefined || row == parseInt(s / 10))
                ){
-                   var change = p4_make_move(state, s, e, P4_QUEEN);
+                   let change = p4_make_move(state, s, e, P4_QUEEN);
                    if (! p4_check_check(state, colour))
                        possibilities.push(s);
                    p4_unmake_move(state, change);
