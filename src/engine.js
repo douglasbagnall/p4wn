@@ -1048,19 +1048,20 @@ function p4_move(state, s, e, promotion){
 
 
 function p4_move2string(state, s, e, S, promotion, flags, moves){
-    var piece = S & 14;
-    var src, dest;
-    var mv, i;
-    var capture = flags & P4_MOVE_FLAG_CAPTURE;
+    const piece = S & 14;
+    let src, dest;
+    let mv;
+    const capture = flags & P4_MOVE_FLAG_CAPTURE;
 
     src = p4_stringify_point(s);
     dest = p4_stringify_point(e);
-    if (piece == P4_PAWN){
-        if (capture){
+    if (piece == P4_PAWN) {
+        if (capture) {
             mv = src.charAt(0) + 'x' + dest;
         }
-        else
+        else {
             mv = dest;
+        }
         if (e > 90 || e < 30){  //end row, queening
             if (promotion === undefined)
                 promotion = P4_QUEEN;
@@ -1074,27 +1075,27 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
             mv = 'O-O';
     }
     else {
-        var row_qualifier = '';
-        var col_qualifier = '';
-        var pstr = P4_ENCODE_LUT.charAt(S);
-        var sx = s % 10;
-        var sy = parseInt(s / 10);
+        let row_qualifier = '';
+        let col_qualifier = '';
+        let pstr = P4_ENCODE_LUT.charAt(S);
+        const sx = s % 10;
+        const sy = parseInt(s / 10);
 
         /* find any other pseudo-legal moves that would put the same
          * piece in the same place, for which we'd need
          * disambiguation. */
-        var co_landers = [];
-        for (i = 0; i < moves.length; i++){
-            var m = moves[i];
+        let co_landers = [];
+        for (let i = 0; i < moves.length; i++){
+            let m = moves[i];
             if (e == m[2] && s != m[1] && state.board[m[1]] == S){
                 co_landers.push(m[1]);
             }
         }
         if (co_landers.length){
-            for (i = 0; i < co_landers.length; i++){
-                var c = co_landers[i];
-                var cx = c % 10;
-                var cy = parseInt(c / 10);
+            for (let i = 0; i < co_landers.length; i++){
+                let c = co_landers[i];
+                let cx = c % 10;
+                let cy = parseInt(c / 10);
                 if (cx == sx)/*same column, so qualify by row*/
                     row_qualifier = src.charAt(1);
                 if (cy == sy)
