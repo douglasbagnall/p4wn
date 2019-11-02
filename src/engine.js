@@ -1350,14 +1350,10 @@ Int32Array is marginally slower than plain arrays with Firefox 12, but
 significantly quicker with Chromium.
  */
 
-var P4_ZEROS = [];
+const P4_ZEROS = P4_USE_TYPED_ARRAYS ? undefined : Array(120).fill(0);
 function p4_zero_array(){
-    if (P4_USE_TYPED_ARRAYS)
+    if (P4_USE_TYPED_ARRAYS) {
         return new Int32Array(120);
-    if (P4_ZEROS.length == 0){
-        for(var i = 0; i < 120; i++){
-            P4_ZEROS[i] = 0;
-        }
     }
     return P4_ZEROS.slice();
 }
