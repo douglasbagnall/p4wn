@@ -1365,15 +1365,15 @@ function p4_zero_array(){
  */
 
 function p4_initialise_state(){
-    var board = p4_zero_array();
+    let board = p4_zero_array();
     P4_CENTRALISING_WEIGHTS = p4_zero_array();
     P4_BASE_PAWN_WEIGHTS = p4_zero_array();
     P4_KNIGHT_WEIGHTS = p4_zero_array();
-    for(var i = 0; i < 120; i++){
-        var y = parseInt(i / 10);
-        var x = i % 10;
-        var dx = Math.abs(x - 4.5);
-        var dy = Math.abs(y - 5.5);
+    for(let i = 0; i < 120; i++){
+        const y = parseInt(i / 10);
+        const x = i % 10;
+        const dx = Math.abs(x - 4.5);
+        const dy = Math.abs(y - 5.5);
         P4_CENTRALISING_WEIGHTS[i] = parseInt(6 - Math.pow((dx * dx + dy * dy) * 1.5, 0.6));
          //knights have a flat topped centre (bishops too, but less so).
         P4_KNIGHT_WEIGHTS[i] = parseInt(((dx < 2) + (dy < 2) * 1.5)
@@ -1382,11 +1382,11 @@ function p4_initialise_state(){
         if (y > 9 || y < 2 || x < 1 || x > 8)
             board[i] = 16;
     }
-    var weights = [];
-    for (i = 0; i < 14; i++){
+    let weights = [];
+    for (let i = 0; i < 14; i++){
         weights[i] = p4_zero_array();
     }
-    var state = {
+    let state = {
         board: board,
         weights: weights,
         history: [],
