@@ -1235,24 +1235,25 @@ function p4_destringify_point(p){
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  * */
 function p4_fen2state(fen, state){
-    if (state === undefined)
+    if (state === undefined) {
         state = p4_initialise_state();
-    var board = state.board;
-    var fenbits = fen.split(' ');
-    var fen_board = fenbits[0];
-    var fen_toplay = fenbits[1];
-    var fen_castles = fenbits[2];
-    var fen_enpassant = fenbits[3];
-    var fen_timeout = fenbits[4];
-    var fen_moveno = fenbits[5];
-    if (fen_timeout === undefined)
+    }
+    let board = state.board;
+    let [fen_board,
+         fen_toplay,
+         fen_castles,
+         fen_enpassant,
+         fen_timeout,
+         fen_moveno] = fen.split(' ');
+
+    if (fen_timeout === undefined) {
         fen_timeout = 0;
+    }
     //fen does Y axis backwards, X axis forwards */
-    var y = 90;
-    var x = 1;
-    var i, c;
-    for (var j = 0; j < fen_board.length; j++){
-        c = fen_board.charAt(j);
+    let y = 90;
+    let x = 1;
+    for (let j = 0; j < fen_board.length; j++){
+        let c = fen_board.charAt(j);
         if (c == '/'){
             x = 1;
             y -= 10;
@@ -1260,14 +1261,14 @@ function p4_fen2state(fen, state){
                 break;
             continue;
         }
-        var piece = P4_PIECE_LUT[c];
+        let piece = P4_PIECE_LUT[c];
         if (piece && x < 9){
             board[y + x] = piece;
             x++;
         }
         else {
-            var end = Math.min(x + parseInt(c), 9);
-            for (; x < end; x++){
+            let end = Math.min(x + parseInt(c), 9);
+            for (; x < end; x++) {
                 board[y + x] = 0;
             }
         }
@@ -1275,17 +1276,17 @@ function p4_fen2state(fen, state){
     state.to_play = (fen_toplay.toLowerCase() == 'b') ? 1 : 0;
     state.castles = 0;
     /* Sometimes we meet bad FEN that says it can castle when it can't. */
-    var wk = board[25] == P4_KING;
-    var bk = board[95] == P4_KING + 1;
-    var castle_lut = {
+    const wk = board[25] == P4_KING;
+    const bk = board[95] == P4_KING + 1;
+    const castle_lut = {
         k: 8 * (bk && board[98] == P4_ROOK + 1),
         q: 4 * (bk && board[91] == P4_ROOK + 1),
         K: 2 * (wk && board[28] == P4_ROOK),
         Q: 1 * (wk && board[21] == P4_ROOK)
     };
-    for (i = 0; i < fen_castles.length; i++){
-        c = fen_castles.charAt(i);
-        var castle = castle_lut[c];
+    for (let i = 0; i < fen_castles.length; i++){
+        let c = fen_castles.charAt(i);
+        let castle = castle_lut[c];
         if (castle !== undefined){
             state.castles |= castle;
             if (castle == 0){
@@ -1299,24 +1300,25 @@ function p4_fen2state(fen, state){
     state.draw_timeout = parseInt(fen_timeout);
     if (fen_moveno === undefined){
         /*have a guess based on entropy and pieces remaining*/
-        var pieces = 0;
-        var mix = 0;
-        var p, q, r;
-        for (y = 20; y < 100; y+=10){
-            for (x = 1; x < 9; x++){
-                p = board[y + x] & 15;
+        let pieces = 0;
+        let mix = 0;
+        for (y = 20; y < 100; y+=10) {
+            for (x = 1; x < 9; x++) {
+                let p = board[y + x] & 15;
                 pieces += (!!p);
                 if (x < 8){
-                    q = board[y + x + 1];
+                    let q = board[y + x + 1];
                     mix += (!q) != (!p);
                 }
                 if (y < 90){
-                    q = board[y + x + 10];
+                    let q = board[y + x + 10];
                     mix += (!q) != (!p);
                 }
             }
         }
-        fen_moveno = Math.max(1, parseInt((32 - pieces) * 1.3 + (4 - fen_castles.length) * 1.5 + ((mix - 16) / 5)));
+        fen_moveno = Math.max(1, parseInt((32 - pieces) * 1.3 +
+                                          (4 - fen_castles.length) * 1.5 +
+                                          ((mix - 16) / 5)));
         //p4_log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
     }
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
