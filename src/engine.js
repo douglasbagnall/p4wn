@@ -390,7 +390,7 @@ function p4_parse(state, colour, ep, score) {
                     e = s + moves[i];
                     E = board[e];
                     if(!E){
-                        movelist.push([weight + values[E] + weight_lut[e], s, e]);
+                        movelist.push([weight + weight_lut[e], s, e]);
                     }
                     else if((E&17)==other_colour){
                         captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e],
@@ -418,7 +418,7 @@ function p4_parse(state, colour, ep, score) {
                         e += m;
                         E=board[e];
                         if(!E){
-                            movelist.push([weight + values[E] + weight_lut[e], s, e]);
+                            movelist.push([weight + weight_lut[e], s, e]);
                         }
                         else if((E&17)==other_colour){
                             captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
