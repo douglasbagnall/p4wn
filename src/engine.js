@@ -6,9 +6,7 @@
  * lives at http://p4wn.sf.net/
  */
 
-/*Compatibility tricks:
- * backwards for old MSIEs (to 5.5)
- * sideways for seed command-line javascript.*/
+/*Compatibility tricks for seed or gjs command-line javascript.*/
 var p4_log;
 if (this.imports !== undefined &&
     this.printerr !== undefined){//seed or gjs
@@ -16,9 +14,6 @@ if (this.imports !== undefined &&
         var args = Array.prototype.slice.call(arguments);
         printerr(args.join(', '));
     };
-}
-else if (this.console === undefined){//MSIE
-    p4_log = function(){};
 }
 else {
     p4_log = function(){console.log.apply(console, arguments);};
