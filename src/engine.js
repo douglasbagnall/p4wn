@@ -110,16 +110,16 @@ let P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
     const move = p4_make_move(state, s, e, P4_QUEEN);
     const ncolour = 1 - colour;
-    const movelist = p4_parse(state, colour, move.ep, -score);
-    let movecount = movelist.length;
-    if(count){
+    const movelist = state.movelists[count];
+    let movecount = p4_parse(state, colour, move.ep, -score, movelist);
+    if (count) {
         //branch nodes
-        for(let i = 0; i < movecount; i++){
+        for(let i = 0; i < movecount; i++) {
             let mv = movelist[i];
-            let mscore = mv[0];
-            let ms = mv[1];
-            let me = mv[2];
-            if (mscore > P4_WIN){ //we won! Don't look further.
+            let ms = mv & 127;
+            let me = (mv >>> 7) & 127;
+            let mscore = mv >> 14;
+            if (mscore > P4_WIN) { //we won! Don't look further.
                 alpha = P4_KING_VALUE;
                 break;
             }
@@ -130,7 +130,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             if (t > alpha){
                 alpha = t;
             }
-            if (alpha >= beta){
+            if (alpha >= beta) {
                 break;
             }
         }
@@ -149,8 +149,8 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
     else{
         //leaf nodes
         while(beta > alpha && --movecount != -1){
-            if(movelist[movecount][0] > alpha){
-                alpha = movelist[movecount][0];
+            if(movelist[movecount] >> 14 > alpha) {
+                alpha = movelist[movecount] >> 14;
             }
         }
     }
@@ -355,22 +355,35 @@ function p4_maybe_prepare(state){
         p4_prepare(state);
 }
 
+function p4_move_pack(s, e, score) {
+    let mv = s | (e << 7) | (score << 14);
+    return mv;
+}
+function p4_move_unpack(mv) {
+    let s = mv & 127;
+    let e = (mv >>> 7) & 127;
+    let score = mv >> 14;
+    return [score, s, e];
+}
 
-function p4_parse(state, colour, ep, score) {
+
+function p4_parse(state, colour, ep, score, movelist) {
     let board = state.board;
     let s, e;    //start and end position
     let E, a;       //E=piece at end place, a= piece moving
     const other_colour = 1 - colour;
     const dir = (10 - 20 * colour); //dir= 10 for white, -10 for black
-    let movelist = [];
-    let captures = [];
+    let mi = 0;
+    let ci = 0;
     let pieces = state.pieces[colour];
     const castle_flags = (state.castles >> (colour * 2)) & 3;
     let values = state.values[other_colour];
     let all_weights = state.weights;
+    //console.log(pieces);
     for (let j = pieces.length - 1; j >= 0; j--){
         s = pieces[j][1]; // board position
         a = board[s]; //piece number
+        //console.log(j, s, a);
         const weight_lut = all_weights[a];
         const weight = score - weight_lut[s];
         a &= 14;
@@ -380,23 +393,34 @@ function p4_parse(state, colour, ep, score) {
                 for(let i = 0; i < 8; i++){
                     e = s + moves[i];
                     E = board[e];
-                    if(!E){
-                        movelist.push([weight + weight_lut[e], s, e]);
+                    if(!E) {
+                        let mvscore = weight + weight_lut[e];
+                        movelist[mi] = (s | (e << 7) | (mvscore << 14));
+                        mi++;
                     }
-                    else if((E&17)==other_colour){
-                        captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e],
-                                       s, e]);
+                    else if((E&17)==other_colour) {
+                        let mvscore = weight + values[E] + weight_lut[e] + all_weights[E][e];
+                        movelist[mi] = movelist[ci];
+                        movelist[ci] = (s | (e << 7) | (mvscore << 14));
+                        mi++;
+                        ci++;
                     }
                 }
-                if(a == P4_KING && castle_flags){
+                if (a == P4_KING && castle_flags){
                     if((castle_flags & 1) &&
                         (board[s - 1] + board[s - 2] + board[s - 3] == 0) &&
-                        p4_check_castling(board, s - 2, other_colour, dir, -1)){//Q side
-                        movelist.push([weight + 12, s, s - 2]);     //no analysis, just encouragement
+                       p4_check_castling(board, s - 2, other_colour, dir, -1)){//Q side
+                        let mvscore = weight + 12;     //no analysis, just encouragement
+                        let e = s - 2;
+                        movelist[mi] = (s | (e << 7) | (mvscore << 14));
+                        mi++;
                     }
                     if((castle_flags & 2) && (board[s + 1] + board[s + 2] == 0) &&
                         p4_check_castling(board, s, other_colour, dir, 1)){//K side
-                        movelist.push([weight + 13, s, s + 2]);
+                        let mvscore = weight + 13;     //no analysis, just encouragement
+                        let e = s + 2;
+                        movelist[mi] = (s | (e << 7) | (mvscore << 14));
+                        mi++;
                     }
                 }
             }
@@ -409,10 +433,16 @@ function p4_parse(state, colour, ep, score) {
                         e += m;
                         E=board[e];
                         if(!E){
-                            movelist.push([weight + weight_lut[e], s, e]);
+                            let mvscore = weight + weight_lut[e];
+                            movelist[mi] = (s | (e << 7) | (mvscore << 14));
+                            mi++;
                         }
                         else if((E&17)==other_colour){
-                            captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                            let mvscore = weight + values[E] + weight_lut[e] + all_weights[E][e];
+                            movelist[mi] = movelist[ci];
+                            movelist[ci] = (s | (e << 7) | (mvscore << 14));
+                            mi++;
+                            ci++;
                         }
                     }while(!E);
                 }
@@ -421,46 +451,65 @@ function p4_parse(state, colour, ep, score) {
         else {    //pawns
             e = s + dir;
             if (!board[e]){
-                movelist.push([weight + weight_lut[e], s, e]);
+                movelist[mi] = (s | (e << 7) | ((weight + weight_lut[e]) << 14));
+                mi++;
                 /* s * (120 - s) < 3200 true for outer two rows on either side.*/
                 const e2 = e + dir;
-                if(s * (120 - s) < 3200 && (!board[e2])){
-                    movelist.push([weight + weight_lut[e2], s, e2]);
+                if(s * (120 - s) < 3200 && (!board[e2])) {
+                    let mvscore = weight + weight_lut[e2];
+                    movelist[mi] = (s | (e2 << 7) | (mvscore << 14));
+                    mi++;
                 }
             }
             /* +/-1 for pawn capturing */
             E = board[--e];
             if (E && (E & 17) == other_colour) {
-                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                let mvscore = weight + values[E] + weight_lut[e] + all_weights[E][e];
+                movelist[mi] = movelist[ci];
+                movelist[ci] = (s | (e << 7) | (mvscore << 14));
+                mi++;
+                ci++;
             }
             e += 2;
             E = board[e];
             if(E && (E & 17) == other_colour){
-                captures.push([weight + values[E] + weight_lut[e] + all_weights[E][e], s, e]);
+                let mvscore = weight + values[E] + weight_lut[e] + all_weights[E][e];
+                movelist[mi] = movelist[ci];
+                movelist[ci] = (s | (e << 7) | (mvscore << 14));
+                mi++;
+                ci++;
             }
         }
     }
     if (ep){
         const pawn = P4_PAWN | colour;
         const weight_lut = all_weights[pawn];
-        let taken;
         /* Some repetitive calculation here could be hoisted out, but that would
             probably slow things: the common case is no pawns waiting to capture
             enpassant, not 2.
          */
         s = ep - dir - 1;
         if (board[s] == pawn){
-            taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
-            captures.push([score - weight_lut[s] + weight_lut[ep] + taken, s, ep]);
+            let taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
+            let mvscore = score - weight_lut[s] + weight_lut[ep] + taken;
+            movelist[mi] = movelist[ci];
+            movelist[ci] = (s | (ep << 7) | (mvscore << 14));
+            mi++;
+            ci++;
         }
         s += 2;
         if (board[s] == pawn){
-            taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
-            captures.push([score - weight_lut[s] + weight_lut[ep] + taken, s, ep]);
+            let taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
+            let mvscore = score - weight_lut[s] + weight_lut[ep] + taken;
+            movelist[mi] = movelist[ci];
+            movelist[ci] = (s | (ep << 7) | (mvscore << 14));
+            mi++;
+            ci++;
         }
     }
-    return captures.concat(movelist);
+    return mi;
 }
+
 
 /*Explaining the bit tricks used in check_castling and check_check:
  *
@@ -623,8 +672,12 @@ function p4_check_check(state, colour){
 
 function p4_optimise_piece_list(state){
     const movelists = [
-        p4_parse(state, 0, 0, 0),
-        p4_parse(state, 1, 0, 0)
+        new Int32Array(250),
+        new Int32Array(250)
+    ];
+    const movecounts = [
+        p4_parse(state, 0, 0, 0, movelists[0]),
+        p4_parse(state, 1, 0, 0, movelists[1])
     ];
     const weights = state.weights;
     const board = state.board;
@@ -633,9 +686,11 @@ function p4_optimise_piece_list(state){
         let pieces = state.pieces[colour];
         const movelist = movelists[colour];
         const threats = movelists[1 - colour];
+        const n_moves = movecounts[colour];
+        const n_threats = movecounts[1 - colour];
         /* sparse array to index by score. */
         let scores = [];
-        for (let i = 0; i < pieces.length; i++){
+        for (let i = 0; i < pieces.length; i++) {
             let p = pieces[i];
             scores[p[1]] = {
                 score: 0,
@@ -646,23 +701,27 @@ function p4_optimise_piece_list(state){
         }
         /* Find the best score for each piece by pure static weights,
          * ignoring captures, which have their own path to the top. */
-        for(let i = movelist.length - 1; i >= 0; i--){
+        for(let i = n_moves - 1; i >= 0; i--) {
             let mv = movelist[i];
-            let e = mv[2];
-            if(! board[e]){
-                let score = mv[0];
-                let s = mv[1];
+            let e = (mv >>> 7) & 127;
+            if(! board[e]) {
+                let s = mv & 127;
+                let score = mv >> 14;
                 let x = scores[s];
+                //console.log(x, s, score, i, movelist.length, movelist);
                 x.score = Math.max(x.score, score);
             }
         }
         /* moving out of a threat is worth considering, especially
          * if it is a pawn and you are not.*/
-        for (let i = threats.length - 1; i >= 0; i--){
+        for (let i = n_threats - 1; i >= 0; i--) {
             let mv = threats[i];
-            let x = scores[mv[2]];
-            if (x !== undefined){
-                let S = board[mv[1]];
+            let score = mv >> 14;
+            let e = (mv >>> 7) & 127;
+            let s = mv & 127;
+            let x = scores[e];
+            if (x !== undefined) {
+                let S = board[s];
                 let r = (1 + x.piece > 3 + S < 4) * 0.01;
                 if (x.threatened < r) {
                     x.threatened = r;
@@ -670,9 +729,9 @@ function p4_optimise_piece_list(state){
             }
         }
         let pieces2 = [];
-        for (let i = 20; i < 100; i++){
+        for (let i = 20; i < 100; i++) {
             let p = scores[i];
-            if (p !== undefined){
+            if (p !== undefined) {
                 p.score += p.threatened * our_values[p.piece];
                 pieces2.push(p);
             }
@@ -693,22 +752,27 @@ function p4_findmove(state, level, colour, ep){
         colour = state.to_play;
         ep = state.enpassant;
     }
-    let movelist = p4_parse(state, colour, ep, 0);
+    let movelist = new Int32Array(250);
+    let n_moves = p4_parse(state, colour, ep, 0, movelist);
     let alpha = P4_MIN_SCORE;
     let bs = 0;
     let be = 0;
 
     if (level <= 0){
-        for (let i = 0; i < movelist.length; i++){
-            if(movelist[i][0] > alpha){
-                [alpha, bs, be] = movelist[i];
+        for (let i = 0; i < n_moves; i++){
+            let mv = movelist[i];
+            let score = mv >> 14;
+            if(score > alpha) {
+                alpha = score;
+                bs = mv &127;
+                be = (mv >>> 7) && 127;
             }
         }
         return [bs, be, alpha];
     }
 
-    for(let i = 0; i < movelist.length; i++){
-        let [mscore, ms, me] = movelist[i];
+    for(let i = 0; i < n_moves; i++){
+        let [mscore, ms, me] = p4_move_unpack(movelist[i]);
         if (mscore > P4_WIN){
             p4_log("XXX taking king! it should never come to this");
             alpha = P4_KING_VALUE;
@@ -947,9 +1011,11 @@ function p4_move(state, s, e, promotion){
      */
     let legal = false;
     p4_maybe_prepare(state);
-    const moves = p4_parse(state, colour, state.enpassant, 0);
-    for (let i = 0; i < moves.length; i++){
-        if (e == moves[i][2] && s == moves[i][1]){
+    let movelist = state.movelists[18];
+    const n_moves = p4_parse(state, colour, state.enpassant, 0, movelist);
+    for (let i = 0; i < n_moves; i++) {
+        let [c_, cs, ce] = p4_move_unpack(movelist[i]);
+        if (e == ce && s == cs) {
             legal = true;
             break;
         }
@@ -1013,9 +1079,10 @@ function p4_move(state, s, e, promotion){
      * promotions block check equally well.
     */
     let is_mate = true;
-    const replies = p4_parse(state, other_colour, changes.ep, 0);
-    for (let i = 0; i < replies.length; i++){
-        let m = replies[i];
+    let replies = state.movelists[18];
+    const n_replies = p4_parse(state, other_colour, changes.ep, 0, replies);
+    for (let i = 0; i < n_replies; i++){
+        let m = p4_move_unpack(replies[i]);
         let change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
         let check = p4_check_check(state, other_colour);
         p4_unmake_move(state, change2);
@@ -1027,7 +1094,8 @@ function p4_move(state, s, e, promotion){
     if (is_mate) {
         flags |= P4_MOVE_FLAG_MATE;
     }
-    const movestring = p4_move2string(state, s, e, S, promotion, flags, moves);
+    const movestring = p4_move2string(state, s, e, S, promotion, flags,
+                                      movelist, n_moves);
     p4_log("successful move", s, e, movestring, flags);
     state.prepared = false;
     return {
@@ -1038,7 +1106,7 @@ function p4_move(state, s, e, promotion){
 }
 
 
-function p4_move2string(state, s, e, S, promotion, flags, moves){
+function p4_move2string(state, s, e, S, promotion, flags, moves, n_moves){
     const piece = S & 14;
     let src, dest;
     let mv;
@@ -1076,7 +1144,7 @@ function p4_move2string(state, s, e, S, promotion, flags, moves){
          * piece in the same place, for which we'd need
          * disambiguation. */
         let co_landers = [];
-        for (let i = 0; i < moves.length; i++){
+        for (let i = 0; i < n_moves; i++){
             let m = moves[i];
             if (e == m[2] && s != m[1] && state.board[m[1]] == S){
                 co_landers.push(m[1]);
@@ -1384,6 +1452,10 @@ function p4_initialise_state(){
         treeclimber: p4_alphabeta_treeclimber
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
+    state.movelists = [];
+    for (let i = 0; i < 26; i++) {
+        state.movelists.push(new Int32Array(250));
+    }
     return state;
 }
 
@@ -1486,10 +1558,11 @@ function p4_find_source_point(state, e, str){
     }
     let possibilities = [];
     p4_prepare(state);
-    let moves = p4_parse(state, colour,
-                         state.enpassant, 0);
-    for (let i = 0; i < moves.length; i++){
-        let mv = moves[i];
+    let moves = state.movelists[23];
+    let n_moves = p4_parse(state, colour,
+                           state.enpassant, 0, moves);
+    for (let i = 0; i < n_moves; i++){
+        let mv = p4_move_unpack(moves[i]);
         if (e == mv[2]){
             s = mv[1];
             if (state.board[s] == piece &&
