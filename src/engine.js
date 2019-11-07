@@ -708,7 +708,7 @@ function p4_check_check(state, colour){
     return false;
 }
 
-function p4_optimise_piece_list(state){
+function p4_optimise_piece_list(state) {
     const movelists = [
         new Int32Array(250),
         new Int32Array(250)
@@ -718,73 +718,89 @@ function p4_optimise_piece_list(state){
         p4_parse(state, 1, 0, 0, movelists[1])
     ];
     const board = state.board;
-    for (let colour = 0; colour < 2; colour++){
+    for (let colour = 0; colour < 2; colour++) {
         const our_values = state.values[colour];
+        const their_values = state.values[1 - colour];
         let pieces = state.pieces[colour];
         const movelist = movelists[colour];
         const threats = movelists[1 - colour];
         const n_moves = movecounts[colour];
         const n_threats = movecounts[1 - colour];
-        /* sparse array to index by score. */
-        let scores = [];
-        for (let i = 0; i < pieces.length; i++) {
+        let i, n_pieces;
+        /* sparse array to index by score.
+         * The scores are kind of constructed bitwise like this:
+
+         | static move score  | empty  | threats
+         |          31 - 8    |        |  2 - 0
+
+            why? saving on scores arrays I suppose.
+         */
+        let scores = state.score_lut;
+        scores.fill(0);
+        for (i = 0; pieces[i]; i++) {
             let p = pieces[i];
-            scores[p[1]] = {
-                score: 0,
-                piece: p[0],
-                pos: p[1],
-                threatened: 0
-            };
+            if (p === 1) {
+                continue;
+            }
+            scores[p] = -1 << 20;
         }
+        n_pieces = i;
         /* Find the best score for each piece by pure static weights,
-         * ignoring captures, which have their own path to the top. */
-        for(let i = n_moves - 1; i >= 0; i--) {
+         * ignoring captures, which have their own path to the top.
+         * (Capture moves are always considered first). */
+        for(let i = 0; i < n_moves; i++) {
             let mv = movelist[i];
             let e = (mv >>> 7) & 127;
             if(! board[e]) {
                 let s = mv & 127;
-                let score = mv >> 14;
+                let score = (mv >>> 14) << 8;
                 let x = scores[s];
-                //console.log(x, s, score, i, movelist.length, movelist);
-                x.score = Math.max(x.score, score);
+                if (score > x) {
+                    scores[s] = score;
+                }
             }
         }
         /* moving out of a threat is worth considering, especially
          * if it is a pawn and you are not.*/
-        for (let i = n_threats - 1; i >= 0; i--) {
+        for (let i = 0; i < n_threats; i++) {
             let mv = threats[i];
-            let score = mv >> 14;
             let e = (mv >>> 7) & 127;
-            let s = mv & 127;
             let x = scores[e];
-            if (x !== undefined) {
-                let S = board[s];
-                let r = (1 + x.piece > 3 + S < 4) * 0.01;
-                if (x.threatened < r) {
-                    x.threatened = r;
-                }
+            if (x == 0) {
+                continue;
+            }
+            let s = mv & 127;
+            let S = board[s];
+            let E = board[e];
+            let tv = their_values[S];
+            let ov = our_values[E];
+            let r = 1 + (ov > tv) + (ov > tv + tv) + (ov > tv << 2);
+            if ((x & 7) < r) {
+                scores[e] = (x & ~7) | r;
             }
         }
-        let pieces2 = [];
-        for (let i = 20; i < 100; i++) {
-            let p = scores[i];
-            if (p !== undefined) {
-                p.score += p.threatened * our_values[p.piece];
-                pieces2.push(p);
-            }
+        let piece_scores = new Int32Array(n_pieces);
+        let orig = Int32Array.from(pieces);
+        for (let i = 0; i < n_pieces; i++) {
+            let p = pieces[i];
+            let x = scores[p];
+            let r = x & 7;
+            piece_scores[i] = ((x + r * 16 * our_values[p & 15]) << 7) | p;
         }
-        pieces2.sort(function(a, b){return a.score - b.score;});
-        for (let i = 0; i < pieces2.length; i++){
-            let p = pieces2[i];
-            pieces[i] = [p.piece, p.pos];
+        piece_scores.sort();
+        piece_scores.reverse();
+        for (let i = 0; i < n_pieces; i++) {
+            pieces[i] = piece_scores[i] & 127;
         }
+        console.log(piece_scores);
+        console.log(`pieces ${pieces}`);
+        console.log(`orig ${orig}`);
     }
 }
 
 function p4_findmove(state, level){
     p4_prepare(state);
-    //p4_optimise_piece_list(state);
-    let board = state.board;
+    p4_optimise_piece_list(state);
     let colour = state.to_play;
     let moves = p4_movelist(state);
     let alpha = P4_MIN_SCORE;
