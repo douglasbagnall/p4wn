@@ -176,14 +176,17 @@ _p4d_proto.log = function(msg, klass, onclick){
 
 _p4d_proto.goto_move = function(n){
     var delta;
+    var div = this.elements.log;
     if (n < 0)
         delta = -n;
     else
         delta = this.board_state.moveno - n;
     if (delta > this.board_state.moveno)
         delta = this.board_state.moveno;
-    var div = this.elements.log;
-    for (var i = 0; i < delta; i++){
+    if (delta > div.childNodes.length) {
+        delta = div.childNodes.length;
+    }
+    for (var i = 0; i < delta; i++) {
         div.removeChild(div.lastChild);
     }
     this.board_state.jump_to_moveno(n);
