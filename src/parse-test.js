@@ -51,52 +51,62 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
     return best;
 }
 
-function p4_counting_treeclimber(state, count, colour, score, s, e){
+function p4_counting_treeclimber(state, count, colour, score, s, e) {
+    /* This one returns a count of the reachable nodes. It is intended
+     * to test the parsing routines against known positions ("perft"
+     * testing).
+     */
     var move, i, ep;
     var promotions = [P4_QUEEN, P4_ROOK, P4_BISHOP, P4_KNIGHT];
     var pi = 0;
     var ncolour = 1 - colour;
     var subnodes = 0;
     do {
-        if (s){
+        if (s) {
             move = p4_make_move(state, s, e, promotions[pi]);
             ep = move.ep;
         }
         else {
             ep = 0;
         }
-        var pseudo_movelist = p4_parse(state, colour, ep, 0);
-        var movelist = [];
+        const movelist = state.movelists[count];
+        let pseudo_movecount = p4_parse(state, colour, ep, 0, movelist);
         var promotion_count = 0;
-        /* Pseudo_movelist contains moves into check, so drop those.
+        /* movelist contains moves into check, so drop those.
          */
-        for (i = 0; i < pseudo_movelist.length; i++){
-            var mv2 = pseudo_movelist[i];
-            var s2 = mv2[1], e2 = mv2[2];
+        let j = 0;
+        for (i = 0; i < pseudo_movecount; i++) {
+            let mv = movelist[i];
+            let s2 = mv & 127;
+            let e2 = (mv >>> 7) & 127;
             var move2 = p4_make_move(state, s2, e2, P4_QUEEN);
-            if (! p4_check_check(state, colour)){
-                movelist.push(mv2);
+            if (! p4_check_check(state, colour)) {
+                movelist[j] = mv;
+                j++;
                 if ((move2.S & 14) == 2 && (e2 < 30 || e2 > 90)){
-                    /*this is a promotion*/
+                    /* this is a promotion, so we will need to add
+                     * to the count for non-queen promotions. */
                     promotion_count++;
                 }
             }
             p4_unmake_move(state, move2);
         }
-        var movecount = movelist.length;
+        var movecount = j;
         if(count){
             for(i = 0; i < movecount; i++){
-                var mv = movelist[i];
-                subnodes += p4_counting_treeclimber(state, count - 1, ncolour, 0, mv[1], mv[2]);
+                let mv = movelist[i];
+                let ms = mv & 127;
+                let me = (mv >>> 7) & 127;
+                subnodes += p4_counting_treeclimber(state, count - 1, ncolour, 0, ms, me);
             }
         }
         else{
             subnodes += movecount;
             subnodes += promotion_count * 3; //3 extras on top of queen
         }
-        if (s)
+        if (s) {
             p4_unmake_move(state, move);
-
+        }
         //if (pi && move.S < 4 && ((60 - e) * (60 - e) > 900))
         //    console.log(s, move.S, promotions[pi]);
         pi++;
