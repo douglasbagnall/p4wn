@@ -121,6 +121,7 @@ function main(tests){
     for (i = 0; i < tests.length; i++){
         var t = tests[i];
         var desc = t.shift();
+        console.log("starting " + desc);
         var f = t.shift();
         var r = f.apply(undefined, t);
         print_result.apply(desc, r);
