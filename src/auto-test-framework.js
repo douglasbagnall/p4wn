@@ -114,7 +114,7 @@ function print_result(ok, tstr, msg){
 
 function main(tests){
     var h1 = document.getElementById("heading");
-    h1.innerHTML = "Working...";
+    h1.innerHTML = "Working... (" + tests.length + " tests)";
     var i;
     var good = 0;
     var start = Date.now();
