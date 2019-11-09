@@ -119,72 +119,6 @@ function p4_counting_treeclimber(state, count, colour, score, s, e) {
 }
 
 
-
-
-function p4_nullmove_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
-    var move;
-    if (s)
-        move = p4_make_move(state, s, e, P4_QUEEN);
-    var ep = s ? move.ep: 0;
-    var ncolour = 1 - colour;
-    var board = state.board;
-    if(count){
-        //branch nodes
-        var t;
-        /* first try a null move. This sets a decent value for beta in
-           almost every situation (I think. seems to work).
-        */
-        if (count >= 2){
-            t = p4_nullmove_alphabeta_treeclimber(state, count - 2, colour, score, 0, 0,
-                                                  alpha, beta);
-            //console.log('count, t, alpha, beta', count, t, alpha, beta);
-            if (t > beta){
-                if (s)
-                    p4_unmake_move(state, move);
-                return beta;
-            }
-        }
-        var movelist = p4_parse(state, colour, ep, -score);
-        var movecount = movelist.length;
-        for(var i = 0; i < movecount; i++){
-            var mv = movelist[i];
-            var mscore = mv[0];
-            var ms = mv[1];
-            var me = mv[2];
-            if (mscore > P4_WIN){ //we won! Don't look further.
-                alpha = P4_KING_VALUE;
-                break;
-            }
-            t = -p4_nullmove_alphabeta_treeclimber(state, count - 1, ncolour, mscore, ms, me,
-                                                   -beta, -alpha);
-            if (t > alpha)
-                alpha = t;
-            if (alpha >= beta)
-                break;
-        }
-        if (alpha < -P4_WIN_NOW && ! p4_check_check(state, colour)){
-            alpha = state.stalemate_scores[colour];
-        }
-        if (alpha < -P4_WIN){
-            alpha += P4_WIN_DECAY;
-        }
-    }
-    else{
-        //leaf nodes
-        var movelist = p4_parse(state, colour, ep, -score);
-        var movecount = movelist.length;
-        while(beta > alpha && --movecount >= 0){
-            if(movelist[movecount][0] > alpha){
-                alpha = movelist[movecount][0];
-            }
-        }
-    }
-    if (s)
-        p4_unmake_move(state, move);
-    return alpha;
-}
-
-
 function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta){
     var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
@@ -244,7 +178,6 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
 function add_extra_searches(p4d){
     var tree_climbers = [
         'alphabeta (default)', p4_alphabeta_treeclimber,
-        'nullmove', p4_nullmove_alphabeta_treeclimber,
         'negascout', p4_negascout_treeclimber,
         'negamax (slow!)', p4_negamax_treeclimber
     ];
