@@ -189,7 +189,7 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
     var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_parse(state, colour, move.ep, -score);
+    var movelist = p4_movelist(state, colour, move.ep, -score);
     var movecount = movelist.length;
     var mv;
     if(count){
