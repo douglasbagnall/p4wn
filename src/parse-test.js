@@ -76,10 +76,10 @@ function p4_counting_treeclimber(state, count, colour, score, s, e){
             var move2 = p4_make_move(state, s2, e2, P4_QUEEN);
             if (! p4_check_check(state, colour)){
                 movelist.push(mv2);
-            }
-            if ((move2.S & 14) == 2 && (e2 < 30 || e2 > 90)){
-                /*this is a promotion*/
-                promotion_count++;
+                if ((move2.S & 14) == 2 && (e2 < 30 || e2 > 90)){
+                    /*this is a promotion*/
+                    promotion_count++;
+                }
             }
             p4_unmake_move(state, move2);
         }
