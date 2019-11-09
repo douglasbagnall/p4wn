@@ -144,6 +144,16 @@ var TESTS = [
         4, 422333
     ],
     [
+        "count moves, apparently tricky",
+        count_moves, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+        3, 62379
+    ],
+    [
+        "count moves, apparently tricky",
+        count_moves, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+        4, 2103487
+    ],
+    [
         "count moves, emptyish board",
         count_moves, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -",
         2, 191
