@@ -63,10 +63,8 @@ function fen_moves(fen, moves, non_moves){
     return [success, tstr, msg];
 }
 
-function result_in_n(fen, result, n, depth){
+function result_in_n(fen, result, n, depth, treeclimber){
     var i, msg;
-    if (depth == undefined)
-        depth = 3;
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, depth ' + depth;
     var state = p4_fen2state(fen);
     var f = {
@@ -76,12 +74,18 @@ function result_in_n(fen, result, n, depth){
     var wanted_flags = f[0];
     var mask = f[1];
     var ok = false;
+    if (treeclimber !== undefined) {
+        state.treeclimber = treeclimber;
+    }
     for (i = 0; i < n * 2; i++){
         var mv = p4_findmove(state, depth);
         var r = p4_move(state, mv[0], mv[1]);
         if ((r.flags & mask) == wanted_flags){
             ok = true;
         }
+    }
+    if (treeclimber !== undefined) {
+        state.treeclimber = p4_alphabeta_treeclimber;
     }
     return [ok, tstr, msg = ok ? 'OK' : 'fails'];
 }
