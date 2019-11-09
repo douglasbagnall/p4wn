@@ -367,6 +367,25 @@ function p4_move_unpack(mv) {
 }
 
 
+/*
+   get a fresh list of moves (non-performance-critical).
+*/
+function p4_movelist(state, colour, ep, score) {
+    let moves = new Int32Array(220);
+    score = score || 0;
+    if (colour === undefined) {
+        colour = state.to_play;
+        ep = state.enpassant;
+    }
+    let n_moves = p4_parse(state, colour, ep, -score, moves);
+    let movelist = [];
+    for (let i = 0; i < n_moves; i++){
+        movelist.push(p4_move_unpack(moves[i]));
+    }
+    return movelist;
+}
+
+
 function p4_parse(state, colour, ep, score, movelist) {
     let board = state.board;
     let s, e;    //start and end position
@@ -1011,10 +1030,9 @@ function p4_move(state, s, e, promotion){
      */
     let legal = false;
     p4_maybe_prepare(state);
-    let movelist = state.movelists[18];
-    const n_moves = p4_parse(state, colour, state.enpassant, 0, movelist);
-    for (let i = 0; i < n_moves; i++) {
-        let [c_, cs, ce] = p4_move_unpack(movelist[i]);
+    let movelist = p4_movelist(state, colour, state.enpassant);
+    for (let i = 0; i < movelist.length; i++) {
+        let [c_, cs, ce] = movelist[i];
         if (e == ce && s == cs) {
             legal = true;
             break;
@@ -1079,10 +1097,9 @@ function p4_move(state, s, e, promotion){
      * promotions block check equally well.
     */
     let is_mate = true;
-    let replies = state.movelists[18];
-    const n_replies = p4_parse(state, other_colour, changes.ep, 0, replies);
-    for (let i = 0; i < n_replies; i++){
-        let m = p4_move_unpack(replies[i]);
+    let replies = p4_movelist(state, other_colour);
+    for (let i = 0; i < replies.length; i++){
+        let m = replies[i];
         let change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
         let check = p4_check_check(state, other_colour);
         p4_unmake_move(state, change2);
@@ -1095,7 +1112,7 @@ function p4_move(state, s, e, promotion){
         flags |= P4_MOVE_FLAG_MATE;
     }
     const movestring = p4_move2string(state, s, e, S, promotion, flags,
-                                      movelist, n_moves);
+                                      movelist);
     p4_log("successful move", s, e, movestring, flags);
     state.prepared = false;
     return {
@@ -1106,7 +1123,7 @@ function p4_move(state, s, e, promotion){
 }
 
 
-function p4_move2string(state, s, e, S, promotion, flags, moves, n_moves){
+function p4_move2string(state, s, e, S, promotion, flags, movelist){
     const piece = S & 14;
     let src, dest;
     let mv;
@@ -1144,8 +1161,8 @@ function p4_move2string(state, s, e, S, promotion, flags, moves, n_moves){
          * piece in the same place, for which we'd need
          * disambiguation. */
         let co_landers = [];
-        for (let i = 0; i < n_moves; i++){
-            let m = moves[i];
+        for (let i = 0; i < movelist.length; i++){
+            let m = movelist[i];
             if (e == m[2] && s != m[1] && state.board[m[1]] == S){
                 co_landers.push(m[1]);
             }
@@ -1558,11 +1575,9 @@ function p4_find_source_point(state, e, str){
     }
     let possibilities = [];
     p4_prepare(state);
-    let moves = state.movelists[23];
-    let n_moves = p4_parse(state, colour,
-                           state.enpassant, 0, moves);
-    for (let i = 0; i < n_moves; i++){
-        let mv = p4_move_unpack(moves[i]);
+    let moves = p4_movelist(state);
+    for (let i = 0; i < moves.length; i++) {
+        let mv = moves[i];
         if (e == mv[2]){
             s = mv[1];
             if (state.board[s] == piece &&

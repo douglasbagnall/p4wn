@@ -63,7 +63,7 @@ function time_find_move(game, depth){
 
 function parse_test(state){
     p4_prepare(state);
-    var moves = p4_parse(state, state.to_play, state.enpassant, 0);
+    var moves = p4_movelist(state);
     p4_log("found", moves.length, "moves");
     var current_start = undefined;
     var current_piece = undefined;
