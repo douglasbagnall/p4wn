@@ -132,3 +132,31 @@ function main(tests){
     h1.innerHTML = ("Passed " + good + " out of " + tests.length +
                     " tests in " + elapsed + " seconds");
 }
+
+const KNOWN_TESTS = {
+    autotests:    'auto-test-tests.js',
+    check:        'auto-test-check.js',
+};
+
+function append_test(name) {
+    var src = KNOWN_TESTS[name];
+    if (src !== undefined) {
+        var script = document.createElement('script');
+        script.src = src;
+        document.body.appendChild(script);
+    } else {
+        var h1 = document.getElementById("heading");
+        h1.innerHTML = "unknown tests: " + name;
+    }
+}
+
+function load_tests() {
+    var i;
+    var query = window.location.search.substring(1);
+    if (query.length == 0) {
+        append_test('autotests');
+    }
+    else {
+        append_test(query);
+    }
+}
