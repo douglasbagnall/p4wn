@@ -181,7 +181,6 @@ function p4_prepare(state) {
     /* find the pieces, kings, and weigh material*/
     let kings = [0, 0];
     let material = [0, 0];
-    let best_pieces = [0, 0];
     for(let i = 20; i  < 100; i++){
         const a = board[i];
         const piece = a & 14;
@@ -193,7 +192,6 @@ function p4_prepare(state) {
             }
             else{
                 material[colour] += P4_VALUES[piece];
-                best_pieces[colour] = Math.max(best_pieces[colour], P4_VALUES[piece]);
             }
         }
     }
@@ -223,9 +221,6 @@ function p4_prepare(state) {
             state.values[1][i] = v;
         }
     }
-    /*used for pruning quiescence search */
-    state.best_pieces = [parseInt(best_pieces[0] * wmul + 0.5),
-                         parseInt(best_pieces[1] * bmul + 0.5)];
 
     const kx = [kings[0] % 10, kings[1] % 10];
     const ky = [parseInt(kings[0] / 10), parseInt(kings[1] / 10)];
