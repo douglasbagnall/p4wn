@@ -117,6 +117,7 @@ function main(tests){
     h1.innerHTML = "Working...";
     var i;
     var good = 0;
+    var start = Date.now();
     for (i = 0; i < tests.length; i++){
         var t = tests[i];
         var desc = t.shift();
@@ -126,5 +127,7 @@ function main(tests){
         if(r[0])
             good++;
     }
-    h1.innerHTML = "Passed " + good + " out of " + tests.length + " tests";
+    var elapsed = (Date.now() - start) / 1000;
+    h1.innerHTML = ("Passed " + good + " out of " + tests.length +
+                    " tests in " + elapsed + " seconds");
 }
