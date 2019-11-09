@@ -1,5 +1,5 @@
 function fenlink(fen){
-    return '<a href="index.html?start=' + fen + '&player=both">' + fen + '</a>';
+    return '<a href="fen-test.html?start=' + fen + '&player=both">' + fen + '</a>';
 }
 
 function run_sequence(fen, seq){
