@@ -140,6 +140,7 @@ function main(tests){
 const KNOWN_TESTS = {
     autotests:    'auto-test-tests.js',
     check:        'auto-test-check.js',
+    treeclimbers: 'auto-test-treeclimbers.js'
 };
 
 function append_test(name) {
