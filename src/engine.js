@@ -10,9 +10,10 @@
 var p4_log;
 if (this.imports !== undefined &&
     this.printerr !== undefined){//seed or gjs
+    let _printerr = this.printerr;
     p4_log = function(){
         var args = Array.prototype.slice.call(arguments);
-        printerr(args.join(', '));
+        _printerr(args.join(', '));
     };
 }
 else {
