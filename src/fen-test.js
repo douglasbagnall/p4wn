@@ -34,7 +34,8 @@ var FEN = [
     ["Adrian Dușa's position, no castling", "r2k3B/ppp2p1p/7n/3p4/8/1P3N2/P4qP1/4RRK1 w - - 0 17", 6],
     ["Adrian Dușa's continuation", "r7/pp1k1p1p/5B1n/2pp4/8/1P3N2/P4RP1/4R1K1 w q - 3 19", 6],
     ["blatantly false castling claims", "8/7K/8/8/8/8/q7/7k w KQq - 40 40", 8],
-    ["no kings", "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w - - 1 1", 6]
+    ["no kings", "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w - - 1 1", 6],
+    ["9 queens, 218 moves", 'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1']
 ];
 
 
