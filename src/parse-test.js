@@ -7,11 +7,11 @@ It assumes various engine.js functions are available.
 
 function p4_negamax_treeclimber(state, count, colour, score, s, e){
     var move;
-    if (s)
-        move = p4_make_move(state, s, e, P4_QUEEN);
-    var ep = s ? move.ep: 0;
+    if (s) {
+        move = p4_make_move_fast(state, s, e, P4_QUEEN);
+    }
     var ncolour = 1 - colour;
-    var movelist = p4_movelist(state, colour, ep, -score);
+    var movelist = p4_movelist(state, colour, state.enpassant, -score);
     var movecount = movelist.length;
     state.node_count += movecount;
     var best = P4_MIN_SCORE;
@@ -47,7 +47,7 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
         }
     }
     if (s)
-        p4_unmake_move(state, move);
+        p4_unmake_move_fast(state, move);
     return best;
 }
 
@@ -64,13 +64,9 @@ function p4_counting_treeclimber(state, count, colour, score, s, e) {
     do {
         if (s) {
             move = p4_make_move(state, s, e, promotions[pi]);
-            ep = move.ep;
-        }
-        else {
-            ep = 0;
         }
         const movelist = state.movelists[count];
-        let pseudo_movecount = p4_parse(state, colour, ep, 0, movelist);
+        let pseudo_movecount = p4_parse(state, colour, state.enpassant, 0, movelist);
         var promotion_count = 0;
         /* movelist contains moves into check, so drop those.
          */
@@ -104,6 +100,7 @@ function p4_counting_treeclimber(state, count, colour, score, s, e) {
             subnodes += movecount;
             subnodes += promotion_count * 3; //3 extras on top of queen
         }
+
         if (s) {
             p4_unmake_move(state, move);
         }
@@ -121,7 +118,7 @@ function p4_negascout_treeclimber(state, count, colour, score, s, e, alpha, beta
     var move = p4_make_move(state, s, e, P4_QUEEN);
     var i;
     var ncolour = 1 - colour;
-    var movelist = p4_movelist(state, colour, move.ep, -score);
+    var movelist = p4_movelist(state, colour, state.enpassant, -score);
     var movecount = movelist.length;
     var mv;
     if(count){

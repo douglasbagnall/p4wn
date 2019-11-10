@@ -121,10 +121,10 @@ const P4_PIECE_DBG = [
 ];
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
-    const move = p4_make_move(state, s, e, P4_QUEEN);
+    const move = p4_make_move_fast(state, s, e, P4_QUEEN);
     const ncolour = 1 - colour;
     const movelist = state.movelists[count];
-    let movecount = p4_parse(state, colour, move.ep, -score, movelist);
+    let movecount = p4_parse(state, colour, state.enpassant, -score, movelist);
     if (count) {
         //branch nodes
         for(let i = 0; i < movecount; i++) {
@@ -167,7 +167,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             }
         }
     }
-    p4_unmake_move(state, move);
+    p4_unmake_move_fast(state, move);
     return alpha;
 }
 
@@ -181,7 +181,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
  */
 
 function p4_prepare(state) {
-    let pieces = state.pieces = [[], []];
+    let pieces = state.pieces;
     /*convert state.moveno half move count to move cycle count */
     const moveno = state.moveno >> 1;
     let board = state.board;
@@ -195,13 +195,16 @@ function p4_prepare(state) {
     /* find the pieces, kings, and weigh material*/
     let kings = [0, 0];
     let material = [0, 0];
+    let n_pieces = [0, 0];
     for(let i = 20; i  < 100; i++){
         const a = board[i];
         const piece = a & 14;
         const colour = a & 1;
         if(piece){
-            pieces[colour].push([a, i]);
-            if (piece == P4_KING){
+            let j = n_pieces[colour];
+            n_pieces[colour]++;
+            pieces[colour][j] = i;
+            if (piece == P4_KING) {
                 kings[colour] = i;
             }
             else{
@@ -209,6 +212,8 @@ function p4_prepare(state) {
             }
         }
     }
+    pieces[0][n_pieces[0]] = 0;
+    pieces[1][n_pieces[1]] = 0;
 
     /*does a draw seem likely soon?*/
     const draw_likely = (state.draw_timeout > 90 || state.current_repetitions >= 2);
@@ -384,6 +389,8 @@ function p4_move_unpack(mv) {
 */
 function p4_movelist(state, colour, ep, score) {
     let moves = new Int32Array(220);
+    colour = colour || state.to_play;
+    ep = ep || state.enpassant;
     score = score || 0;
     if (colour === undefined) {
         colour = state.to_play;
@@ -411,8 +418,12 @@ function p4_parse(state, colour, ep, score, movelist) {
     let values = state.values[other_colour];
     let all_weights = state.weights;
     //console.log(pieces);
-    for (let j = pieces.length - 1; j >= 0; j--){
-        s = pieces[j][1]; // board position
+    for (let j = 0; pieces[j]; j++) {
+        s = pieces[j]; // board position
+        if (s == 1) {
+            /* the piece is gone */
+            continue;
+        }
         a = board[s]; //piece number
         //console.log(j, s, a);
         const weight_lut = all_weights[a];
@@ -515,10 +526,12 @@ function p4_parse(state, colour, ep, score, movelist) {
     if (ep){
         const pawn = P4_PAWN | colour;
         const weight_lut = all_weights[pawn];
+        /* ep is just the column number (1-8), so we add the relevant row. */
+        ep += 70 - 30 * colour;
         /* Some repetitive calculation here could be hoisted out, but that would
-            probably slow things: the common case is no pawns waiting to capture
-            enpassant, not 2.
-         */
+           probably slow things: the common case is no pawns waiting to capture
+           enpassant, not 2.
+        */
         s = ep - dir - 1;
         if (board[s] == pawn){
             let taken = values[P4_PAWN] + all_weights[P4_PAWN | other_colour][ep - dir];
@@ -643,15 +656,11 @@ function p4_check_castling(board, s, colour, dir, side){
 
 function p4_check_check(state, colour){
     const board = state.board;
-    /*find the king.  The pieces list updates from the end,
-     * so the last-most king is correctly placed.*/
+    /* find the king. */
     const pieces = state.pieces[colour];
-    let p;
-    let i = pieces.length;
-    do {
-        p = pieces[--i];
-    } while (p[0] != (P4_KING | colour));
-    const s = p[1];
+    let i;
+    for (i = 0; board[pieces[i]] != (P4_KING | colour); i++);
+    const s = pieces[i];
     const other_colour = 1 - colour;
     const dir = 10 - 20 * colour;
     if (board[s + dir - 1] == (P4_PAWN | other_colour) ||
@@ -774,7 +783,7 @@ function p4_optimise_piece_list(state){
 
 function p4_findmove(state, level, colour, ep){
     p4_prepare(state);
-    p4_optimise_piece_list(state);
+    //p4_optimise_piece_list(state);
     let board = state.board;
     if (arguments.length == 2){
         colour = state.to_play;
@@ -822,14 +831,51 @@ function p4_findmove(state, level, colour, ep){
     return [bs, be, alpha];
 }
 
-/*p4_make_move changes the state and returns an object containing
- * everything necesary to undo the change.
+/*p4_make_move_fast changes the state and returns an integer
+ * representing everything necessary to parse the new state and undo
+ * the change.
  *
- * p4_unmake_move uses the p4_make_move return value to restore the
- * previous state.
+ * p4_unmake_move_fast uses the p4_make_move_fast return value to
+ * *almost* restore the previous state. It doesn't need to be exact,
+ * because by this point we have already decided which moves are
+ * possible, so the en passant status doesn't need to be restored.
+ *
+ * XXX why do we even change the global state? the chnages only need
+ * to be propagated forwards.
  */
+    /* changes format
+       to be encoded
+        * start          7 bits
+        * end            7
+        * taken piece    4 (3 is sufficient, dropping colour)
+        * en passant     4
+        * old en passant 4
+        * queening       1
+        *
+        * castle         4 -- both sides
 
-function p4_make_move(state, s, e, promotion){
+      Castling is implicit in the Kings move.
+
+         4   |  4   |   4   | 1 | 1 |    4  |    7  |   7   |
+    taken idx|castle| taken | q |ep | old ep| end   | start |
+       28-31 | 24-27| 20-23 |19 |18 | 14-17 | 7-13  |  0-6  |
+    */
+
+/* new ep: en-passant is available in the given column */
+const P4_MM_SHIFT_OLD_EP = 14;
+/* old ep: the pawn move was en-passant, undo restores the taken pawn */
+const P4_MM_UNDO_FLAG_EP = 1 << 18;
+/* UNDO_FLAG_Q: the move was a queening move; undo turn the piece into a pawn */
+const P4_MM_UNDO_FLAG_Q = 1 << 19;
+/* undo taken: the piece that was captured */
+const P4_MM_UNDO_SHIFT_TAKEN = 20;
+/* castle state changes */
+const P4_MM_UNDO_SHIFT_CASTLE = 24;
+/* where to find the taken piece in piecelist */
+const P4_MM_UNDO_SHIFT_TAKEN_IDX = 28;
+
+
+function p4_make_move_fast(state, s, e, promotion) {
     let board = state.board;
     const S = board[s];
     const E = board[e];
@@ -837,119 +883,200 @@ function p4_make_move(state, s, e, promotion){
     board[s] = 0;
     const piece = S & 14;
     const moved_colour = S & 1;
-    let end_piece = S; /* can differ from S in queening*/
     //now some stuff to handle queening, castling
+    let i;
     let rs = 0, re, rook;
     let ep_taken = 0, ep_position;
-    let ep = 0;
-    if(piece == P4_PAWN){
+    let our_pieces = state.pieces[moved_colour];
+    let change = s | (e << 7) | (state.enpassant << P4_MM_SHIFT_OLD_EP);
+    state.enpassant = 0;
+
+    for (i = 0; our_pieces[i]; i++) {
+        if (our_pieces[i] === s) {
+            /* this piece has moved! */
+            our_pieces[i] = e;
+            break;
+        }
+    }
+
+    if(piece === P4_PAWN) {
         if((60 - e) * (60 - e) > 900) {
-            /*got to end; replace the pawn on board and in pieces cache.*/
+            /* Got to end; replace the pawn on board and in pieces cache. */
             promotion |= moved_colour;
             board[e] = promotion;
-            end_piece = promotion;
+            change |= P4_MM_UNDO_FLAG_Q;
         }
-        else if (((s ^ e) & 1) && E == 0) {
-            /*this is a diagonal move, but the end spot is empty, so we surmise enpassant */
+        else if (((s ^ e) & 1) && E === 0) {
+            /* This is a diagonal move, but the end spot is empty, so
+             * we surmise enpassant. We only need one bit for the
+             * undo, because the captured piece must be a pawn in the
+             * particular spot. */
             ep_position = e - 10 + 20 * moved_colour;
             ep_taken = board[ep_position];
             board[ep_position] = 0;
+            change |= P4_MM_UNDO_FLAG_EP;
         }
-        else if ((s - e) * (s - e) == 400) {
-            /*delta is 20 --> two row jump at start*/
-            ep = (s + e) >> 1;
+        else if ((s - e) * (s - e) === 400) {
+            /* delta is 20 --> two row jump at start. We need to
+             * record that en-passant is available, which needs 4
+             * bits. */
+            let side = 40 + (s > e) * 30;
+            state.enpassant = ((s + e) >> 1) - side;
         }
     }
-    else if (piece == P4_KING && ((s - e) * (s - e) == 4)){  //castling - move rook too
+    else if (piece === P4_KING && ((s - e) * (s - e) === 4)){
+        /* Castling. the rook needs to move too, but we don't need to
+         * flag the change for undo because it is implicit in the size
+         * of the move. */
         rs = s - 4 + (s < e) * 7;
         re = (s + e) >> 1; //avg of s,e=rook's spot
         rook = moved_colour + P4_ROOK;
         board[rs] = 0;
         board[re] = rook;
-        //piece_locations.push([rook, re]);
+        for (let i = 0; our_pieces[i]; i++){
+            if (our_pieces[i] === rs) {
+                /* this piece has moved! */
+                our_pieces[i] = re;
+                break;
+            }
+        }
     }
 
-    const old_castle_state = state.castles;
-    if (old_castle_state){
+    if (state.castles !== 0) {
         let mask = 0;
         let shift = moved_colour * 2;
         let side = moved_colour * 70;
         let s2 = s - side;
         let e2 = e + side;
         //wipe both our sides if king moves
-        if (s2 == 25)
+        if (s2 === 25)
             mask |= 3 << shift;
         //wipe one side on any move from rook points
-        else if (s2 == 21)
+        else if (s2 === 21)
             mask |= 1 << shift;
-        else if (s2 == 28)
+        else if (s2 === 28)
             mask |= 2 << shift;
         //or on any move *to* opposition corners
-        if (e2 == 91)
+        if (e2 === 91)
             mask |= 4 >> shift;
-        else if (e2 == 98)
+        else if (e2 === 98)
             mask |= 8 >> shift;
+        change |= state.castles << P4_MM_UNDO_SHIFT_CASTLE;
         state.castles &= ~mask;
     }
 
-    let old_pieces = state.pieces.concat();
-    let our_pieces = old_pieces[moved_colour];
-    let dest = state.pieces[moved_colour] = [];
-    for (let i = 0; i < our_pieces.length; i++){
-        let x = our_pieces[i];
-        let pp = x[0];
-        let ps = x[1];
-        if (ps != s && ps != rs){
-            dest.push(x);
-        }
-    }
-    dest.push([end_piece, e]);
-    if (rook)
-        dest.push([rook, re]);
-
-    if (E || ep_taken){
-        let their_pieces = old_pieces[1 - moved_colour];
-        dest = state.pieces[1 - moved_colour] = [];
+    if (E || ep_taken) {
+        let their_pieces = state.pieces[1 - moved_colour];
         let gone = ep_taken ? ep_position : e;
-        for (let i = 0; i < their_pieces.length; i++){
-            let x = their_pieces[i];
-            if (x[1] != gone){
-                dest.push(x);
+        /* this is ignored in ep case */
+        change |= E << P4_MM_UNDO_SHIFT_TAKEN;
+        for (i = 0; their_pieces[i]; i++) {
+            if (their_pieces[i] === gone) {
+                their_pieces[i] = 1; /* an off the board placeholder value */
+                change |= (i > 15 ? 15 : i) << P4_MM_UNDO_SHIFT_TAKEN_IDX;
+                break;
             }
         }
     }
 
+    return change;
+}
+
+function p4_unmake_move_fast(state, move) {
+    let board = state.board;
+    let s = move & 127;
+    let e = (move >> 7) & 127;
+    let E = board[e];
+    const piece = E & 14;
+    const moved_colour = E & 1;
+    let our_pieces = state.pieces[moved_colour];
+
+    let ep_used = move & P4_MM_UNDO_FLAG_EP;
+    let unqueening = move & P4_MM_UNDO_FLAG_Q;
+    let taken = (move >> P4_MM_UNDO_SHIFT_TAKEN) & 15;
+    let taken_pos;
+
+    if (ep_used) {
+        let ep_position = e - 10 + 20 * moved_colour;
+        taken = P4_PAWN | (1 - moved_colour);
+        board[ep_position] = taken;
+        board[e] = 0;
+        taken_pos = ep_position;
+    }
+    else {
+        board[e] = taken;
+        taken_pos = e;
+    }
+    if (taken) {
+        let their_pieces = state.pieces[1 - moved_colour];
+        /* in a real game, <i> will immediately point to the taken
+         * pieces spot, but in an overcrowded game we need to scan. */
+        let i = (move >>> P4_MM_UNDO_SHIFT_TAKEN_IDX & 15);
+        for (; their_pieces[i]; i++) {
+            if (their_pieces[i] === 1) {
+                their_pieces[i] = taken_pos;
+                break;
+            }
+        }
+    }
+
+    if (piece === P4_KING && ((s - e) * (s - e) === 4)) {
+        let rs = s - 4 + (s < e) * 7;
+        let re = (s + e) >> 1;
+        board[rs] = board[re];
+        board[re] = 0;
+        for (let i = 0; our_pieces[i]; i++) {
+            if (our_pieces[i] === re) {
+                our_pieces[i] = rs;
+                break;
+            }
+        }
+    }
+
+    if (unqueening) {
+        board[s] = P4_PAWN | moved_colour;
+    }
+    else {
+        board[s] = E;
+    }
+    state.castles = (move >>> P4_MM_UNDO_SHIFT_CASTLE) & 15;
+    state.enpassant = (move >>> P4_MM_SHIFT_OLD_EP) & 15;
+
+    for (let i = 0; our_pieces[i]; i++){
+        if (our_pieces[i] === e) {
+            our_pieces[i] = s;
+            break;
+        }
+    }
+}
+
+/* p4_make_move wraps p4_make_move_fast for callers who need easy
+ * access to state change information more than they need super fast
+ * operations. That is, for everything but search. */
+
+function p4_make_move(state, s, e, promotion) {
+    var board = state.board;
+    let S = board[s];
+    let E = board[e];
+    let move = p4_make_move_fast(state, s, e, promotion);
+    let piece = S & 14;
+    let castled = (piece === P4_KING && ((s - e) * (s - e) === 4));
+    let ep_used = (move & P4_MM_UNDO_FLAG_EP);
+    let taken = (move >> P4_MM_UNDO_SHIFT_TAKEN) & 15;
     return {
-        /*some of these (e.g. rook) could be recalculated during
-         * unmake, possibly more cheaply. */
+        packed: move,
         s: s,
         e: e,
         S: S,
         E: E,
-        ep: ep,
-        castles: old_castle_state,
-        rs: rs,
-        re: re,
-        rook: rook,
-        ep_position: ep_position,
-        ep_taken: ep_taken,
-        pieces: old_pieces
+        castled: castled,
+        capture: taken || ep_used
     };
 }
 
-function p4_unmake_move(state, move){
-    let board = state.board;
-    if (move.ep_position){
-        board[move.ep_position] = move.ep_taken;
-    }
-    board[move.s] = move.S;
-    board[move.e] = move.E;
-    if(move.rs){
-        board[move.rs] = move.rook;
-        board[move.re] = 0;
-    }
-    state.pieces = move.pieces;
-    state.castles = move.castles;
+
+function p4_unmake_move(state, move) {
+    p4_unmake_move_fast(state, move.packed);
 }
 
 
@@ -1064,11 +1191,10 @@ function p4_move(state, s, e, promotion){
 
     let flags = P4_MOVE_FLAG_OK;
 
-    state.enpassant = changes.ep;
     state.history.push([s, e, promotion]);
 
     /*draw timeout: 50 moves without pawn move or capture is a draw */
-    if (changes.E || changes.ep_position){
+    if (changes.capture) {
         state.draw_timeout = 0;
         flags |= P4_MOVE_FLAG_CAPTURE;
     }
@@ -1078,7 +1204,7 @@ function p4_move(state, s, e, promotion){
     else{
         state.draw_timeout++;
     }
-    if (changes.rs){
+    if (changes.castled){
         flags |= (s > e) ? P4_MOVE_FLAG_CASTLE_QUEEN : P4_MOVE_FLAG_CASTLE_KING;
     }
     const shortfen = p4_state2fen(state, true);
@@ -1285,7 +1411,8 @@ function p4_state2fen(state, reduced){
     }
     /*enpassant */
     if (state.enpassant !== 0) {
-        fen += ' ' + p4_stringify_point(state.enpassant);
+        let ep = state.enpassant + 70 - state.to_play * 30;
+        fen += ' ' + p4_stringify_point(ep);
     }
     else
         fen += ' -';
@@ -1381,7 +1508,8 @@ function p4_fen2state(fen, state){
         }
     }
 
-    state.enpassant = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
+    let ep = (fen_enpassant != '-') ? p4_destringify_point(fen_enpassant) : 0;
+    state.enpassant = ep % 10;
     state.draw_timeout = parseInt(fen_timeout);
     if (fen_moveno === undefined){
         /*have a guess based on entropy and pieces remaining*/
@@ -1471,7 +1599,12 @@ function p4_initialise_state(){
         board: board,
         weights: weights,
         history: [],
-        treeclimber: p4_alphabeta_treeclimber
+        treeclimber: p4_alphabeta_treeclimber,
+        pieces: [
+            new Int32Array(65), /* 17 is enough for real games. */
+            new Int32Array(65)
+        ],
+        score_lut: p4_zero_array()
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     state.movelists = [];
