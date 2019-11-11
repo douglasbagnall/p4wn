@@ -1393,12 +1393,12 @@ function p4_fen2state(fen, state){
     state.draw_timeout = parseInt(fen_timeout);
     if (fen_moveno === undefined){
         /*have a guess based on entropy and pieces remaining*/
-        let pieces = 0;
+        let n_pieces = 0;
         let mix = 0;
         for (y = 20; y < 100; y+=10) {
             for (x = 1; x < 9; x++) {
                 let p = board[y + x] & 15;
-                pieces += (!!p);
+                n_pieces += (!!p);
                 if (x < 8){
                     let q = board[y + x + 1];
                     mix += (!q) != (!p);
@@ -1409,7 +1409,7 @@ function p4_fen2state(fen, state){
                 }
             }
         }
-        fen_moveno = Math.max(1, parseInt((32 - pieces) * 1.3 +
+        fen_moveno = Math.max(1, parseInt((32 - n_pieces) * 1.3 +
                                           (4 - fen_castles.length) * 1.5 +
                                           ((mix - 16) / 5)));
         //p4_log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
