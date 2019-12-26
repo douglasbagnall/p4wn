@@ -114,6 +114,15 @@ const P4_PIECE_LUT = { /*for FEN, PGN interpretation */
 
 let P4_ENCODE_LUT = '  PPRRNNBBKKQQ';
 
+const P4_PIECE_DBG = [
+    0, 0,
+    '♙', '♟',
+    '♖', '♜',
+    '♘', '♞',
+    '♗', '♝',
+    '♕', '♛',
+    '♔', '♚'
+];
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
     const move = p4_make_move(state, s, e, P4_QUEEN);
