@@ -204,6 +204,9 @@ _p4d_proto.refresh = function(){
         if(board[i] != P4_EDGE){
             var j = this.orientation ? 119 - i : i;
             pieces[j].src = P4WN_IMAGE_DIR + '/' + P4WN_IMAGE_NAMES[board[i]];
+            if (P4_DEBUG) {
+                pieces[j].title = j;
+            }
         }
     }
 };
