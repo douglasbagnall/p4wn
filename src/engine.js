@@ -20,6 +20,14 @@ else {
     p4_log = console.log.bind(console);
 }
 
+let _debug;
+
+if (1) {
+    _debug = console.log.bind(console);
+} else {
+    _debug = function(){};
+}
+
 /* The pieces are stored as numbers between 2 and 13, inclusive.
  * Empty squares are stored as 0, and off-board squares as 16.
  * There is some bitwise logic to it:
