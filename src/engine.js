@@ -17,7 +17,7 @@ if (this.imports !== undefined &&
     };
 }
 else {
-    p4_log = function(){console.log.apply(console, arguments);};
+    p4_log = console.log.bind(console);
 }
 
 /* The pieces are stored as numbers between 2 and 13, inclusive.
