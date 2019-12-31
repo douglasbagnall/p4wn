@@ -785,30 +785,30 @@ function p4_findmove(state, level){
     p4_prepare(state);
     //p4_optimise_piece_list(state);
     let board = state.board;
-        ep = state.enpassant;
-    let movelist = new Int32Array(250);
-    let n_moves = p4_parse(state, colour, ep, 0, movelist);
     let colour = state.to_play;
+    let moves = p4_movelist(state);
     let alpha = P4_MIN_SCORE;
     let bs = 0;
     let be = 0;
 
-    if (level <= 0){
-        for (let i = 0; i < n_moves; i++){
-            let mv = movelist[i];
-            let score = mv >> 14;
-            if(score > alpha) {
-                alpha = score;
-                bs = mv &127;
-                be = (mv >>> 7) && 127;
+    if (level <= 0) {
+        for (let i = 0; i < moves.length; i++) {
+            let mv = moves[i];
+            if (mv[0] > alpha) {
+                alpha = mv[0];
+                bs = mv[1];
+                be = mv[2];
             }
         }
         return [bs, be, alpha];
     }
 
-    for(let i = 0; i < n_moves; i++){
-        let [mscore, ms, me] = p4_move_unpack(movelist[i]);
-        if (mscore > P4_WIN){
+    for (let i = 0; i < moves.length; i++) {
+        let mv = moves[i];
+        let mscore = mv[0];
+        let ms = mv[1];
+        let me = mv[2];
+        if (mscore > P4_WIN) {
             p4_log("XXX taking king! it should never come to this");
             alpha = P4_KING_VALUE;
             bs = ms;
