@@ -781,16 +781,14 @@ function p4_optimise_piece_list(state){
     }
 }
 
-function p4_findmove(state, level, colour, ep){
+function p4_findmove(state, level){
     p4_prepare(state);
     //p4_optimise_piece_list(state);
     let board = state.board;
-    if (arguments.length == 2){
-        colour = state.to_play;
         ep = state.enpassant;
-    }
     let movelist = new Int32Array(250);
     let n_moves = p4_parse(state, colour, ep, 0, movelist);
+    let colour = state.to_play;
     let alpha = P4_MIN_SCORE;
     let bs = 0;
     let be = 0;
