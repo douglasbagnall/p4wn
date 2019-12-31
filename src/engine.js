@@ -1163,7 +1163,7 @@ function p4_move(state, s, e, promotion){
      */
     let legal = false;
     p4_maybe_prepare(state);
-    let movelist = p4_movelist(state, colour, state.enpassant);
+    let movelist = p4_movelist(state);
     for (let i = 0; i < movelist.length; i++) {
         let cs = movelist[i][1];
         let ce = movelist[i][2];
