@@ -1548,6 +1548,19 @@ function p4_fen2state(fen, state){
     state.jump_to_moveno = function(moveno){
         return p4_jump_to_moveno(this, moveno);
     };
+
+    /* Make the pieces lists just as big as they need to be */
+    let counts = [0, 0];
+    for (let i = 20; i < 100; i++) {
+        if (state.board[i] & 15) {
+            counts[state.board[i] & 1]++;
+        }
+    }
+    state.pieces = [
+            new Int32Array(counts[0] + 1),
+            new Int32Array(counts[1] + 1)
+    ];
+
     return state;
 }
 
@@ -1601,8 +1614,8 @@ function p4_initialise_state(){
         history: [],
         treeclimber: p4_alphabeta_treeclimber,
         pieces: [
-            new Int32Array(65), /* 17 is enough for real games. */
-            new Int32Array(65)
+            new Int32Array(17),
+            new Int32Array(17)
         ],
         score_lut: p4_zero_array()
     };
