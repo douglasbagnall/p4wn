@@ -324,7 +324,7 @@ function mixed_benchmark_core(iterations, treeclimber){
             if (treeclimber !== undefined)
                 state.treeclimber = treeclimber;
             var start = Date.now();
-            state.findmove(ply, state.to_move, state.ep);
+            state.findmove(ply);
             var elapsed = Date.now() - start;
             if (elapsed < best)
                 best = elapsed;
