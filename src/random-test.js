@@ -1,6 +1,4 @@
 
-var P4_USE_TYPED_ARRAYS = true;
-
 function test_sums(seed){
     if (seed === undefined)
         seed = 0;

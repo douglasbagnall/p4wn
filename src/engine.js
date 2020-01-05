@@ -93,10 +93,6 @@ var P4_KNIGHT_WEIGHTS;
 var P4_DEBUG = 0;
 const P4_INITIAL_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 1 1";
 
-/*use javascript typed arrays rather than plain arrays
- * (faster in some browsers, unsupported in others, possibly slower elsewhere) */
-const P4_USE_TYPED_ARRAYS = this.Int32Array !== undefined;
-
 const P4_PIECE_LUT = { /*for FEN, PGN interpretation */
     P: 2,
     p: 3,
@@ -1444,13 +1440,10 @@ Int32Array is marginally slower than plain arrays with Firefox 12, but
 significantly quicker with Chromium.
  */
 
-const P4_ZEROS = P4_USE_TYPED_ARRAYS ? undefined : Array(120).fill(0);
 function p4_zero_array(){
-    if (P4_USE_TYPED_ARRAYS) {
-        return new Int32Array(120);
-    }
-    return P4_ZEROS.slice();
+    return new Int32Array(120);
 }
+
 
 /* p4_initialise_state() creates the board and initialises weight
  * arrays etc.  Some of this is really only needs to be done once.
@@ -1626,7 +1619,7 @@ function p4_find_source_point(state, e, str){
  */
 function p4_random_seed(state, seed){
     seed &= 0xffffffff;
-    state.rng = (P4_USE_TYPED_ARRAYS) ? new Uint32Array(4) : [];
+    state.rng = new Uint32Array(4);
     state.rng[0] = 0xf1ea5eed;
     state.rng[1] = seed;
     state.rng[2] = seed;
