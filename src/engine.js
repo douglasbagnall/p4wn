@@ -1412,7 +1412,6 @@ function p4_fen2state(fen, state){
         fen_moveno = Math.max(1, parseInt((32 - n_pieces) * 1.3 +
                                           (4 - fen_castles.length) * 1.5 +
                                           ((mix - 16) / 5)));
-        //p4_log("pieces", pieces, "mix", mix, "estimate", fen_moveno);
     }
     state.moveno = 2 * (parseInt(fen_moveno) - 1) + state.to_play;
     state.history = [];
