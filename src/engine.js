@@ -1625,28 +1625,27 @@ function p4_random_seed(state, seed){
     state.rng[2] = seed;
     state.rng[3] = seed;
     for (let i = 0; i < 20; i++)
-        p4_random31(state);
+        p4_random32(state);
 }
 
-function p4_random31(state){
+function p4_random32(state){
     let rng = state.rng;
     let b = rng[1];
     let c = rng[2];
     /* These shifts amount to rotates.
      * Note the three-fold right shift '>>>', meaning an unsigned shift.
-     * The 0xffffffff masks are needed to keep javascript to 32bit. (supposing
-     * untyped arrays).
+     * rng is a UInt32Array, so everything wraps at 2 ** 32.
      */
     let e = rng[0] - ((b << 27) | (b >>> 5));
     rng[0] = b ^ ((c << 17) | (c >>> 15));
-    rng[1] = (c + rng[3]) & 0xffffffff;
-    rng[2] = (rng[3] + e) & 0xffffffff;
-    rng[3] = (e + rng[0]) & 0xffffffff;
-    return rng[3] & 0x7fffffff;
+    rng[1] = (c + rng[3]);
+    rng[2] = (rng[3] + e);
+    rng[3] = (e + rng[0]);
+    return rng[3];
 }
 
 function p4_random_int(state, top){
-    /* uniform integer in range [0 <= n < top), supposing top < 2 ** 31
+    /* uniform integer in range [0 <= n < top), supposing top <= 2 ** 32
      *
      * This method is slightly (probably pointlessly) more accurate
      * than converting to 0-1 float, multiplying and truncating, and
@@ -1663,7 +1662,7 @@ function p4_random_int(state, top){
     mask |= mask >>> 16;
     let r;
     do{
-        r = p4_random31(state) & mask;
+        r = p4_random32(state) & mask;
     } while (r >= top);
     return r;
 }
