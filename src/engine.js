@@ -121,7 +121,7 @@ const P4_PIECE_DBG = [
 ];
 
 function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta){
-    const move = p4_make_move_fast(state, s, e, P4_QUEEN);
+    p4_make_move_fast(state, s, e, P4_QUEEN);
     const ncolour = 1 - colour;
     const movelist = state.movelists[count];
     let movecount = p4_parse(state, colour, state.enpassant, -score, movelist);
@@ -167,7 +167,7 @@ function p4_alphabeta_treeclimber(state, count, colour, score, s, e, alpha, beta
             }
         }
     }
-    p4_unmake_move_fast(state, move);
+    p4_unmake_move_fast(state);
     return alpha;
 }
 
@@ -364,6 +364,7 @@ function p4_prepare(state) {
             }
         }
     }
+    state.movestack_depth = 0;
     state.prepared = true;
 }
 
@@ -992,11 +993,13 @@ function p4_make_move_fast(state, s, e, promotion) {
             }
         }
     }
-
-    return change;
+    state.movestack_depth++;
+    state.movestack[state.movestack_depth] = change;
 }
 
-function p4_unmake_move_fast(state, move) {
+function p4_unmake_move_fast(state) {
+    let move = state.movestack[state.movestack_depth];
+    state.movestack_depth--;
     let board = state.board;
     let s = move & 127;
     let e = (move >> 7) & 127;
@@ -1072,13 +1075,13 @@ function p4_make_move(state, s, e, promotion) {
     var board = state.board;
     let S = board[s];
     let E = board[e];
-    let move = p4_make_move_fast(state, s, e, promotion);
+    p4_make_move_fast(state, s, e, promotion);
+    let move = state.movestack[state.movestack_depth];
     let piece = S & 14;
     let castled = (piece === P4_KING && ((s - e) * (s - e) === 4));
     let ep_used = (move & P4_MM_UNDO_FLAG_EP);
     let taken = (move >> P4_MM_UNDO_SHIFT_TAKEN) & 15;
     return {
-        packed: move,
         s: s,
         e: e,
         S: S,
@@ -1089,8 +1092,8 @@ function p4_make_move(state, s, e, promotion) {
 }
 
 
-function p4_unmake_move(state, move) {
-    p4_unmake_move_fast(state, move.packed);
+function p4_unmake_move(state) {
+    p4_unmake_move_fast(state);
 }
 
 
@@ -1197,7 +1200,7 @@ function p4_move(state, s, e, promotion){
 
     /*is it check? */
     if (p4_check_check(state, colour)){
-        p4_unmake_move(state, changes);
+        p4_unmake_move(state);
         p4_log('in check', changes);
         return {flags: P4_MOVE_ILLEGAL, ok: false, string: "in check!"};
     }
@@ -1249,9 +1252,9 @@ function p4_move(state, s, e, promotion){
     let replies = p4_movelist(state, other_colour);
     for (let i = 0; i < replies.length; i++){
         let m = replies[i];
-        let change2 = p4_make_move(state, m[1], m[2], P4_QUEEN);
+        p4_make_move(state, m[1], m[2], P4_QUEEN);
         let check = p4_check_check(state, other_colour);
-        p4_unmake_move(state, change2);
+        p4_unmake_move(state);
         if (!check){
             is_mate = false;
             break;
@@ -1631,7 +1634,9 @@ function p4_initialise_state(){
             new Int32Array(17),
             new Int32Array(17)
         ],
-        score_lut: p4_zero_array()
+        score_lut: p4_zero_array(),
+        movestack: new Uint32Array(100),
+        movestack_depth: 0
     };
     p4_random_seed(state, P4_DEBUG ? 1 : Date.now());
     state.movelists = [];
@@ -1748,10 +1753,10 @@ function p4_find_source_point(state, e, str){
                 (column === undefined || column == s % 10) &&
                 (row === undefined || row == parseInt(s / 10))
                ){
-                   let change = p4_make_move(state, s, e, P4_QUEEN);
+                   p4_make_move(state, s, e, P4_QUEEN);
                    if (! p4_check_check(state, colour))
                        possibilities.push(s);
-                   p4_unmake_move(state, change);
+                   p4_unmake_move(state);
             }
         }
     }
