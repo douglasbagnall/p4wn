@@ -1463,7 +1463,7 @@ function p4_initialise_state(){
          //knights have a flat topped centre (bishops too, but less so).
         P4_KNIGHT_WEIGHTS[i] = parseInt(((dx < 2) + (dy < 2) * 1.5)
                                         + (dx < 3) + (dy < 3)) - 2;
-        P4_BASE_PAWN_WEIGHTS[i] = parseInt('000012347000'.charAt(y));
+        P4_BASE_PAWN_WEIGHTS[i] = [0,0,0,0, 1, 2, 3, 4, 7, 0,0,0][y];
         if (y > 9 || y < 2 || x < 1 || x > 8)
             board[i] = 16;
     }
