@@ -268,7 +268,6 @@ function p4_prepare(state) {
                 let dx = Math.abs(kx[1 - c] - x);
                 let dy = Math.abs(ky[1 - c] - y);
                 let our_dx = Math.abs(kx[c] - x);
-                let our_dy = Math.abs(ky[c] - y);
 
                 let d = Math.max(Math.sqrt(dx * dx + dy * dy), 1) + 1;
                 let mul = multipliers[c]; /*(mul < 1) <==> we're winning*/
@@ -579,9 +578,7 @@ function p4_parse(state, colour, ep, score, movelist) {
  */
 
 function p4_check_castling(board, s, colour, dir, side){
-    let e;
-    let E;
-    let m, p;
+    let e, E, p;
     const knight = colour + P4_KNIGHT;
     const diag_slider = P4_BISHOP | colour;
     const diag_mask = 27;
@@ -711,7 +708,6 @@ function p4_optimise_piece_list(state){
         p4_parse(state, 0, 0, 0, movelists[0]),
         p4_parse(state, 1, 0, 0, movelists[1])
     ];
-    const weights = state.weights;
     const board = state.board;
     for (let colour = 0; colour < 2; colour++){
         const our_values = state.values[colour];
@@ -1036,7 +1032,6 @@ function p4_move(state, s, e, promotion){
     if (promotion === undefined) {
         promotion = P4_QUEEN;
     }
-    const E = board[e];
     const S = board[s];
 
     /*See if this move is even slightly legal, disregarding check.
@@ -1045,7 +1040,8 @@ function p4_move(state, s, e, promotion){
     p4_maybe_prepare(state);
     let movelist = p4_movelist(state, colour, state.enpassant);
     for (let i = 0; i < movelist.length; i++) {
-        let [c_, cs, ce] = movelist[i];
+        let cs = movelist[i][1];
+        let ce = movelist[i][2];
         if (e == ce && s == cs) {
             legal = true;
             break;
@@ -1535,7 +1531,6 @@ function p4_interpret_movestring(state, str){
     let src = m[1];
     let dest = m[2];
     let queen = m[3];
-    let moves;
     if (s == 0 && (src == '' || src === undefined)){
         /* a single coordinate pawn move */
         e = p4_destringify_point(dest);
