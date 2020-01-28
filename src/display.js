@@ -172,7 +172,7 @@ _p4d_proto.log = function(msg, klass, onclick){
         _add_event_listener(item, "click", onclick);
     item.innerHTML = msg;
     div.scrollTop = 999999;
-}
+};
 
 _p4d_proto.goto_move = function(n){
     var delta;
@@ -533,7 +533,7 @@ _p4d_proto.render_elements = function(square_height, square_width){
     e.log.style.height = board_height;
     e.board.style.height = board_height;
     e.controls.style.width = (11 * square_width) + 'px';
-}
+};
 
 function p4wnify(id){
     var p4d = new P4wn_display(id);
