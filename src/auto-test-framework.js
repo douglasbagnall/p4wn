@@ -29,11 +29,12 @@ function fen_moves(fen, moves, non_moves){
     var i, j;
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
     var ok = true;
+    var results;
     var messages = [];
     if (moves){
         tstr += 'Moves: <i>' + moves.join('; ') + '</i> ';
         for (i = 0; i < moves.length; i++){
-            var results = run_sequence(fen, moves[i]);
+            results = run_sequence(fen, moves[i]);
             console.log("move", moves[i], results);
             var n = results.length - 1;
             if (! results[n] & 1){
@@ -44,7 +45,7 @@ function fen_moves(fen, moves, non_moves){
     if (non_moves){
         tstr += 'Non-moves: <i>' + non_moves.join('; ') + '</i> ';
         for (i = 0; i < non_moves.length; i++){
-            var results = run_sequence(fen, non_moves[i]);
+            results = run_sequence(fen, non_moves[i]);
             console.log("non-move", non_moves[i], results);
             if (results[results.length - 1]  & 1){
                 messages.push(non_moves[i] + " fails to fail");
