@@ -130,7 +130,7 @@ function weights_update(p4d, delta, element){
     }
     else {
         for (i = 0; i < 120; i++){
-            var el = pieces[p4d.orientation ? 119 - i : i];
+            el = pieces[p4d.orientation ? 119 - i : i];
             if (el !== undefined)
                 el.style.backgroundColor = 'transparent';
         }
