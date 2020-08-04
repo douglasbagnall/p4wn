@@ -198,3 +198,9 @@ function add_extra_searches(p4d){
     ]);
     console.log('added searches');
 }
+
+var P4_EXTRA_TREECLIMBERS = {
+    p4_counting_treeclimber: p4_counting_treeclimber,
+    p4_negascout_treeclimber: p4_negascout_treeclimber,
+    p4_negamax_treeclimber: p4_negamax_treeclimber
+};

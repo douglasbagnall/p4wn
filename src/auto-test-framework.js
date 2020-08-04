@@ -24,8 +24,13 @@ function run_sequence(fen, seq){
     return results;
 }
 
+var TEST_FUNCTIONS = {};
 
-function fen_moves(fen, moves, non_moves){
+function register_test_fn(name, fn) {
+    TEST_FUNCTIONS[name] = fn;
+}
+
+register_test_fn('fen_moves', function (fen, moves, non_moves) {
     var i, j;
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
     var ok = true;
@@ -62,9 +67,9 @@ function fen_moves(fen, moves, non_moves){
     var success = messages.length == 0;
     var msg = (success) ? 'OK' : messages.join('<br>');
     return [success, tstr, msg];
-}
+});
 
-function result_in_n(fen, result, n, depth, treeclimber){
+register_test_fn('result_in_n', function(fen, result, n, depth, treeclimber){
     var i, msg;
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, depth ' + depth;
     var state = p4_fen2state(fen);
@@ -76,7 +81,7 @@ function result_in_n(fen, result, n, depth, treeclimber){
     var mask = f[1];
     var ok = false;
     if (treeclimber !== undefined) {
-        state.treeclimber = treeclimber;
+        state.treeclimber = P4_EXTRA_TREECLIMBERS[treeclimber];
     }
     for (i = 0; i < n * 2; i++){
         var mv = p4_findmove(state, depth);
@@ -89,9 +94,9 @@ function result_in_n(fen, result, n, depth, treeclimber){
         state.treeclimber = p4_alphabeta_treeclimber;
     }
     return [ok, tstr, msg = ok ? 'OK' : 'fails'];
-}
+});
 
-function count_moves(fen, ply, expected){
+register_test_fn('count_moves', function(fen, ply, expected){
     console.log(fen);
     var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, ply ' + ply + ' expecting ' + expected;
     var state = p4_fen2state(fen);
@@ -101,7 +106,7 @@ function count_moves(fen, ply, expected){
     if (nodes == expected)
         return  [true, tstr, 'OK'];
     return [false, tstr, nodes + ' != ' + expected + " (diff " + (nodes - expected) + ")"];
-}
+});
 
 function new_child(element, childtag){
     var child = document.createElement(childtag);
@@ -117,7 +122,7 @@ function print_result(ok, tstr, msg){
     p.className = ok ? 'pass' : 'fail';
 }
 
-function main(tests){
+function run_tests(tests) {
     var h1 = document.getElementById("heading");
     h1.innerHTML = "Working... (" + tests.length + " tests)";
     var i;
@@ -127,7 +132,7 @@ function main(tests){
         var t = tests[i];
         var desc = t.shift();
         console.log("starting " + desc);
-        var f = t.shift();
+        var f = TEST_FUNCTIONS[t.shift()];
         var r = f.apply(undefined, t);
         print_result.apply(desc, r);
         if(r[0])
@@ -139,17 +144,18 @@ function main(tests){
 }
 
 const KNOWN_TESTS = {
-    autotests:    'auto-test-tests.js',
-    check:        'auto-test-check.js',
-    treeclimbers: 'auto-test-treeclimbers.js'
+    autotests:    'auto-test-tests.json',
+    check:        'auto-test-check.json',
+    treeclimbers: 'auto-test-treeclimbers.json'
 };
 
 function append_test(name) {
     var src = KNOWN_TESTS[name];
     if (src !== undefined) {
-        var script = document.createElement('script');
-        script.src = src;
-        document.body.appendChild(script);
+        fetch(src).then(response => response.json())
+            .then(data => {
+                run_tests(data);
+            });
     } else {
         var h1 = document.getElementById("heading");
         h1.innerHTML = "unknown tests: " + name;
