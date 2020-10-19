@@ -1,6 +1,3 @@
-function fenlink(fen){
-    return '<a href="fen-test.html?start=' + fen + '&player=both">' + fen + '</a>';
-}
 
 function run_sequence(fen, seq){
     var i, r;
@@ -13,14 +10,14 @@ function run_sequence(fen, seq){
         seq = [seq];
     }
     for (i = 0; i < seq.length; i++){
-        console.log([state].concat(seq[i]));
+        log([state].concat(seq[i]));
         r = p4_move.apply(undefined, [state].concat(seq[i]));
         results.push(r.flags);
         if ((r.flags & 1) == 0){
             break;
         }
     }
-    console.log("ran sequence", seq, results, seq.length);
+    log("ran sequence", seq, results, seq.length);
     return results;
 }
 
@@ -32,15 +29,14 @@ function register_test_fn(name, fn) {
 
 register_test_fn('fen_moves', function (fen, moves, non_moves) {
     var i, j;
-    var tstr = 'Fen: <i>' + fenlink(fen) + '</i> ';
-    var ok = true;
+    var tstr = 'Fen: ' + fenlink(fen) + ' ';
     var results;
     var messages = [];
     if (moves){
-        tstr += 'Moves: <i>' + moves.join('; ') + '</i> ';
+        tstr += 'Moves: ' + highlight(moves.join('; ')) + ' ';
         for (i = 0; i < moves.length; i++){
             results = run_sequence(fen, moves[i]);
-            console.log("move", moves[i], results);
+            log("move", moves[i], results);
             var n = results.length - 1;
             if (! results[n] & 1){
                 messages.push(moves[i] + " fails after " + n + " moves");
@@ -48,10 +44,10 @@ register_test_fn('fen_moves', function (fen, moves, non_moves) {
         }
     }
     if (non_moves){
-        tstr += 'Non-moves: <i>' + non_moves.join('; ') + '</i> ';
+        tstr += 'Non-moves: ' + highlight(non_moves.join('; ')) + ' ';
         for (i = 0; i < non_moves.length; i++){
             results = run_sequence(fen, non_moves[i]);
-            console.log("non-move", non_moves[i], results);
+            log("non-move", non_moves[i], results);
             if (results[results.length - 1]  & 1){
                 messages.push(non_moves[i] + " fails to fail");
             }
@@ -60,18 +56,18 @@ register_test_fn('fen_moves', function (fen, moves, non_moves) {
     var state = p4_fen2state(fen);
     var fen2 = p4_state2fen(state);
     if (fen != fen2){
-        console.log(fen, "and", fen2, "differ");
-        tstr += 'Fen fails round trip: <i>' + fen2 + '</i> ';
+        log(fen, "and", fen2, "differ");
+        tstr += 'Fen fails round trip: ' + highlight(fen2) + ' ';
         messages.push(fen2 + " differs!");
     }
     var success = messages.length == 0;
-    var msg = (success) ? 'OK' : messages.join('<br>');
+    var msg = (success) ? 'OK' : msg_list(messages);
     return [success, tstr, msg];
 });
 
 register_test_fn('result_in_n', function(fen, result, n, depth, treeclimber){
     var i, msg;
-    var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, depth ' + depth;
+    var tstr = 'Fen: ' + fenlink(fen) + ', depth ' + depth;
     var state = p4_fen2state(fen);
     var f = {
         checkmate: [P4_MOVE_CHECKMATE, P4_MOVE_CHECKMATE],
@@ -97,8 +93,8 @@ register_test_fn('result_in_n', function(fen, result, n, depth, treeclimber){
 });
 
 register_test_fn('count_moves', function(fen, ply, expected){
-    console.log(fen);
-    var tstr = 'Fen: <i>' + fenlink(fen) + '</i>, ply ' + ply + ' expecting ' + expected;
+    log(fen);
+    var tstr = 'Fen: ' + fenlink(fen) + ', ply ' + ply + ' expecting ' + expected;
     var state = p4_fen2state(fen);
     p4_prepare(state);
     var nodes = p4_counting_treeclimber(state, ply - 1, state.to_play, 0, 0, 0);
@@ -108,39 +104,29 @@ register_test_fn('count_moves', function(fen, ply, expected){
     return [false, tstr, nodes + ' != ' + expected + " (diff " + (nodes - expected) + ")"];
 });
 
-function new_child(element, childtag){
-    var child = document.createElement(childtag);
-    element.appendChild(child);
-    return child;
-}
-
-function print_result(ok, tstr, msg){
-    var i;
-    var div = document.getElementById("messages");
-    var p = new_child(div, 'div');
-    p.innerHTML = '<h3>' + this + '</h3>' + tstr + ' <b>' + msg + '</b>';
-    p.className = ok ? 'pass' : 'fail';
-}
 
 function run_tests(tests) {
-    var h1 = document.getElementById("heading");
-    h1.innerHTML = "Working... (" + tests.length + " tests)";
+    announce("Working... (" + tests.length + " tests)");
     var i;
     var good = 0;
     var start = Date.now();
     for (i = 0; i < tests.length; i++){
         var t = tests[i];
         var desc = t.shift();
-        console.log("starting " + desc);
+        log("starting " + desc);
+        log(t);
         var f = TEST_FUNCTIONS[t.shift()];
         var r = f.apply(undefined, t);
         print_result.apply(desc, r);
-        if(r[0])
+        if(r[0]) {
             good++;
+        } else {
+            log("FAILED " + desc);
+        }
     }
     var elapsed = (Date.now() - start) / 1000;
-    h1.innerHTML = ("Passed " + good + " out of " + tests.length +
-                    " tests in " + elapsed + " seconds");
+    announce("Passed " + good + " out of " + tests.length +
+             " tests in " + elapsed + " seconds");
 }
 
 const KNOWN_TESTS = {
@@ -149,7 +135,8 @@ const KNOWN_TESTS = {
     treeclimbers: 'auto-test-treeclimbers.json'
 };
 
-function append_test(name) {
+
+function load_named_tests(name) {
     var src = KNOWN_TESTS[name];
     if (src !== undefined) {
         fetch(src).then(response => response.json())
@@ -157,18 +144,7 @@ function append_test(name) {
                 run_tests(data);
             });
     } else {
-        var h1 = document.getElementById("heading");
-        h1.innerHTML = "unknown tests: " + name;
+        announce("unknown tests: " + name);
     }
 }
 
-function load_tests() {
-    var i;
-    var query = window.location.search.substring(1);
-    if (query.length == 0) {
-        append_test('autotests');
-    }
-    else {
-        append_test(query);
-    }
-}
