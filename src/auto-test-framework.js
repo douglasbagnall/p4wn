@@ -127,6 +127,7 @@ function run_tests(tests) {
     var elapsed = (Date.now() - start) / 1000;
     announce("Passed " + good + " out of " + tests.length +
              " tests in " + elapsed + " seconds");
+    return good === tests.length;
 }
 
 const KNOWN_TESTS = {
