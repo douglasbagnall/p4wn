@@ -1,0 +1,3 @@
+#!/bin/sh
+HERE=$(dirname $(realpath $0))
+python3 -mhttp.server 8008 --bind 127.0.0.1 -d  $HERE/src
