@@ -1604,7 +1604,7 @@ function p4_zero_array(){
  */
 
 function p4_initialise_state(){
-    let board = p4_zero_array();
+    let board = new Uint8Array(120);
     P4_CENTRALISING_WEIGHTS = p4_zero_array();
     P4_BASE_PAWN_WEIGHTS = p4_zero_array();
     P4_KNIGHT_WEIGHTS = p4_zero_array();
