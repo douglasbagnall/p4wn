@@ -15,4 +15,7 @@ nodetest: testdir/_node-test.js
 	cp $(SRC)/*.json $(<D)
 	nodejs $<
 
-.PHONY: nodetest all
+nodetest-all: testdir/_node-test.js nodetest
+	nodejs $< check
+
+.PHONY: nodetest nodetest-all all
