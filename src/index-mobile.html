@@ -40,9 +40,34 @@ P4WN_IMAGE_NAMES = [
   'black_queen.svg'
 ];
 var game = p4wnify("board-goes-here");
+
+/* This will resize the screen elements to optimize them for
+ * the given device resolution */
+
+function displayResize(evt) {
+  var available_height = window.innerHeight - 100,
+      available_width = window.innerWidth;
+  var tmp_square_height = available_height >> 3,
+      tmp_square_width = available_width / 11.5;
+  var tmp = tmp_square_height > tmp_square_width ?
+      tmp_square_width : tmp_square_height;
+    var tmp_square = tmp > 30 ? tmp : 30;
+  game.render_elements(tmp_square, tmp_square);
+  var pieces = game.elements.pieces;
+  for (var y = 9; y > 1; y--){
+    for(var x = 8;  x > 0; x--){
+      var i = y * 10 + x;
+      pieces[i].height = tmp_square;
+      pieces[i].width = tmp_square;
+    }
+  }
+}
+
+window.onresize = displayResize;
+window.onload = displayResize;
+
 game.next_move();
 </script>
-<script src="resolutionawareness.js"></script>
 &nbsp;<a href="index-mobile-2.html" style="text-decoration:none; color:#000;"><svg
   height="15"
   width="15"
