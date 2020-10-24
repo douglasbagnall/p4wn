@@ -84,7 +84,7 @@ const P4_WIN_NOW = P4_KING_VALUE - 250;
 const P4_MAX_SCORE = 9999;    // extremes of evaluation range
 const P4_MIN_SCORE = -P4_MAX_SCORE;
 
-/*initialised in p4_initialise_state */
+/*initialised in p4_global_init() */
 var P4_CENTRALISING_WEIGHTS;
 var P4_BASE_PAWN_WEIGHTS;
 var P4_KNIGHT_WEIGHTS;
@@ -1599,12 +1599,9 @@ function p4_zero_array(){
 }
 
 
-/* p4_initialise_state() creates the board and initialises weight
- * arrays etc.  Some of this is really only needs to be done once.
- */
+let P4_INITIALIZED = false;
 
-function p4_initialise_state(){
-    let board = new Uint8Array(120);
+function p4_global_init(state) {
     P4_CENTRALISING_WEIGHTS = p4_zero_array();
     P4_BASE_PAWN_WEIGHTS = p4_zero_array();
     P4_KNIGHT_WEIGHTS = p4_zero_array();
@@ -1619,8 +1616,22 @@ function p4_initialise_state(){
             P4_KNIGHT_WEIGHTS[i] = parseInt(((dx < 2) + (dy < 2) * 1.5)
                                             + (dx < 3) + (dy < 3)) - 2;
             P4_BASE_PAWN_WEIGHTS[i] = [0,0,0,0, 1, 2, 3, 4, 7, 0,0,0][y];
-            if (y > 9 || y < 2 || x < 1 || x > 8)
-                board[i] = 16;
+        }
+    }
+}
+
+/* p4_initialise_state() creates the board and maybe calls
+ * p4_global_init().
+ */
+
+function p4_initialise_state() {
+    let p;
+    let board = new Uint8Array(120);
+    for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 10; x++) {
+            if (y > 9 || y < 2 || x < 1 || x > 8) {
+                board[y * 10 + x] = 16;
+            }
         }
     }
     let weights = [];
@@ -1644,6 +1655,11 @@ function p4_initialise_state(){
     state.movelists = [];
     for (let i = 0; i < 26; i++) {
         state.movelists.push(new Int32Array(250));
+    }
+    if (P4_INITIALIZED) {
+    }
+    else {
+        p = p4_global_init(state);
     }
     return state;
 }
