@@ -108,10 +108,14 @@ now. It provides resolution awareness, e.g. on mobile devices if
 switching between portrait and landscape, etc. New SVG (Scalable
 Vector Graphics) chess set has been created from scratch under CC0_.
 
+Version 3
+---------
 
-Differences between version 1 and 2
------------------------------------
+Version 3 drops support for MSIE and FirefoxOS. It is many times
+faster.
 
+Differences between versions
+----------------------------
 
 Although they look entirely different, there is a structural and
 algorithmic continuity between the versions.
@@ -126,6 +130,11 @@ Safari, and (more slowly) in Internet Explorer 5.5 and above.
 P4wn 2 in 2012 works a few thousand times faster than p4wn 1 did is
 2002. Much, but not all, of that is down to browser and hardware
 improvements.
+
+P4wn 3 is optimised for 2020 browsers. It manages to be much faster by
+using typed arrays and reducing memory allocations, but at essence it
+uses the same stupid evaluation algorithm.
+
 
 Embedding and theming
 =====================
