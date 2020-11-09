@@ -932,11 +932,15 @@ function p4_make_move_fast(state, s, e, promotion) {
             change |= P4_MM_UNDO_FLAG_EP;
         }
         else if ((s - e) * (s - e) === 400) {
-            /* delta is 20 --> two row jump at start. We need to
-             * record that en-passant is available, which needs 4
-             * bits. */
-            let side = 40 + (s > e) * 30;
-            state.enpassant = ((s + e) >> 1) - side;
+            /* Delta is 20 --> two row jump at start. We don't want to
+               set the enpassant flag unless there is actually a pawn
+               there that could do it.
+            */
+            let p = P4_PAWN | 1 ^ moved_colour;
+            if (board[e - 1] === p || board[e + 1] === p) {
+                let side = 40 + (s > e) * 30;
+                state.enpassant = ((s + e) >> 1) - side;
+            }
         }
     }
     else if (piece === P4_KING && ((s - e) * (s - e) === 4)){
