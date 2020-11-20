@@ -846,17 +846,15 @@ function p4_findmove(state, level){
     return [bs, be, alpha];
 }
 
-/*p4_make_move_fast changes the state and returns an integer
- * representing everything necessary to parse the new state and undo
- * the change.
+/*p4_make_move_fast changes the state and stores undo information in
+ * state.movestack.
  *
- * p4_unmake_move_fast uses the p4_make_move_fast return value to
- * *almost* restore the previous state. It doesn't need to be exact,
- * because by this point we have already decided which moves are
- * possible, so the en passant status doesn't need to be restored.
+ * p4_unmake_move_fast uses movestack to *almost* restore the previous
+ * state.
  *
- * XXX why do we even change the global state? the chnages only need
- * to be propagated forwards.
+ * XXX why do we even change the global state? the changes only need
+ * to be propagated forwards. Undo could just be peeling the top off
+ * the stack.
  */
     /* changes format
        to be encoded
@@ -898,11 +896,11 @@ function p4_make_move_fast(state, s, e, promotion) {
     board[s] = 0;
     const piece = S & 14;
     const moved_colour = S & 1;
-    //now some stuff to handle queening, castling
     let i;
     let rs = 0, re, rook;
     let ep_taken = 0, ep_position;
     let our_pieces = state.pieces[moved_colour];
+    /* change will be the value saved on the stack */
     let change = s | (e << 7) | (state.enpassant << P4_MM_SHIFT_OLD_EP);
     state.enpassant = 0;
 
@@ -916,7 +914,8 @@ function p4_make_move_fast(state, s, e, promotion) {
 
     if(piece === P4_PAWN) {
         if((60 - e) * (60 - e) > 900) {
-            /* Got to end; replace the pawn on board and in pieces cache. */
+            /* Got to end; replace the pawn on board, and flag the
+             * queening for undo */
             promotion |= moved_colour;
             board[e] = promotion;
             change |= P4_MM_UNDO_FLAG_Q;
@@ -953,8 +952,8 @@ function p4_make_move_fast(state, s, e, promotion) {
         board[rs] = 0;
         board[re] = rook;
         for (let i = 0; our_pieces[i]; i++){
+            /* the king was already moved in the pieces cache */
             if (our_pieces[i] === rs) {
-                /* this piece has moved! */
                 our_pieces[i] = re;
                 break;
             }
