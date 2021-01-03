@@ -1581,9 +1581,7 @@ function p4_zero_array(){
 }
 
 
-let P4_INITIALIZED = false;
-
-function p4_global_init(state) {
+function p4_global_init() {
     P4_CENTRALISING_WEIGHTS = p4_zero_array();
     P4_BASE_PAWN_WEIGHTS = p4_zero_array();
     P4_KNIGHT_WEIGHTS = p4_zero_array();
@@ -1647,10 +1645,9 @@ function p4_initialise_state() {
     for (let i = 0; i < 26; i++) {
         state.movelists.push(new Int32Array(250));
     }
-    if (P4_INITIALIZED) {
-    }
-    else {
-        p = p4_global_init(state);
+
+    if (P4_CENTRALISING_WEIGHTS === undefined) {
+        p4_global_init();
     }
     return state;
 }
