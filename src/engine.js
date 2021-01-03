@@ -220,7 +220,6 @@ function p4_prepare(state) {
     if (draw_likely) {
         p4_log("draw likely", state.current_repetitions, state.draw_timeout);
     }
-    state.values = [[], []];
     const qvalue = P4_VALUES[P4_QUEEN]; /*used as ballast in various ratios*/
     const material_sum = material[0] + material[1] + 2 * qvalue;
     const wmul = 2 * (material[1] + qvalue) / material_sum;
@@ -1629,6 +1628,10 @@ function p4_initialise_state() {
         pieces: [
             new Uint8Array(65),
             new Uint8Array(65)
+        ],
+        values: [
+            new Int32Array(16),
+            new Int32Array(16)
         ],
         score_lut: p4_zero_array(),
         movestack: new Uint32Array(100),
