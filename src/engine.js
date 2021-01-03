@@ -1561,11 +1561,6 @@ function p4_fen2state(fen, state){
             counts[state.board[i] & 1]++;
         }
     }
-    state.pieces = [
-            new Int32Array(counts[0] + 1),
-            new Int32Array(counts[1] + 1)
-    ];
-
     return state;
 }
 
@@ -1632,8 +1627,8 @@ function p4_initialise_state() {
         history: [],
         treeclimber: p4_alphabeta_treeclimber,
         pieces: [
-            new Int32Array(17),
-            new Int32Array(17)
+            new Uint8Array(65),
+            new Uint8Array(65)
         ],
         score_lut: p4_zero_array(),
         movestack: new Uint32Array(100),
