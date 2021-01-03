@@ -42,7 +42,7 @@ const P4_EDGE = 16;
 
 /* in order, even indices: <nothing>, pawn, rook, knight, bishop, king, queen. Only the
  * even indices are used.*/
-const P4_MOVES = [
+let P4_MOVES = [
     [], [],
     [], [],
     [1,10,-1,-10], [],
@@ -1599,6 +1599,11 @@ function p4_global_init(state) {
                                             + (dx < 3) + (dy < 3)) - 2;
             P4_BASE_PAWN_WEIGHTS[i] = [0,0,0,0, 1, 2, 3, 4, 7, 0,0,0][y];
         }
+    }
+
+    /* replace P4_MOVES elements with intarray versions */
+    for (let i = 0; i < P4_MOVES.length; i++) {
+        P4_MOVES[i] = new Int8Array(P4_MOVES[i]);
     }
 }
 
