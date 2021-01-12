@@ -13,7 +13,6 @@ function p4_negamax_treeclimber(state, count, colour, score, s, e){
     var ncolour = 1 - colour;
     var movelist = p4_movelist(state, colour, state.enpassant, -score);
     var movecount = movelist.length;
-    state.node_count += movecount;
     var best = P4_MIN_SCORE;
     if(count){
         //branch nodes
