@@ -11,6 +11,13 @@
  */
 /* The routines here draw the screen and handle user interaction */
 
+/* how long the computer waits before its turn, after a coputer or
+   human player. Zero is not good, because visual updates will stop;
+   too low can make a computer/computer game hard to follow */
+
+let POST_COMPUTER_MS = 500;
+let POST_HUMAN_MS = 10;
+
 var P4WN_SQUARE_WIDTH = 30;
 var P4WN_SQUARE_HEIGHT = 30;
 var P4WN_WRAPPER_CLASS = 'p4wn-wrapper';
@@ -114,14 +121,20 @@ _p4d_proto.move = function(start, end, promotion){
     return move_result.ok;
 };
 
-_p4d_proto.next_move = function(){
+_p4d_proto.next_move = function() {
     var mover = this.board_state.to_play;
     if (this.players[mover] == 'computer' &&
         this.auto_play_timeout === undefined){
-        var timeout = (this.players[1 - mover] == 'computer') ? 500: 10;
         var p4d = this;
-        this.auto_play_timeout = window.setTimeout(function(){p4d.computer_move();},
-                                                   timeout);
+        if (this.players[1 - mover] == 'computer') {
+            this.auto_play_timeout = window.setTimeout(function(){
+                p4d.computer_move();
+            }, POST_COMPUTER_MS);
+        } else {
+            this.auto_play_timeout = window.setTimeout(function(){
+                p4d.computer_move();
+            }, POST_HUMAN_MS);
+        }
     }
 };
 
