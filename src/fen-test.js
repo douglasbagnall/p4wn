@@ -250,7 +250,7 @@ var TEST_BUTTONS = [
         label: "reset RNG",
         onclick_wrap: function(p4d){
             return  function(e){
-                p4_random_seed(p4d.state, 1);
+                p4_random_seed(p4d.board_state, 1);
             };
         }
     },
