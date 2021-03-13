@@ -112,13 +112,17 @@ Version 3
 ---------
 
 Version 3 drops support for MSIE and FirefoxOS. It is many times
-faster.
+faster. There is no change in the API or user interface.
+
+This is the last version to not have web assembly and the associated
+adaptation of the API for asynchronous loading.
+
 
 Differences between versions
 ----------------------------
 
-Although they look entirely different, there is a structural and
-algorithmic continuity between the versions.
+Although version 1 looks entirely different from the later ones, there
+is a structural and algorithmic continuity.
 
 P4wn 1 was written to run on turn of the century browsers, and to be
 as small as possible. It works in browsers newer than Netscape 3 and
@@ -132,7 +136,7 @@ P4wn 2 in 2012 works a few thousand times faster than p4wn 1 did is
 improvements.
 
 P4wn 3 is optimised for 2020 browsers. It manages to be much faster by
-using typed arrays and reducing memory allocations, but at essence it
+using typed arrays and reducing memory allocations, but in essence it
 uses the same stupid evaluation algorithm.
 
 
@@ -517,14 +521,6 @@ You can make p4wn play the same game every time and possibly log more
 to the javscript console::
 
   P4_DEBUG = 1; /*or true */
-
-Typed arrays vs plain old arrays
-++++++++++++++++++++++++++++++++
-
-Modern browsers have typed arrays which p4wn uses by default where
-they exist.  You can force them off or on::
-
-  P4_USE_TYPED_ARRAYS = false;
 
 Changing the search algorithm
 =============================
